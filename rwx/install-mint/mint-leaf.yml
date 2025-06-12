@@ -13,7 +13,7 @@ tasks:
   - key: install
     run: |
       tmp="$(mktemp -d)/mint"
-      curl -o "$tmp" -fsSL "https://github.com/rwx-research/mint-cli/releases/download/${CLI_VERSION_PARAM}/mint-linux-x86_64"
+      curl -o "$tmp" -fsSL "https://github.com/rwx-cloud/cli/releases/download/${CLI_VERSION_PARAM}/mint-linux-x86_64"
       sudo install "$tmp" /usr/local/bin
       rm "$tmp"
       mint --version

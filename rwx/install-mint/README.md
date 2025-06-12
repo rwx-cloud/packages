@@ -20,4 +20,4 @@ tasks:
 
 For the list of available versions, see the releases on GitHub:
 
-https://github.com/rwx-research/mint-cli/releases
+https://github.com/rwx-cloud/cli/releases
