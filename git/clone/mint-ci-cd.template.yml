@@ -1,7 +1,7 @@
 - key: git-clone--test-ssh-key
   call: $LEAF_DIGEST
   with:
-    repository: git@github.com:rwx-research/test-checkout-leaf.git
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: a3fee4b93f41402d25eae501958c46cb9576fe5d
     ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
     submodules: false
@@ -13,7 +13,7 @@
 - key: git-clone--test-github-access-token
   call: $LEAF_DIGEST
   with:
-    repository: https://github.com/rwx-research/test-checkout-leaf.git
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: a3fee4b93f41402d25eae501958c46cb9576fe5d
     github-access-token: ${{ github.token }}
 
@@ -49,7 +49,7 @@
 - key: git-clone--test-preserve-git-dir
   call: $LEAF_DIGEST
   with:
-    repository: https://github.com/rwx-research/test-checkout-leaf.git
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: a3fee4b93f41402d25eae501958c46cb9576fe5d
     github-access-token: ${{ github.token }}
     preserve-git-dir: true
@@ -71,7 +71,7 @@
 - key: git-clone--test-commit-sha-ref-meta
   call: $LEAF_DIGEST
   with:
-    repository: git@github.com:rwx-research/test-checkout-leaf.git
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: a3fee4b93f41402d25eae501958c46cb9576fe5d
     ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
     submodules: false
@@ -90,7 +90,7 @@
 - key: git-clone--test-commit-sha-non-main-ref-meta
   call: $LEAF_DIGEST
   with:
-    repository: git@github.com:rwx-research/test-checkout-leaf.git
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: 4704503c51f6b5dd6346e219888488ed693dc54c
     ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
     submodules: false
@@ -109,7 +109,7 @@
 - key: git-clone--test-explicit-branch-ref-meta
   call: $LEAF_DIGEST
   with:
-    repository: git@github.com:rwx-research/test-checkout-leaf.git
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: refs/heads/main
     ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
     submodules: false
@@ -128,7 +128,7 @@
 - key: git-clone--test-implicit-branch-ref-meta
   call: $LEAF_DIGEST
   with:
-    repository: git@github.com:rwx-research/test-checkout-leaf.git
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: main
     ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
     submodules: false
@@ -147,7 +147,7 @@
 - key: git-clone--test-explicit-tag-ref-meta
   call: $LEAF_DIGEST
   with:
-    repository: git@github.com:rwx-research/test-checkout-leaf.git
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: refs/tags/v1
     ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
     submodules: false
@@ -166,7 +166,7 @@
 - key: git-clone--test-implicit-tag-ref-meta
   call: $LEAF_DIGEST
   with:
-    repository: git@github.com:rwx-research/test-checkout-leaf.git
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: v1
     ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
     submodules: false
@@ -185,7 +185,7 @@
 - key: git-clone--test-meta-ref-override
   call: $LEAF_DIGEST
   with:
-    repository: git@github.com:rwx-research/test-checkout-leaf.git
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: v1
     meta-ref: main
     ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
@@ -205,7 +205,7 @@
 - key: git-clone--test-ssh-repo-name
   call: $LEAF_DIGEST
   with:
-    repository: git@github.com:rwx-research/test-checkout-leaf.git
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: main
     ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
     submodules: false
@@ -213,8 +213,8 @@
 - key: git-clone--test-ssh-repo-name--assert
   use: git-clone--test-ssh-repo-name
   run: |
-    if [[ "$MINT_GIT_REPOSITORY_NAME" != "rwx-research/test-checkout-leaf" ]]; then
-      echo "Expected MINT_GIT_REPOSITORY_NAME to be rwx-research/test-checkout-leaf, got $MINT_GIT_REPOSITORY_NAME"
+    if [[ "$MINT_GIT_REPOSITORY_NAME" != "rwx-cloud/test-checkout-package" ]]; then
+      echo "Expected MINT_GIT_REPOSITORY_NAME to be rwx-cloud/test-checkout-package, got $MINT_GIT_REPOSITORY_NAME"
       exit 1
     fi
   env:
@@ -224,15 +224,15 @@
 - key: git-clone--test-https-repo-name
   call: $LEAF_DIGEST
   with:
-    repository: https://github.com/rwx-research/test-checkout-leaf.git
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: main
     github-access-token: ${{ github.token }}
 
 - key: git-clone--test-https-repo-name--assert
   use: git-clone--test-https-repo-name
   run: |
-    if [[ "$MINT_GIT_REPOSITORY_NAME" != "rwx-research/test-checkout-leaf" ]]; then
-      echo "Expected MINT_GIT_REPOSITORY_NAME to be rwx-research/test-checkout-leaf, got $MINT_GIT_REPOSITORY_NAME"
+    if [[ "$MINT_GIT_REPOSITORY_NAME" != "rwx-cloud/test-checkout-package" ]]; then
+      echo "Expected MINT_GIT_REPOSITORY_NAME to be rwx-cloud/test-checkout-package, got $MINT_GIT_REPOSITORY_NAME"
       exit 1
     fi
   env:
@@ -242,7 +242,7 @@
 - key: git-clone--test-preserve-git-dir-with-path
   call: $LEAF_DIGEST
   with:
-    repository: https://github.com/rwx-research/test-checkout-leaf.git
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: a3fee4b93f41402d25eae501958c46cb9576fe5d
     github-access-token: ${{ github.token }}
     preserve-git-dir: true
@@ -266,7 +266,7 @@
 - key: git-clone--test-lfs-with-github-token
   call: $LEAF_DIGEST
   with:
-    repository: https://github.com/rwx-research/test-checkout-leaf.git
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: a3fee4b93f41402d25eae501958c46cb9576fe5d
     github-access-token: ${{ github.token }}
     lfs: true
@@ -279,7 +279,7 @@
 - key: git-clone--test-lfs-with-ssh-key
   call: $LEAF_DIGEST
   with:
-    repository: git@github.com:rwx-research/test-checkout-leaf.git
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: a3fee4b93f41402d25eae501958c46cb9576fe5d
     ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
     lfs: true
@@ -293,7 +293,7 @@
 - key: git-clone--test-lfs-with-preserve-data
   call: $LEAF_DIGEST
   with:
-    repository: https://github.com/rwx-research/test-checkout-leaf.git
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: a3fee4b93f41402d25eae501958c46cb9576fe5d
     github-access-token: ${{ github.token }}
     lfs: true
@@ -308,7 +308,7 @@
 - key: git-clone--test-lfs-with-path
   call: $LEAF_DIGEST
   with:
-    repository: https://github.com/rwx-research/test-checkout-leaf.git
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: a3fee4b93f41402d25eae501958c46cb9576fe5d
     github-access-token: ${{ github.token }}
     lfs: true
@@ -322,7 +322,7 @@
 - key: git-clone--test-fetch-full-depth
   call: $LEAF_DIGEST
   with:
-    repository: https://github.com/rwx-research/test-checkout-leaf.git
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: a3fee4b93f41402d25eae501958c46cb9576fe5d
     github-access-token: ${{ github.token }}
     fetch-full-depth: true
@@ -334,21 +334,21 @@
 - key: git-clone--test-submodules
   call: $LEAF_DIGEST
   with:
-    repository: https://github.com/rwx-research/test-checkout-leaf.git
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: a3fee4b93f41402d25eae501958c46cb9576fe5d
     github-access-token: ${{ github.token }}
 
 - key: git-clone--test-submodules--assert
   use: git-clone--test-submodules
   run: |
-    test -e test-checkout-leaf-submodule/README.md
-    test ! -e test-checkout-leaf-submodule/.git
+    test -e test-checkout-package-submodule/README.md
+    test ! -e test-checkout-package-submodule/.git
     test ! -d .git
 
 - key: git-clone--test-submodules-preserve-git-dir
   call: $LEAF_DIGEST
   with:
-    repository: https://github.com/rwx-research/test-checkout-leaf.git
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: a3fee4b93f41402d25eae501958c46cb9576fe5d
     github-access-token: ${{ github.token }}
     preserve-git-dir: true
@@ -356,14 +356,14 @@
 - key: git-clone--test-submodules-preserve-git-dir--assert
   use: git-clone--test-submodules-preserve-git-dir
   run: |
-    test -e test-checkout-leaf-submodule/README.md
-    test -e test-checkout-leaf-submodule/.git
+    test -e test-checkout-package-submodule/README.md
+    test -e test-checkout-package-submodule/.git
     test -d .git
 
 - key: git-clone--test-submodules-false
   call: $LEAF_DIGEST
   with:
-    repository: https://github.com/rwx-research/test-checkout-leaf.git
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: a3fee4b93f41402d25eae501958c46cb9576fe5d
     github-access-token: ${{ github.token }}
     submodules: false
@@ -371,5 +371,5 @@
 - key: git-clone--test-submodules-false--assert
   use: git-clone--test-submodules-false
   run: |
-    test -e test-checkout-leaf-submodule
-    test ! -e test-checkout-leaf-submodule/README.md
+    test -e test-checkout-package-submodule
+    test ! -e test-checkout-package-submodule/README.md
