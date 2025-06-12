@@ -1,11 +1,11 @@
-# rwx/install-mint
+# rwx/install-cli
 
 To install the latest version of the Mint CLI:
 
 ```yaml
 tasks:
   - key: mint-cli
-    call: rwx/install-mint 1.0.7
+    call: rwx/install-cli 1.0.7
 ```
 
 To install a specific version of the Mint CLI:
@@ -13,7 +13,7 @@ To install a specific version of the Mint CLI:
 ```yaml
 tasks:
   - key: mint-cli
-    call: rwx/install-mint 1.0.7
+    call: rwx/install-cli 1.0.7
     with:
       cli-version: v1.3.3
 ```

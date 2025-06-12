@@ -1,7 +1,7 @@
-name: rwx/install-mint
+name: rwx/install-cli
 version: 1.0.7
 description: Install the Mint CLI
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/install-mint
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/install-cli
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 
 parameters:
