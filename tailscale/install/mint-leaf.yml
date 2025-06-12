@@ -1,12 +1,12 @@
 name: tailscale/install
-version: 1.0.0
+version: 1.0.1
 description: Install Tailscale
-source_code_url: https://github.com/rwx-research/mint-leaves/tree/main/tailscale/install
-issue_tracker_url: https://github.com/rwx-research/mint-leaves/issues
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/tailscale/install
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 
 parameters:
   version:
-    description: 'Version to install'
+    description: "Version to install"
     default: "latest"
 
 tasks:

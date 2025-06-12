@@ -5,7 +5,7 @@ To install the latest version of the Depot CLI:
 ```yaml
 tasks:
   - key: depot-cli
-    call: depot/install-cli 1.0.1
+    call: depot/install-cli 1.0.2
 ```
 
 To install a specific version of the Depot CLI:
@@ -13,7 +13,7 @@ To install a specific version of the Depot CLI:
 ```yaml
 tasks:
   - key: depot-cli
-    call: depot/install-cli 1.0.1
+    call: depot/install-cli 1.0.2
     with:
       cli-version: "2.53.0"
 ```

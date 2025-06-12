@@ -1,13 +1,13 @@
 name: twingate/setup
-version: 1.0.4
+version: 1.0.5
 description: Install & setup Twingate
-source_code_url: https://github.com/rwx-research/mint-leaves/tree/main/twingate/setup
-issue_tracker_url: https://github.com/rwx-research/mint-leaves/issues
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/twingate/setup
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 
 parameters:
-   twingate-service-key:
-     description: 'A service key for Twingate'
-     required: true
+  twingate-service-key:
+    description: "A service key for Twingate"
+    required: true
 
 tasks:
   - key: install

@@ -1,0 +1,375 @@
+- key: git-clone--test-ssh-key
+  call: $LEAF_DIGEST
+  with:
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
+    ref: e38d490f8b854325402c95bb56e5003a52e10df3
+    ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
+    submodules: false
+
+- key: git-clone--test-ssh-key--assert
+  use: git-clone--test-ssh-key
+  run: test -e file-in-repo.txt
+
+- key: git-clone--test-github-access-token
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
+    ref: e38d490f8b854325402c95bb56e5003a52e10df3
+    github-access-token: ${{ github['rwx-cloud'].token }}
+
+- key: git-clone--test-github-access-token--assert
+  use: git-clone--test-github-access-token
+  run: test -e file-in-repo.txt
+
+- key: git-clone--test-public-https
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-cloud/packages.git
+    ref: ad19b2fcb2e5f838be7b88aef436766bf067ffa1
+
+- key: git-clone--test-public-https--assert
+  use: git-clone--test-public-https
+  run: |
+    test -e git-clone
+    ! test -e .git
+
+- key: git-clone--test-path
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-cloud/packages.git
+    ref: ad19b2fcb2e5f838be7b88aef436766bf067ffa1
+    path: mint-leaves
+
+- key: git-clone--test-path--assert
+  use: git-clone--test-path
+  run: |
+    test -e mint-leaves/git-clone
+    ! test -e mint-leaves/.git
+
+- key: git-clone--test-preserve-git-dir
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
+    ref: e38d490f8b854325402c95bb56e5003a52e10df3
+    github-access-token: ${{ github['rwx-cloud'].token }}
+    preserve-git-dir: true
+
+- key: git-clone--test-preserve-git-dir--assert
+  use: git-clone--test-preserve-git-dir
+  run: |
+    test -d .git
+    test -e file-in-repo.txt
+    git fetch
+
+    GIT_EMAIL=$(git config user.email)
+    GIT_USERNAME=$(git config user.name)
+    test $GIT_EMAIL = "141855219+rwx-mint[bot]@users.noreply.github.com"
+    test $GIT_USERNAME = "rwx-mint[bot]"
+  env:
+    GITHUB_TOKEN: ${{ github['rwx-cloud'].token }}
+
+- key: git-clone--test-commit-sha-ref-meta
+  call: $LEAF_DIGEST
+  with:
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
+    ref: e38d490f8b854325402c95bb56e5003a52e10df3
+    ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
+    submodules: false
+
+- key: git-clone--test-commit-sha-ref-meta--assert
+  use: git-clone--test-commit-sha-ref-meta
+  run: |
+    if [[ "$MINT_GIT_REF" != "refs/heads/main" ]]; then
+      echo "Expected MINT_GIT_REF to be refs/heads/main, got $MINT_GIT_REF"
+      exit 1
+    fi
+  env:
+    MINT_GIT_REF:
+      cache-key: included
+
+- key: git-clone--test-commit-sha-non-main-ref-meta
+  call: $LEAF_DIGEST
+  with:
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
+    ref: 4704503c51f6b5dd6346e219888488ed693dc54c
+    ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
+    submodules: false
+
+- key: git-clone--test-commit-sha-non-main-ref-meta--assert
+  use: git-clone--test-commit-sha-non-main-ref-meta
+  run: |
+    if [[ "$MINT_GIT_REF" != "refs/heads/do-not-delete-this-branch" ]]; then
+      echo "Expected MINT_GIT_REF to be refs/heads/do-not-delete-this-branch, got $MINT_GIT_REF"
+      exit 1
+    fi
+  env:
+    MINT_GIT_REF:
+      cache-key: included
+
+- key: git-clone--test-explicit-branch-ref-meta
+  call: $LEAF_DIGEST
+  with:
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
+    ref: refs/heads/main
+    ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
+    submodules: false
+
+- key: git-clone--test-explicit-branch-ref-meta--assert
+  use: git-clone--test-explicit-branch-ref-meta
+  run: |
+    if [[ "$MINT_GIT_REF" != "refs/heads/main" ]]; then
+      echo "Expected MINT_GIT_REF to be refs/heads/main, got $MINT_GIT_REF"
+      exit 1
+    fi
+  env:
+    MINT_GIT_REF:
+      cache-key: included
+
+- key: git-clone--test-implicit-branch-ref-meta
+  call: $LEAF_DIGEST
+  with:
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
+    ref: main
+    ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
+    submodules: false
+
+- key: git-clone--test-implicit-branch-ref-meta--assert
+  use: git-clone--test-implicit-branch-ref-meta
+  run: |
+    if [[ "$MINT_GIT_REF" != "refs/heads/main" ]]; then
+      echo "Expected MINT_GIT_REF to be refs/heads/main, got $MINT_GIT_REF"
+      exit 1
+    fi
+  env:
+    MINT_GIT_REF:
+      cache-key: included
+
+- key: git-clone--test-explicit-tag-ref-meta
+  call: $LEAF_DIGEST
+  with:
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
+    ref: refs/tags/v1
+    ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
+    submodules: false
+
+- key: git-clone--test-explicit-tag-ref-meta--assert
+  use: git-clone--test-explicit-tag-ref-meta
+  run: |
+    if [[ "$MINT_GIT_REF" != "refs/tags/v1" ]]; then
+      echo "Expected MINT_GIT_REF to be refs/tags/v1, got $MINT_GIT_REF"
+      exit 1
+    fi
+  env:
+    MINT_GIT_REF:
+      cache-key: included
+
+- key: git-clone--test-implicit-tag-ref-meta
+  call: $LEAF_DIGEST
+  with:
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
+    ref: v1
+    ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
+    submodules: false
+
+- key: git-clone--test-implicit-tag-ref-meta--assert
+  use: git-clone--test-implicit-tag-ref-meta
+  run: |
+    if [[ "$MINT_GIT_REF" != "refs/tags/v1" ]]; then
+      echo "Expected MINT_GIT_REF to be refs/tags/v1, got $MINT_GIT_REF"
+      exit 1
+    fi
+  env:
+    MINT_GIT_REF:
+      cache-key: included
+
+- key: git-clone--test-meta-ref-override
+  call: $LEAF_DIGEST
+  with:
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
+    ref: v1
+    meta-ref: main
+    ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
+    submodules: false
+
+- key: git-clone--test-meta-ref-override--assert
+  use: git-clone--test-meta-ref-override
+  run: |
+    if [[ "$MINT_GIT_REF" != "refs/heads/main" ]]; then
+      echo "Expected MINT_GIT_REF to be refs/heads/main, got $MINT_GIT_REF"
+      exit 1
+    fi
+  env:
+    MINT_GIT_REF:
+      cache-key: included
+
+- key: git-clone--test-ssh-repo-name
+  call: $LEAF_DIGEST
+  with:
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
+    ref: main
+    ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
+    submodules: false
+
+- key: git-clone--test-ssh-repo-name--assert
+  use: git-clone--test-ssh-repo-name
+  run: |
+    if [[ "$MINT_GIT_REPOSITORY_NAME" != "rwx-cloud/test-checkout-package" ]]; then
+      echo "Expected MINT_GIT_REPOSITORY_NAME to be rwx-cloud/test-checkout-package, got $MINT_GIT_REPOSITORY_NAME"
+      exit 1
+    fi
+  env:
+    MINT_GIT_REPOSITORY_NAME:
+      cache-key: included
+
+- key: git-clone--test-https-repo-name
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
+    ref: main
+    github-access-token: ${{ github['rwx-cloud'].token }}
+
+- key: git-clone--test-https-repo-name--assert
+  use: git-clone--test-https-repo-name
+  run: |
+    if [[ "$MINT_GIT_REPOSITORY_NAME" != "rwx-cloud/test-checkout-package" ]]; then
+      echo "Expected MINT_GIT_REPOSITORY_NAME to be rwx-cloud/test-checkout-package, got $MINT_GIT_REPOSITORY_NAME"
+      exit 1
+    fi
+  env:
+    MINT_GIT_REPOSITORY_NAME:
+      cache-key: included
+
+- key: git-clone--test-preserve-git-dir-with-path
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
+    ref: e38d490f8b854325402c95bb56e5003a52e10df3
+    github-access-token: ${{ github['rwx-cloud'].token }}
+    preserve-git-dir: true
+    path: mint-leaves
+
+- key: git-clone--test-preserve-git-dir-with-path--assert
+  use: git-clone--test-preserve-git-dir-with-path
+  run: |
+    test -e mint-leaves/.git
+    test -e mint-leaves/file-in-repo.txt
+    cd mint-leaves
+    git fetch
+
+    GIT_EMAIL=$(git config user.email)
+    GIT_USERNAME=$(git config user.name)
+    test $GIT_EMAIL = "141855219+rwx-mint[bot]@users.noreply.github.com"
+    test $GIT_USERNAME = "rwx-mint[bot]"
+  env:
+    GITHUB_TOKEN: ${{ github['rwx-cloud'].token }}
+
+- key: git-clone--test-lfs-with-github-token
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
+    ref: e38d490f8b854325402c95bb56e5003a52e10df3
+    github-access-token: ${{ github['rwx-cloud'].token }}
+    lfs: true
+
+- key: git-clone--test-lfs-with-github-token--assert
+  use: git-clone--test-lfs-with-github-token
+  run: |
+    grep -q "lfs file" lfs-file.txt
+
+- key: git-clone--test-lfs-with-ssh-key
+  call: $LEAF_DIGEST
+  with:
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
+    ref: e38d490f8b854325402c95bb56e5003a52e10df3
+    ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
+    lfs: true
+    submodules: false
+
+- key: git-clone--test-lfs-with-ssh-key--assert
+  use: git-clone--test-lfs-with-ssh-key
+  run: |
+    grep -q "lfs file" lfs-file.txt
+
+- key: git-clone--test-lfs-with-preserve-data
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
+    ref: e38d490f8b854325402c95bb56e5003a52e10df3
+    github-access-token: ${{ github['rwx-cloud'].token }}
+    lfs: true
+    preserve-git-dir: true
+
+- key: git-clone--test-lfs-with-preserve-data--assert
+  use: git-clone--test-lfs-with-preserve-data
+  run: |
+    grep -q "lfs file" lfs-file.txt
+    git status | grep -q "nothing to commit, working tree clean"
+
+- key: git-clone--test-lfs-with-path
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
+    ref: e38d490f8b854325402c95bb56e5003a52e10df3
+    github-access-token: ${{ github['rwx-cloud'].token }}
+    lfs: true
+    path: mint-leaves
+
+- key: git-clone--test-lfs-with-path--assert
+  use: git-clone--test-lfs-with-path
+  run: |
+    grep -q "lfs file" mint-leaves/lfs-file.txt
+
+- key: git-clone--test-fetch-full-depth
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
+    ref: e38d490f8b854325402c95bb56e5003a52e10df3
+    github-access-token: ${{ github['rwx-cloud'].token }}
+    fetch-full-depth: true
+
+- key: git-clone--test-fetch-full-depth--assert
+  use: git-clone--test-fetch-full-depth
+  run: test -e file-in-repo.txt
+
+- key: git-clone--test-submodules
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
+    ref: e38d490f8b854325402c95bb56e5003a52e10df3
+    github-access-token: ${{ github['rwx-cloud'].token }}
+
+- key: git-clone--test-submodules--assert
+  use: git-clone--test-submodules
+  run: |
+    test -e test-checkout-package-submodule/README.md
+    test ! -e test-checkout-package-submodule/.git
+    test ! -d .git
+
+- key: git-clone--test-submodules-preserve-git-dir
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
+    ref: e38d490f8b854325402c95bb56e5003a52e10df3
+    github-access-token: ${{ github['rwx-cloud'].token }}
+    preserve-git-dir: true
+
+- key: git-clone--test-submodules-preserve-git-dir--assert
+  use: git-clone--test-submodules-preserve-git-dir
+  run: |
+    test -e test-checkout-package-submodule/README.md
+    test -e test-checkout-package-submodule/.git
+    test -d .git
+
+- key: git-clone--test-submodules-false
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
+    ref: e38d490f8b854325402c95bb56e5003a52e10df3
+    github-access-token: ${{ github['rwx-cloud'].token }}
+    submodules: false
+
+- key: git-clone--test-submodules-false--assert
+  use: git-clone--test-submodules-false
+  run: |
+    test -e test-checkout-package-submodule
+    test ! -e test-checkout-package-submodule/README.md

@@ -8,7 +8,7 @@
     repository: rwx-research/captain
     base-ref: 5294685f36ff0edd7775f685a1e92728d7f223cf
     head-ref: 8fe238bebb9276a7fafb83c7ee0513c83fa89061
-    github-token: ${{ github.token }}
+    github-token: ${{ github['rwx-research'].token }}
     patterns: "**/*.go"
 
 - key: assert-one-pattern-has-changes
@@ -29,7 +29,7 @@
     repository: rwx-research/captain
     base-ref: 5294685f36ff0edd7775f685a1e92728d7f223cf
     head-ref: 8fe238bebb9276a7fafb83c7ee0513c83fa89061
-    github-token: ${{ github.token }}
+    github-token: ${{ github['rwx-research'].token }}
     patterns: |
       **/*.go
       **/*.txt
@@ -58,7 +58,7 @@
     repository: rwx-research/captain
     base-ref: 5294685f36ff0edd7775f685a1e92728d7f223cf
     head-ref: 8fe238bebb9276a7fafb83c7ee0513c83fa89061
-    github-token: ${{ github.token }}
+    github-token: ${{ github['rwx-research'].token }}
     patterns: |
       !**/*.go
       internal/cli/parse.go
@@ -78,7 +78,7 @@
     repository: rwx-research/captain
     base-ref: 5294685f36ff0edd7775f685a1e92728d7f223cf
     head-ref: 8fe238bebb9276a7fafb83c7ee0513c83fa89061
-    github-token: ${{ github.token }}
+    github-token: ${{ github['rwx-research'].token }}
     patterns: "**/*.rb"
 
 - key: assert-one-pattern-has-no-changes
@@ -93,7 +93,7 @@
     repository: rwx-research/captain
     base-ref: 5294685f36ff0edd7775f685a1e92728d7f223cf
     head-ref: 8fe238bebb9276a7fafb83c7ee0513c83fa89061
-    github-token: ${{ github.token }}
+    github-token: ${{ github['rwx-research'].token }}
     patterns: |
       **/*.rb
       Gemfile.lock
@@ -110,7 +110,7 @@
     repository: rwx-research/captain
     base-ref: 5294685f36ff0edd7775f685a1e92728d7f223cf
     head-ref: 8fe238bebb9276a7fafb83c7ee0513c83fa89061
-    github-token: ${{ github.token }}
+    github-token: ${{ github['rwx-research'].token }}
     patterns: |
       internal/cli/parse.go
       !**/*.go
@@ -127,7 +127,7 @@
     repository: rwx-research/captain
     base-ref: main
     head-ref: main
-    github-token: ${{ github.token }}
+    github-token: ${{ github['rwx-research'].token }}
     patterns: "**/*"
 
 - key: assert-resolves-ref-names
@@ -142,7 +142,7 @@
     repository: rwx-research/captain
     base-ref: refs/heads/main
     head-ref: refs/heads/main
-    github-token: ${{ github.token }}
+    github-token: ${{ github['rwx-research'].token }}
     patterns: "**/*"
 
 - key: assert-resolves-refs-with-prefixes
