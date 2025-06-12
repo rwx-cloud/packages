@@ -5,7 +5,7 @@ To install & setup the latest version of Twingate:
  ```yaml
  tasks:
    - key: twingate
-     call: twingate/setup 1.0.4
+     call: twingate/setup 1.0.5
      with:
        twingate-service-key: ${{ secrets.twingate-service-key }}
  ```

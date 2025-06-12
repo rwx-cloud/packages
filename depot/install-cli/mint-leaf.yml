@@ -1,8 +1,8 @@
 name: depot/install-cli
-version: 1.0.1
+version: 1.0.2
 description: Install the Depot CLI
-source_code_url: https://github.com/rwx-research/mint-leaves/tree/main/depot/install-cli
-issue_tracker_url: https://github.com/rwx-research/mint-leaves/issues
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/depot/install-cli
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 
 parameters:
   cli-version:

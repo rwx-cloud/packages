@@ -1,8 +1,8 @@
 name: google-cloud/auth-credentials
-version: 1.0.3
+version: 1.0.4
 description: Authenticate to Google Cloud with credentials JSON
-source_code_url: https://github.com/rwx-research/mint-leaves/tree/main/google-cloud/auth-credentials
-issue_tracker_url: https://github.com/rwx-research/mint-leaves/issues
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/auth-credentials
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 
 parameters:
   credentials-json:

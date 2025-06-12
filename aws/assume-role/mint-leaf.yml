@@ -1,8 +1,8 @@
 name: aws/assume-role
-version: 2.0.2
+version: 2.0.3
 description: Assume an AWS role
-source_code_url: https://github.com/rwx-research/mint-leaves/tree/main/aws/assume-role
-issue_tracker_url: https://github.com/rwx-research/mint-leaves/issues
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/aws/assume-role
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 
 parameters:
   region:

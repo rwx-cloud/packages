@@ -24,7 +24,7 @@
 - key: git-clone--test-public-https
   call: $LEAF_DIGEST
   with:
-    repository: https://github.com/rwx-research/mint-leaves.git
+    repository: https://github.com/rwx-cloud/packages.git
     ref: ad19b2fcb2e5f838be7b88aef436766bf067ffa1
 
 - key: git-clone--test-public-https--assert
@@ -36,7 +36,7 @@
 - key: git-clone--test-path
   call: $LEAF_DIGEST
   with:
-    repository: https://github.com/rwx-research/mint-leaves.git
+    repository: https://github.com/rwx-cloud/packages.git
     ref: ad19b2fcb2e5f838be7b88aef436766bf067ffa1
     path: mint-leaves
 

@@ -1,8 +1,8 @@
 name: ruby/install
 version: 1.2.4
 description: Install Ruby, a dynamic programming language with a focus on simplicity and productivity
-source_code_url: https://github.com/rwx-research/mint-leaves/tree/main/ruby/install
-issue_tracker_url: https://github.com/rwx-research/mint-leaves/issues
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/ruby/install
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 
 parameters:
   ruby-version:
@@ -86,7 +86,7 @@ tasks:
       if [[ -z "$version_line" ]]; then
         cat << EOF > $(mktemp "$MINT_ERRORS/error-XXXX")
       Ruby $RUBY_VERSION is not available in this version of [ruby/install](https://cloud.rwx.com/leaves/ruby/install) and OS.
-      Try upgrading to the most recent version of this leaf. If the Ruby version is still not available, [file an issue](https://github.com/rwx-research/mint-leaves/issues/new).
+      Try upgrading to the most recent version of this leaf. If the Ruby version is still not available, [file an issue](https://github.com/rwx-cloud/packages/issues/new).
       EOF
         exit 3
       fi

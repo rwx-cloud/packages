@@ -1,8 +1,8 @@
 name: google/install-chrome
-version: 2.1.2
+version: 2.1.3
 description: Install Google Chrome, the official web browser from Google
-source_code_url: https://github.com/rwx-research/mint-leaves/tree/main/google/install-chrome
-issue_tracker_url: https://github.com/rwx-research/mint-leaves/issues
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/google/install-chrome
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 
 parameters:
   chrome-version:

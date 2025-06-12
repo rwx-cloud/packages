@@ -1,8 +1,8 @@
 name: github/install-cli
-version: 1.0.4
+version: 1.0.5
 description: Install the GitHub CLI, gh. It is GitHub on the command line.
-source_code_url: https://github.com/rwx-research/mint-leaves/tree/main/github/install-cli
-issue_tracker_url: https://github.com/rwx-research/mint-leaves/issues
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/install-cli
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 
 tasks:
   - key: install

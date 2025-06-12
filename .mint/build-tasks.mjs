@@ -97,7 +97,7 @@ const generateTestsTask = async (leaf) => {
 
   let leafTestTasks = [];
   const commands = [];
-  const testConfigs = leaf.config?.tests ?? []
+  const testConfigs = leaf.config?.tests ?? [];
   if (testConfigs.length === 0 && (await exists(path.join(leaf.dir, "mint-ci-cd.template.yml")))) {
     testConfigs.push({
       key: stringifyBase(DEFAULT_BASE_LAYER),
@@ -110,13 +110,15 @@ const generateTestsTask = async (leaf) => {
     const outputPath = path.join(leafBuildDir, `${testConfig.key}.yml`);
 
     // Generate an embedded run file artifact.
-    commands.push(`cat <<'EOF' > "${outputPath}"`)
+    commands.push(`cat <<'EOF' > "${outputPath}"`);
     if (testConfig.base) {
-      commands.push(yaml.stringify({ base: testConfig.base }, null, 2))
+      commands.push(yaml.stringify({ base: testConfig.base }, null, 2));
     }
-    commands.push(`tasks:`)
-    commands.push(`EOF`)
-    commands.push(`envsubst '$LEAF_DIGEST' < "${path.join(leaf.dir, testConfig.template)}" | sed -e 's/^/  /' | tee -a "${outputPath}"`)
+    commands.push(`tasks:`);
+    commands.push(`EOF`);
+    commands.push(
+      `envsubst '$LEAF_DIGEST' < "${path.join(leaf.dir, testConfig.template)}" | sed -e 's/^/  /' | tee -a "${outputPath}"`,
+    );
 
     artifacts.push({
       key: testConfig.key,
@@ -124,13 +126,13 @@ const generateTestsTask = async (leaf) => {
     });
 
     // Add the embedded run to the leaf's test tasks.
-    commands.push(`cat <<'EOF' >> "$MINT_DYNAMIC_TASKS/${leaf.key}.yml"`)
-    commands.push(`- key: test-${testConfig.key}`)
-    commands.push(`  call: \\\${{ tasks.generate-tests.artifacts.${testConfig.key} }}`)
-    commands.push("")
-    commands.push(`EOF`)
+    commands.push(`cat <<'EOF' >> "$MINT_DYNAMIC_TASKS/${leaf.key}.yml"`);
+    commands.push(`- key: test-${testConfig.key}`);
+    commands.push(`  call: \\\${{ tasks.generate-tests.artifacts.${testConfig.key} }}`);
+    commands.push("");
+    commands.push(`EOF`);
 
-    commands.push("")
+    commands.push("");
 
     leafTestTasks.push(`test-${testConfig.key}`);
   }
@@ -152,7 +154,7 @@ const generateTestsTask = async (leaf) => {
       LEAF_DIGEST: "${{ tasks.upload.values.leaf-digest }}",
     },
   };
-}
+};
 
 const generateLeafRun = async (leaf) => {
   return {
@@ -171,7 +173,7 @@ const generateLeafRun = async (leaf) => {
         call: "mint/git-clone 1.6.1",
         with: {
           "preserve-git-dir": true,
-          repository: "https://github.com/rwx-research/mint-leaves.git",
+          repository: "https://github.com/rwx-cloud/packages.git",
           ref: "${{ init.sha }}",
         },
       },
