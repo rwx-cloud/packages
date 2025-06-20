@@ -15,4 +15,4 @@ tasks:
     with:
       repository: https://github.com/rwx-cloud/packages.git
       ref: ${{ init.sha }}
-      github-access-token: ${{ github-apps.rwx-bot.token }}
+      github-access-token: ${{ github-apps.rwx-cloud-bot.token }}
