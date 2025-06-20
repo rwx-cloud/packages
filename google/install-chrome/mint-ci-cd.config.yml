@@ -10,5 +10,5 @@ tests:
     template: mint-ci-cd.template.yml
     base:
       os: ubuntu 24.04
-      tag: 1.0
+      tag: 1.1
       arch: x86_64
