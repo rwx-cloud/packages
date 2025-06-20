@@ -12,7 +12,7 @@ Versions 115 and greater are supported.
 ```yaml
 tasks:
   - key: chrome
-    call: google/install-chrome 2.1.3
+    call: google/install-chrome 2.1.4
     with:
       chrome-version: 130
 ```
@@ -22,7 +22,7 @@ tasks:
 ```yaml
 tasks:
   - key: chrome
-    call: google/install-chrome 2.1.3
+    call: google/install-chrome 2.1.4
     with:
       chrome-version: 130
       install-chromedriver: true
@@ -35,7 +35,7 @@ If you are installing multiple versions of chrome and using them within the same
 ```yaml
 tasks:
   - key: chrome-129
-    call: google/install-chrome 2.1.3
+    call: google/install-chrome 2.1.4
     with:
       chrome-version: 129
       install-chromedriver: true
@@ -44,7 +44,7 @@ tasks:
       add-to-path: false
 
   - key: chrome-130
-    call: google/install-chrome 2.1.3
+    call: google/install-chrome 2.1.4
     with:
       chrome-version: 130
       install-chromedriver: true
@@ -68,7 +68,7 @@ By default, `google/install-chrome` supports tools that interact with Chrome in 
 
 ```yml
 - key: chrome
-  call: google/install-chrome 2.1.3
+  call: google/install-chrome 2.1.4
   with:
     chrome-version: stable
     install-chromedriver: true
@@ -117,7 +117,7 @@ You can also use tools that interact with headed Chrome. To do so, wrap your com
 
 ```yml
 - key: chrome
-  call: google/install-chrome 2.1.3
+  call: google/install-chrome 2.1.4
   with:
     chrome-version: stable
     install-chromedriver: true
