@@ -9,7 +9,7 @@ To install the latest version of the Captain CLI:
 ```yaml
 tasks:
   - key: captain
-    call: rwx/install-captain 1.0.5
+    call: rwx/install-captain 1.1.0
 ```
 
 To install a specific version of the Captain CLI:
@@ -17,7 +17,7 @@ To install a specific version of the Captain CLI:
 ```yaml
 tasks:
   - key: captain
-    call: rwx/install-captain 1.0.5
+    call: rwx/install-captain 1.1.0
     with:
       captain-version: v1.18.3
 ```
