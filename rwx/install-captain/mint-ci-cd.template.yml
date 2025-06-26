@@ -3,7 +3,7 @@
 
 - key: install-captain--test-default--assert
   use: install-captain--test-default
-  run: captain --version | grep '^v1\.'
+  run: captain --version | grep '^v2\.'
 
 - key: install-captain--test-specified
   call: $LEAF_DIGEST
