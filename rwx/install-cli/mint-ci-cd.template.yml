@@ -3,13 +3,13 @@
 
 - key: test-default--assert
   use: test-default
-  run: mint --version | grep 'mint version v1\.'
+  run: rwx --version | grep 'rwx version v1\.'
 
 - key: test-specified
   call: $LEAF_DIGEST
   with:
-    cli-version: v0.0.12
+    cli-version: v1.9.1
 
 - key: test-specified--assert
   use: test-specified
-  run: mint --version | grep 'mint version v0\.0\.12'
+  run: rwx --version | grep 'rwx version v1\.9\.1'
