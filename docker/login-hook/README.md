@@ -15,7 +15,7 @@ of the registry as the `registry` parameter to this leaf.
 ```yaml
 tasks:
   - key: docker-login
-    call: docker/login-hook 1.0.2
+    call: docker/login-hook 1.0.3
     with:
       username: my-username
 
@@ -32,7 +32,7 @@ Override the registry:
 ```yaml
 tasks:
   - key: docker-login
-    call: docker/login-hook 1.0.2
+    call: docker/login-hook 1.0.3
     with:
       username: my-username
       registry: custom-registry.your-company.com
@@ -53,12 +53,12 @@ However, you'll need to specify `password-env-name` to prevent conflicts.
 ```yaml
 tasks:
   - key: docker-login-dockerhub
-    call: docker/login-hook 1.0.2
+    call: docker/login-hook 1.0.3
     with:
       username: my-username
 
   - key: docker-login-other-registry
-    call: docker/login-hook 1.0.2
+    call: docker/login-hook 1.0.3
     with:
       username: my-username
       password-env-name: OTHER_REGISTRY_PASSWORD
@@ -82,7 +82,7 @@ organization name for the username and the access token for the password:
 ```yaml
 tasks:
   - key: docker-login
-    call: docker/login-hook 1.0.2
+    call: docker/login-hook 1.0.3
     with:
       username: my-docker-organization
 

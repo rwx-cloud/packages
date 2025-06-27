@@ -1,0 +1,16 @@
+name: golang/install
+version: 1.1.3
+description: Install the Go programming language
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/golang/install
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+
+parameters:
+  go-version:
+    description: "Version of Go to install"
+    default: "latest"
+
+tasks:
+  - key: install
+    run: $MINT_LEAF_PATH/bin/install-go
+    env:
+      GO_VERSION: ${{ params.go-version }}

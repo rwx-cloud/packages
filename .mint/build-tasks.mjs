@@ -5,19 +5,19 @@ import yaml from "yaml";
 
 const BUILD_DIR = process.env.BUILD_DIR;
 const GIT_DIFF_FILE = process.env.GIT_DIFF_FILE;
-const MINT_DYNAMIC_TASKS = process.env.MINT_DYNAMIC_TASKS;
+const RWX_DYNAMIC_TASKS = process.env.RWX_DYNAMIC_TASKS;
 
-if (!BUILD_DIR || !GIT_DIFF_FILE || !MINT_DYNAMIC_TASKS) {
-  console.error("Must set BUILD_DIR and GIT_DIFF_FILE and MINT_DYNAMIC_TASKS");
+if (!BUILD_DIR || !GIT_DIFF_FILE || !RWX_DYNAMIC_TASKS) {
+  console.error("Must set BUILD_DIR and GIT_DIFF_FILE and RWX_DYNAMIC_TASKS");
   process.exit(1);
 }
 
-let leaves = [];
+let packages = [];
 const leafDirs = new Set();
 const leavesToBuild = new Set();
 const DEFAULT_BASE_LAYER = {
-  os: "ubuntu 22.04",
-  tag: "1.0",
+  os: "ubuntu 24.04",
+  tag: "1.1",
   arch: "x86_64",
 };
 
@@ -30,7 +30,7 @@ async function exists(pathname) {
   }
 }
 
-for (const file of (await glob("*/*/mint-leaf.yml")).sort()) {
+for (const file of (await glob("*/*/rwx-package.yml")).sort()) {
   const name = path.dirname(file);
   const key = name.replace("/", "-");
   let buildDependencies = [];
@@ -39,11 +39,11 @@ for (const file of (await glob("*/*/mint-leaf.yml")).sort()) {
   }
 
   let config;
-  if (await exists(path.join(name, "mint-ci-cd.config.yml"))) {
-    config = yaml.parse(await fs.readFile(path.join(name, "mint-ci-cd.config.yml"), { encoding: "utf8" }));
+  if (await exists(path.join(name, "rwx-ci-cd.config.yml"))) {
+    config = yaml.parse(await fs.readFile(path.join(name, "rwx-ci-cd.config.yml"), { encoding: "utf8" }));
   }
 
-  leaves.push({
+  packages.push({
     name,
     key,
     dir: name,
@@ -81,12 +81,12 @@ for (const line of (await fs.readFile(GIT_DIFF_FILE, "utf8")).split("\n")) {
 }
 
 if (buildAll) {
-  console.log("Building all leaves");
+  console.log("Building all packages");
 } else {
-  console.log("Only building leaves with changes:");
+  console.log("Only building packages with changes:");
   leavesToBuild.forEach((leaf) => console.log(leaf));
 
-  leaves = leaves.filter((leaf) => leavesToBuild.has(leaf.name));
+  packages = packages.filter((leaf) => leavesToBuild.has(leaf.name));
 }
 
 const stringifyBase = (base) => `${base.os}-${base.arch}-${base.tag}`.replaceAll(/[^a-zA-Z0-9-]/g, "-");
@@ -98,10 +98,10 @@ const generateTestsTask = async (leaf) => {
   let leafTestTasks = [];
   const commands = [];
   const testConfigs = leaf.config?.tests ?? [];
-  if (testConfigs.length === 0 && (await exists(path.join(leaf.dir, "mint-ci-cd.template.yml")))) {
+  if (testConfigs.length === 0 && (await exists(path.join(leaf.dir, "rwx-ci-cd.template.yml")))) {
     testConfigs.push({
       key: stringifyBase(DEFAULT_BASE_LAYER),
-      template: "mint-ci-cd.template.yml",
+      template: "rwx-ci-cd.template.yml",
       base: DEFAULT_BASE_LAYER,
     });
   }
@@ -125,8 +125,8 @@ const generateTestsTask = async (leaf) => {
       path: outputPath,
     });
 
-    // Add the embedded run to the leaf's test tasks.
-    commands.push(`cat <<'EOF' >> "$MINT_DYNAMIC_TASKS/${leaf.key}.yml"`);
+    // Add the embedded run to the package's test tasks.
+    commands.push(`cat <<'EOF' >> "$RWX_DYNAMIC_TASKS/${leaf.key}.yml"`);
     commands.push(`- key: test-${testConfig.key}`);
     commands.push(`  call: \\\${{ tasks.generate-tests.artifacts.${testConfig.key} }}`);
     commands.push("");
@@ -147,7 +147,7 @@ const generateTestsTask = async (leaf) => {
       ${commands.join("\n")}
 
       export LEAF_TEST_TASKS="${leafTestTasks.join(",")}"
-      envsubst '$LEAF_TEST_TASKS' < publish-tasks.template.yml | tee -a $MINT_DYNAMIC_TASKS/${leaf.key}.yml
+      envsubst '$LEAF_TEST_TASKS' < publish-tasks.template.yml | tee -a $RWX_DYNAMIC_TASKS/${leaf.key}.yml
     `,
     outputs: { artifacts },
     env: {
@@ -170,7 +170,7 @@ const generateLeafRun = async (leaf) => {
       },
       {
         key: "code",
-        call: "mint/git-clone 1.6.1",
+        call: "git/clone 1.6.5",
         with: {
           "preserve-git-dir": true,
           repository: "https://github.com/rwx-cloud/packages.git",
@@ -182,7 +182,7 @@ const generateLeafRun = async (leaf) => {
         use: "code",
         run: `
           latest_timestamp=$(git ls-files -z ${leaf.dir} | xargs -0 -n1 -I{} -- git log -1 --date=format:"%Y%m%d%H%M" --format="%ad" {} | sort | tail -n 1)
-          echo -n "$latest_timestamp" | tee $MINT_VALUES/timestamp
+          echo -n "$latest_timestamp" | tee $RWX_VALUES/timestamp
         `,
       },
       ...leaf.buildDependencies,
@@ -231,7 +231,7 @@ const generateLeafRun = async (leaf) => {
             https://cloud.rwx.com/mint/api/leaves | tee leaves-result.json
 
           leaf_digest=$(cat leaves-result.json | jq -r '.digest')
-          echo -n "$leaf_digest" > "$MINT_VALUES/leaf-digest"
+          echo -n "$leaf_digest" > "$RWX_VALUES/leaf-digest"
         `,
       },
       await generateTestsTask(leaf),
@@ -242,7 +242,7 @@ const generateLeafRun = async (leaf) => {
 const artifacts = [];
 const leafRuns = [];
 
-for (const leaf of leaves) {
+for (const leaf of packages) {
   const content = yaml.stringify(await generateLeafRun(leaf));
   await fs.writeFile(leaf.artifactFile, content, "utf8");
 
@@ -269,9 +269,9 @@ const generateTask = {
   use: "build-leaf-runs",
   run: `
     ${artifacts.map((a) => `touch ${a.path}`).join("\n")}
-    cp ${BUILD_DIR}/leaf-runs.yaml $MINT_DYNAMIC_TASKS
+    cp ${BUILD_DIR}/leaf-runs.yaml $RWX_DYNAMIC_TASKS
   `,
   outputs: { artifacts },
 };
 
-await fs.writeFile(`${MINT_DYNAMIC_TASKS}/generate-task.yaml`, yaml.stringify([generateTask]));
+await fs.writeFile(`${RWX_DYNAMIC_TASKS}/generate-task.yaml`, yaml.stringify([generateTask]));

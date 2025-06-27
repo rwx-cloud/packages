@@ -8,7 +8,7 @@ tasks:
     call: aws/install-cli 1.0.2
 
   - key: assume-role
-    call: aws/assume-role 2.0.3
+    call: aws/assume-role 2.0.4
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -30,7 +30,7 @@ tasks:
     call: aws/install-cli 1.0.2
 
   - key: assume-role
-    call: aws/assume-role 2.0.3
+    call: aws/assume-role 2.0.4
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -50,7 +50,7 @@ tasks:
     call: aws/install-cli 1.0.2
 
   - key: assume-role
-    call: aws/assume-role 2.0.3
+    call: aws/assume-role 2.0.4
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -73,7 +73,7 @@ tasks:
     call: aws/install-cli 1.0.2
 
   - key: assume-role
-    call: aws/assume-role 2.0.3
+    call: aws/assume-role 2.0.4
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -96,7 +96,7 @@ tasks:
     call: aws/install-cli 1.0.2
 
   - key: assume-role
-    call: aws/assume-role 2.0.3
+    call: aws/assume-role 2.0.4
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -119,14 +119,14 @@ tasks:
     call: aws/install-cli 1.0.2
 
   - key: assume-role
-    call: aws/assume-role 2.0.3
+    call: aws/assume-role 2.0.4
     with:
       oidc-token: ${{ vaults.your-vault.oidc.your-token }}
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
 
   - key: chained-role
-    call: aws/assume-role 2.0.3
+    call: aws/assume-role 2.0.4
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-other-role
@@ -149,14 +149,14 @@ tasks:
     call: aws/install-cli 1.0.2
 
   - key: assume-role
-    call: aws/assume-role 2.0.3
+    call: aws/assume-role 2.0.4
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
       profile-name: your-profile
 
   - key: chained-role
-    call: aws/assume-role 2.0.3
+    call: aws/assume-role 2.0.4
     with:
       source-profile-name: your-profile
       region: us-east-2
@@ -210,7 +210,7 @@ tasks:
     call: aws/install-cli 1.0.2
 
   - key: assume-role
-    call: aws/assume-role 2.0.3
+    call: aws/assume-role 2.0.4
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -261,14 +261,14 @@ tasks:
     call: aws/install-cli 1.0.2
 
   - key: assume-role
-    call: aws/assume-role 2.0.3
+    call: aws/assume-role 2.0.4
     with:
       oidc-token: ${{ vaults.your-vault.oidc.your-token }}
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
 
   - key: chain-role
-    call: aws/assume-role 2.0.3
+    call: aws/assume-role 2.0.4
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-other-role

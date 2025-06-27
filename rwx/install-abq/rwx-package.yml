@@ -1,0 +1,30 @@
+name: rwx/install-abq
+version: 1.1.5
+description: ABQ is a universal test runner that runs test suites in parallel. It’s the best tool for splitting test suites into parallel jobs in CI.
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/install-abq
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+
+parameters:
+  rwx-access-token:
+    description: "RWX_ACCESS_TOKEN used to authenticate into ABQ. If not specified, the Mint default RWX_ACCESS_TOKEN for your organization is used."
+    required: false
+
+tasks:
+  - key: install
+    run: |
+      install_id=mint-$(date +%F)
+      if [[ "$RWX_ACCESS_TOKEN_PARAM" != "" ]]; then
+        export RWX_ACCESS_TOKEN="$RWX_ACCESS_TOKEN_PARAM"
+      fi
+      tmp="$(mktemp -d)/abq"
+      curl -o $tmp -fsSL \
+        -H "Authorization: Bearer $RWX_ACCESS_TOKEN" \
+        "https://cloud.rwx.com/abq/api/releases/v1/Linux/x86_64/abq?install_id=${install_id}"
+      sudo install $tmp /usr/local/bin
+      rm $tmp
+      abq --version
+    cache:
+      enabled: true
+      ttl: 1 day
+    env:
+      RWX_ACCESS_TOKEN_PARAM: ${{ params.rwx-access-token }}

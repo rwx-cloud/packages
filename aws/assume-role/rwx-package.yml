@@ -1,0 +1,100 @@
+name: aws/assume-role
+version: 2.0.4
+description: Assume an AWS role
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/aws/assume-role
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+
+parameters:
+  region:
+    description: "The AWS region (e.g. us-east-2)."
+    required: true
+  role-to-assume:
+    description: "The ARN of the AWS role to be assumed (e.g. arn:aws:iam::your-account-id:role/your-role)."
+    required: true
+  role-duration-seconds:
+    description: "The role duration in seconds."
+    default: 900
+  role-session-name:
+    description: "The name of the session."
+    required: false
+  profile-name:
+    description: "The profile under which the credentials will be configured."
+    default: "default"
+  oidc-token-env-var:
+    description: "The environment variable that contains the OIDC token."
+    default: "AWS_OIDC_TOKEN"
+  role-chaining:
+    description: "Enable role chaining."
+    default: false
+  source-profile-name:
+    description: "The profile used to assume the chained role (only used with role-chaining is enabled)."
+    default: "default"
+
+tasks:
+  - key: produce-assume-role-hooks
+    run: |
+      set -ueo pipefail
+
+      if [[ "${{ params.role-chaining}}" == "false" ]]; then
+        BEFORE_HOOK_TEMPLATE="$MINT_LEAF_PATH/assume-role.template.txt"
+        BEFORE_HOOK="$MINT_HOOKS_BEFORE_TASK/aws-assume-role--assume-${{ params.profile-name }}.sh"
+        AFTER_HOOK="$MINT_HOOKS_AFTER_TASK/aws-assume-role--assume-${{ params.profile-name }}.sh"
+
+        awk \
+          -v REGION="${{ params.region }}" \
+          -v ROLE_TO_ASSUME="${{ params.role-to-assume }}" \
+          -v ROLE_DURATION_SECONDS="${{ params.role-duration-seconds }}" \
+          -v ROLE_SESSION_NAME="${{ params.role-session-name }}" \
+          -v PROFILE_NAME="${{ params.profile-name }}" \
+          -v OIDC_TOKEN_ENV_VAR="${{ params.oidc-token-env-var }}" \
+        '{
+            gsub("%{{REGION}}", REGION);
+            gsub("%{{ROLE_TO_ASSUME}}", ROLE_TO_ASSUME);
+            gsub("%{{ROLE_DURATION_SECONDS}}", ROLE_DURATION_SECONDS);
+            gsub("%{{ROLE_SESSION_NAME}}", ROLE_SESSION_NAME);
+            gsub("%{{PROFILE_NAME}}", PROFILE_NAME);
+            gsub("%{{OIDC_TOKEN_ENV_VAR}}", OIDC_TOKEN_ENV_VAR);
+            print
+        }' "$BEFORE_HOOK_TEMPLATE" > $BEFORE_HOOK
+
+      else
+        BEFORE_HOOK_TEMPLATE="$MINT_LEAF_PATH/chain-role.template.txt"
+        ROLE_TO_ASSUME_HASH=$(echo -n "${{ params.role-to-assume }}" | sha1sum | awk '{print $1}')
+        BEFORE_HOOK="$MINT_HOOKS_BEFORE_TASK/aws-assume-role--chain-${{ params.profile-name }}--$ROLE_TO_ASSUME_HASH.sh"
+        AFTER_HOOK="$MINT_HOOKS_AFTER_TASK/aws-assume-role--chain-${{ params.profile-name }}--$ROLE_TO_ASSUME_HASH.sh"
+
+        awk \
+          -v REGION="${{ params.region }}" \
+          -v ROLE_TO_ASSUME="${{ params.role-to-assume }}" \
+          -v ROLE_DURATION_SECONDS="${{ params.role-duration-seconds }}" \
+          -v ROLE_SESSION_NAME="${{ params.role-session-name }}" \
+          -v PROFILE_NAME="${{ params.profile-name }}" \
+          -v SOURCE_PROFILE_NAME="${{ params.source-profile-name }}" \
+        '{
+            gsub("%{{REGION}}", REGION);
+            gsub("%{{ROLE_TO_ASSUME}}", ROLE_TO_ASSUME);
+            gsub("%{{ROLE_DURATION_SECONDS}}", ROLE_DURATION_SECONDS);
+            gsub("%{{ROLE_SESSION_NAME}}", ROLE_SESSION_NAME);
+            gsub("%{{PROFILE_NAME}}", PROFILE_NAME);
+            gsub("%{{SOURCE_PROFILE_NAME}}", SOURCE_PROFILE_NAME);
+            print
+        }' "$BEFORE_HOOK_TEMPLATE" > $BEFORE_HOOK
+      fi
+
+      bash -n $BEFORE_HOOK || { echo "Generated before hook script has syntax errors."; exit 1; }
+
+      cat <<'EOF' > $AFTER_HOOK
+      set -ueo pipefail
+      AWS_SKIP_AUTH="${AWS_SKIP_AUTH:-}"
+      if [ -n "$AWS_SKIP_AUTH" ]; then
+        echo "AWS_SKIP_AUTH is set, the aws/assume-role hook has been skipped."
+        exit 0
+      fi
+      echo 'Removing aws credentials'
+      if [ -f ~/.aws/credentials ]; then
+        rm ~/.aws/credentials
+      fi
+      EOF
+
+      chmod +x $BEFORE_HOOK
+      chmod +x $AFTER_HOOK

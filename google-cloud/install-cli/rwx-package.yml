@@ -1,0 +1,78 @@
+name: google-cloud/install-cli
+version: 1.1.5
+description: Install the Google Cloud SDK CLI
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/install-cli
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+
+parameters:
+  cli-version:
+    description: "Version of the CLI to install"
+    default: "latest"
+  components:
+    description: "Optional space-separated list of CLI components to install"
+    default: ""
+
+tasks:
+  - key: install-cli
+    run: |
+      source "$MINT_LEAF_PATH/mint-utils.sh"
+      if [ "$(mint_os_name)" != "ubuntu" ]; then
+        echo "Unsupported operating system \`$(mint_os_name)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        exit 1
+      fi
+
+      architecture=""
+      case $(uname -m) in
+        x86_64) architecture="x86_64" ;;
+        arm|aarch64) architecture="arm" ;;
+        *) echo "Unsupported architecture: $(uname -m)"; exit 1 ;;
+      esac
+
+      cli_version="${{ params.cli-version }}"
+      if [[ "$cli_version" == "latest" ]]; then
+        echo
+        echo "Resolving latest version of Google Cloud SDK"
+        curl --fail-with-body -o latest-cloud-sdk.tar.gz https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz
+        cli_version=$(tar -Ozxf latest-cloud-sdk.tar.gz google-cloud-sdk/VERSION)
+        rm latest-cloud-sdk.tar.gz
+        echo "Using version ${cli_version}"
+      fi
+
+      filename="google-cloud-cli-${cli_version}-linux-${architecture}.tar.gz"
+      install_dir="/opt/google-cloud/v${cli_version}"
+
+      echo
+      echo "Downloading ${filename}"
+      curl --fail-with-body -O "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${filename}"
+
+      echo
+      echo "Extracting to ${install_dir}/google-cloud-sdk"
+      sudo mkdir -p "$install_dir"
+      sudo chown ubuntu:ubuntu "$install_dir"
+      tar -xf "$filename" -C "$install_dir"
+      rm "$filename"
+
+      echo
+      echo "Running installer"
+      "${install_dir}/google-cloud-sdk/install.sh" --quiet
+
+      echo
+      bin_dir="${install_dir}/google-cloud-sdk/bin"
+      echo "Adding ${bin_dir} to PATH"
+      echo "$bin_dir" >> "${MINT_ENV}/PATH"
+      export PATH="${bin_dir}:$PATH"
+
+      echo
+      echo "Checking installation"
+      gcloud --version
+
+      if [[ "${{ params.components }}" != "" ]]; then
+        echo
+        echo "Installing components"
+        IFS=" " read -r -a components <<< "${{ params.components }}"
+        gcloud components install "${components[@]}"
+      fi
+
+      echo
+      echo "Cleaning Google Cloud SDK backup"
+      rm -rf "${install_dir}/google-cloud-sdk/.install/.backup"

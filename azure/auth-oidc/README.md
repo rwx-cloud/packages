@@ -14,7 +14,7 @@ tasks:
 
   - key: azure-auth
     use: azure-cli
-    call: azure/auth-oidc 1.0.1
+    call: azure/auth-oidc 1.0.2
     with:
       oidc-token: ${{ vaults.your-vault.oidc.your-token }}
       client-id: ${{ vaults.your-vault.secrets.your-azure-client-id }}
@@ -31,7 +31,7 @@ tasks:
 
   - key: azure-auth
     use: azure-cli
-    call: azure/auth-oidc 1.0.1
+    call: azure/auth-oidc 1.0.2
     with:
       oidc-token: ${{ vaults.your-vault.oidc.your-token }}
       client-id: ${{ vaults.your-vault.secrets.your-azure-client-id }}

@@ -61,24 +61,24 @@ tasks:
   - key: check-version-consistency
     use: checkout
     run: |
-      leaves=$(ls */*/mint-leaf.yml | cut -d/ -f1,2)
-      while read -r leaf; do
-        echo "Checking $leaf..."
-        version=$(grep '^version:' $leaf/mint-leaf.yml | awk '{print $2}')
+      packages=$(ls */*/rwx-package.yml | cut -d/ -f1,2)
+      while read -r package; do
+        echo "Checking $package..."
+        version=$(grep '^version:' $package/rwx-package.yml | awk '{print $2}')
         major_version=$(echo "$version" | cut -d. -f1)
         previous_major_version=$(("$major_version" - 1))
         echo "$version"
         set +e
-        mismatches=$(grep "call: $leaf" $leaf/README.md | grep -v "$version" | grep -E -v "call: $leaf $previous_major_version\\.[0-9]+\\.[0-9]+")
+        mismatches=$(grep "call: $package" $package/README.md | grep -v "$version" | grep -E -v "call: $package $previous_major_version\\.[0-9]+\\.[0-9]+")
         set -e
         if [[ -n "$mismatches" ]]; then
           echo "$mismatches"
           exit 1
         fi
-      done <<< "$leaves"
+      done <<< "$packages"
     filter:
       - "**/README.md"
-      - "**/mint-leaf.yml"
+      - "**/rwx-package.yml"
 
   - key: build-leaf-runs
     use: npm-install

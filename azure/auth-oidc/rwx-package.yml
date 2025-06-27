@@ -1,0 +1,53 @@
+name: azure/auth-oidc
+version: 1.0.2
+description: Authenticate the Azure CLI via OIDC
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/azure/auth-oidc
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+
+parameters:
+  oidc-token:
+    description: "The OIDC token that will be exchanged for temporary credentials (e.g. vaults.your-vault.oidc.your-token)"
+    required: true
+  client-id:
+    description: "The client id of a service principal or a user-assigned managed identity"
+    required: true
+  tenant-id:
+    description: "The tenant id"
+    required: true
+  subscription-id:
+    description: "The subscription id"
+    required: false
+    default: ""
+  allow-no-subscription:
+    description: "Whether it is permissable to have no subscriptions associated to the client id (for use in managing tenant-level resources)"
+    required: false
+    default: "false"
+
+tasks:
+  - key: auth-oidc
+    run: |
+      if ! command -v az &> /dev/null; then
+        cat << 'EOF' > $(mktemp "$MINT_ERRORS/error-XXXX")
+      The Azure CLI (az) must be installed. To install it, you can use the `azure/install-cli` leaf.
+      EOF
+        exit 1
+      fi
+
+      extra_args=()
+
+      if [[ "${ALLOW_NO_SUBSCRIPTION}" != "false" ]]; then
+        extra_args+=("--allow-no-subscriptions")
+      fi
+
+      az login --service-principal --username "${CLIENT_ID}" --tenant "${TENANT_ID}" --federated-token "${OIDC_TOKEN}" "${extra_args[@]}"
+
+      if [[ -n "${SUBSCRIPTION_ID}" ]]; then
+        az account set --subscription "${SUBSCRIPTION_ID}"
+      fi
+    env:
+      OIDC_TOKEN: ${{ params.oidc-token }}
+      CLIENT_ID: ${{ params.client-id }}
+      TENANT_ID: ${{ params.tenant-id }}
+      SUBSCRIPTION_ID: ${{ params.subscription-id }}
+      ALLOW_NO_SUBSCRIPTION: ${{ params.allow-no-subscription }}
+    cache: false
