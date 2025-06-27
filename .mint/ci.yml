@@ -64,7 +64,7 @@ tasks:
       packages=$(ls */*/rwx-package.yml | cut -d/ -f1,2)
       while read -r package; do
         echo "Checking $package..."
-        version=$(grep '^version:' $leaf/rwx-package.yml | awk '{print $2}')
+        version=$(grep '^version:' $package/rwx-package.yml | awk '{print $2}')
         major_version=$(echo "$version" | cut -d. -f1)
         previous_major_version=$(("$major_version" - 1))
         echo "$version"
