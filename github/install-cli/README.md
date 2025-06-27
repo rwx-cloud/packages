@@ -5,5 +5,5 @@ To install the latest version of the GitHub CLI:
 ```yaml
 tasks:
   - key: github-cli
-    call: github/install-cli 1.0.5
+    call: github/install-cli 1.0.6
 ```

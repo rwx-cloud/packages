@@ -1,5 +1,5 @@
 name: erlang/install
-version: 1.0.6
+version: 1.0.7
 description: Install Erlang, a programming language used to build massively scalable soft real-time systems with requirements on high availability
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/erlang/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues

@@ -1,5 +1,5 @@
 name: sonarsource/install-sonar-scanner
-version: 1.0.1
+version: 1.0.2
 description: Install SonarSource's sonar-scanner
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/sonarsource/install-sonar-scanner
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues

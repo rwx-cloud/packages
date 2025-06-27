@@ -27,7 +27,7 @@ tasks:
 
   - key: tool-versions
     use: code
-    call: rwx/tool-versions 1.0.3
+    call: rwx/tool-versions 1.0.4
     filter: [.tool-versions]
 
   - key: nodejs

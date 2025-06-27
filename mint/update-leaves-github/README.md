@@ -20,7 +20,7 @@ To update minor versions (recommended):
 ```yaml
 tasks:
   - key: mint-update-leaves
-    call: mint/update-leaves-github 1.0.8
+    call: mint/update-leaves-github 1.0.9
     with:
       repository: https://github.com/YOUR-ORG/YOUR-REPO.git
       ref: ${{ init.commit-sha }}
@@ -32,7 +32,7 @@ Customize the label and color name:
 ```yaml
 tasks:
   - key: mint-update-leaves
-    call: mint/update-leaves-github 1.0.8
+    call: mint/update-leaves-github 1.0.9
     with:
       repository: https://github.com/YOUR-ORG/YOUR-REPO.git
       ref: ${{ init.commit-sha }}

@@ -11,7 +11,7 @@ tasks:
 
   - key: elixir
     use: erlang
-    call: elixir-lang/install 1.0.4
+    call: elixir-lang/install 1.0.5
     with:
       elixir-version: "1.17.2"
 ```
