@@ -10,7 +10,7 @@ To authenticate with an identity using a subscription:
 ```yaml
 tasks:
   - key: azure-cli
-    call: azure/install-cli 1.0.1
+    call: azure/install-cli 1.0.2
 
   - key: azure-auth
     use: azure-cli
@@ -27,7 +27,7 @@ To authenticate without a subscription (when managing tenant-level resources):
 ```yaml
 tasks:
   - key: azure-cli
-    call: azure/install-cli 1.0.1
+    call: azure/install-cli 1.0.2
 
   - key: azure-auth
     use: azure-cli

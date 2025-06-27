@@ -1,5 +1,5 @@
 name: aws/assume-role
-version: 2.0.3
+version: 2.0.4
 description: Assume an AWS role
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/aws/assume-role
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues

@@ -1,5 +1,5 @@
 name: docker/login-hook
-version: 1.0.2
+version: 1.0.3
 description: Mint hook to log in to a Docker registry
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/docker/login-hook
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues

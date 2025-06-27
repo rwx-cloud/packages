@@ -1,5 +1,5 @@
 name: depot/install-cli
-version: 1.0.2
+version: 1.0.3
 description: Install the Depot CLI
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/depot/install-cli
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
