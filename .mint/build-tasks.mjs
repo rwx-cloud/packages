@@ -16,8 +16,8 @@ let packages = [];
 const leafDirs = new Set();
 const leavesToBuild = new Set();
 const DEFAULT_BASE_LAYER = {
-  os: "ubuntu 22.04",
-  tag: "1.0",
+  os: "ubuntu 24.04",
+  tag: "1.1",
   arch: "x86_64",
 };
 
@@ -43,7 +43,7 @@ for (const file of (await glob("*/*/rwx-package.yml")).sort()) {
     config = yaml.parse(await fs.readFile(path.join(name, "rwx-ci-cd.config.yml"), { encoding: "utf8" }));
   }
 
-  leaves.push({
+  packages.push({
     name,
     key,
     dir: name,
