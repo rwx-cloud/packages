@@ -12,7 +12,7 @@ if (!BUILD_DIR || !GIT_DIFF_FILE || !RWX_DYNAMIC_TASKS) {
   process.exit(1);
 }
 
-let leaves = [];
+let packages = [];
 const leafDirs = new Set();
 const leavesToBuild = new Set();
 const DEFAULT_BASE_LAYER = {
@@ -81,12 +81,12 @@ for (const line of (await fs.readFile(GIT_DIFF_FILE, "utf8")).split("\n")) {
 }
 
 if (buildAll) {
-  console.log("Building all leaves");
+  console.log("Building all packages");
 } else {
-  console.log("Only building leaves with changes:");
+  console.log("Only building packages with changes:");
   leavesToBuild.forEach((leaf) => console.log(leaf));
 
-  leaves = leaves.filter((leaf) => leavesToBuild.has(leaf.name));
+  packages = packages.filter((leaf) => leavesToBuild.has(leaf.name));
 }
 
 const stringifyBase = (base) => `${base.os}-${base.arch}-${base.tag}`.replaceAll(/[^a-zA-Z0-9-]/g, "-");
@@ -242,7 +242,7 @@ const generateLeafRun = async (leaf) => {
 const artifacts = [];
 const leafRuns = [];
 
-for (const leaf of leaves) {
+for (const leaf of packages) {
   const content = yaml.stringify(await generateLeafRun(leaf));
   await fs.writeFile(leaf.artifactFile, content, "utf8");
 
