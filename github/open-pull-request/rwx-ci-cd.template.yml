@@ -14,6 +14,19 @@
   cache: false
   run: |
     nonce=$(date +%s)
+    echo "$nonce" | tee $RWX_VALUES/nonce
+    file="${nonce}.txt"
+    echo "$file" | tee $RWX_VALUES/file
+    touch "$file"
+
+- key: code-change2
+  after: code-change
+  use: code
+  cache: false
+  run: |
+    # needs to happen at least 1 second after code-change
+    sleep 1
+    nonce=$(date +%s)
     file="${nonce}.txt"
     echo "$file" | tee $RWX_VALUES/file
     touch "$file"
@@ -24,10 +37,20 @@
   with:
     github-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
     branch-prefix: ${{ run.id }}
-    commit-message: "The commit message"
-    pull-request-title: "The pull request title"
+    commit-message: "commit message ${{ tasks.code-change.values.nonce }}"
+    pull-request-title: "pull request ${{ tasks.code-change.values.nonce }}"
 
-- key: clone-branch
+- key: update-pr
+  after: assert--create-pr
+  call: $LEAF_DIGEST
+  use: code-change2
+  with:
+    github-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    branch-prefix: ${{ run.id }}
+    commit-message: "commit message ${{ tasks.code-change.values.nonce }}"
+    pull-request-title: "pull request ${{ tasks.code-change.values.nonce }}"
+
+- key: clone-branch-after-create
   call: git/clone 1.6.5
   with:
     repository: https://github.com/rwx-research/mint-update-leaves-testing.git
@@ -35,22 +58,31 @@
     github-access-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
     preserve-git-dir: true
 
+- key: clone-branch-after-update
+  call: git/clone 1.6.5
+  with:
+    repository: https://github.com/rwx-research/mint-update-leaves-testing.git
+    ref: ${{ tasks.update-pr.values.branch }}
+    github-access-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    preserve-git-dir: true
+
 - key: assert--create-pr
   after: create-pr
-  use: [gh-cli, clone-branch]
+  use: [gh-cli, clone-branch-after-create]
   run: |
-    set -x
-
+    echo "Checking for added file"
     test -f ${{ tasks.code-change.values.file }}
 
-    pr_body="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json body | jq -r '.body')"
-    test "$pr_body" = "The commit message"
+    pr_details=$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json body,title,commits)
+    echo "$pr_details"
 
-    # Check PR diff
-    pr_diff="$(gh --repo rwx-research/mint-update-leaves-testing pr diff "$PR_NUMBER")"
-    echo "$pr_diff"
+    pr_title=$(echo "$pr_details" | jq -r '.title')
+    test "$pr_title" = "pull request ${{ tasks.code-change.values.nonce }}"
 
-    commit_count="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json commits | jq '.commits | length')"
+    pr_body=$(echo "$pr_details" | jq -r '.body')
+    test "$pr_body" = "commit message ${{ tasks.code-change.values.nonce }}"
+
+    commit_count="$(echo "$pr_details" | jq '.commits | length')"
     if [ "$commit_count" != 1 ]; then
       echo "PR #${PR_NUMBER} has $commit_count commits, expected 1"
       exit 1
@@ -59,156 +91,40 @@
     GITHUB_TOKEN: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
     PR_NUMBER: ${{ tasks.create-pr.values.pull-request-number }}
 
-# - key: clone-test-repo
-#   call: mint/git-clone 1.5.1
-#   with:
-#     repository: https://github.com/rwx-research/mint-update-leaves-testing.git
-#     ref: main
-#     preserve-git-dir: true
-#     github-access-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
-#
-# - key: update-leaves-github--test--partial-revert
-#   after: update-leaves-github--test-create--assert
-#   use: [update-leaves-github--gh-cli, clone-test-repo]
-#   run: |
-#     gh --repo rwx-research/mint-update-leaves-testing pr checkout "$PR_NUMBER"
-#
-#     # Revert the install-go change.
-#     sed -i -E "s/call: mint\/install-go\s+1.+$/call: mint\/install-go 1.0.0/" tasks.yml
-#
-#     if git diff --quiet; then
-#       echo "Unable to make replacement for mint/install-go in tasks.yml"
-#       exit 4
-#     fi
-#
-#     git commit --all -m "Reset changes to install-go for testing."
-#     git push -u origin "$(git rev-parse --abbrev-ref HEAD)"
-#
-#     for i in {0..15}; do
-#       commit_count="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json commits | jq '.commits | length')"
-#       if [ "$commit_count" -eq 2 ]; then
-#         break
-#       fi
-#       sleep 1
-#     done
-#     if [ "$commit_count" != 2 ]; then
-#       echo "PR #${PR_NUMBER} has $commit_count commits, expected 2"
-#       exit 4
-#     fi
-#
-#     # Ensure changes we just made have reset install-go.
-#     pr_diff="$(gh --repo rwx-research/mint-update-leaves-testing pr diff "$PR_NUMBER")"
-#     grep -qv "\-    call: mint/install-go 1.0.0" <<< "$pr_diff" || { echo "Found change for mint/install-go when none was expected" && exit 4; }
-#     # Still have install-node changes.
-#     grep -q "\-    call: mint/install-node 1.0.0" <<< "$pr_diff" || { echo "Delete install-node 1.0.0 not found" && exit 4; }
-#     grep -q "+    call: mint/install-node 1." <<< "$pr_diff" || { echo "Add install-node 1.x.x not found" && exit 4; }
-#
-#     # Later, ensure the update doesn't reset the PR body (since it'll be a partial change).
-#     gh --repo rwx-research/mint-update-leaves-testing pr edit "$PR_NUMBER" --body "Body reset for testing"
-#   env:
-#     GITHUB_TOKEN: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
-#     PR_NUMBER: ${{ tasks.update-leaves-github--test-create--assert.values.pr-number }}
-#
-# - key: update-leaves-github--test-update-changes
-#   after: update-leaves-github--test--partial-revert
-#   call: $LEAF_DIGEST
-#   with:
-#     repository: https://github.com/rwx-research/mint-update-leaves-testing.git
-#     ref: main
-#     github-access-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
-#     label: "mint-leaves-test-${{ run.id }}"
-#     branch-prefix: "mint-leaves-test/${{ run.id }}/"
-#     mint-file: tasks.yml
-#
-# - key: update-leaves-github--test-update-changes--assert
-#   after: ${{ update-leaves-github--test-update-changes.succeeded && update-leaves-github--test-create--assert.succeeded }}
-#   use: [update-leaves-github--gh-cli, update-leaves-github--jq-cli]
-#   run: |
-#     # PR body should not have changes.
-#     pr_body="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json body | jq -r '.body')"
-#     grep -q "Body reset for testing" <<< "$pr_body" || { echo "PR body has not been reset for testing" && exit 4; }
-#
-#     for i in {0..15}; do
-#       commit_count="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json commits | jq '.commits | length')"
-#       if [ "$commit_count" -eq 3 ]; then
-#           break
-#       fi
-#       sleep 1
-#     done
-#     if [ "$commit_count" != 3 ]; then
-#       echo "PR #${PR_NUMBER} has $commit_count commits, expected 3"
-#       exit 4
-#     fi
-#
-#     pr_diff="$(gh --repo rwx-research/mint-update-leaves-testing pr diff "$PR_NUMBER")"
-#     grep -q "\-    call: mint/install-go 1.0.0" <<< "$pr_diff" || { echo "Delete install-go 1.0.0 not found" && exit 4; }
-#     grep -q "+    call: mint/install-go 1." <<< "$pr_diff" || { echo "Add install-go 1.x.x not found" && exit 4; }
-#     grep -q "\-    call: mint/install-node 1.0.0" <<< "$pr_diff" || { echo "Delete install-node 1.0.0 not found" && exit 4; }
-#     grep -q "+    call: mint/install-node 1." <<< "$pr_diff" || { echo "Add install-node 1.x.x not found" && exit 4; }
-#
-#     comment_count="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json comments | jq '.comments | length')"
-#     if [ "$comment_count" != "1" ]; then
-#       echo "PR #${PR_NUMBER} has $comment_count comments, expected 1"
-#       exit 4
-#     fi
-#
-#     # We only reset changes to install-go, so the comment shouldn't include install-node.
-#     comment_body="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json comments | jq -r '.comments[0].body')"
-#     grep -q "Updated the following leaves" <<< "$comment_body" || { echo "Update header not found" && exit 4; }
-#     grep -q "mint/install-go 1.0.0 →" <<< "$comment_body" || { echo "Update mint/install-go not found" && exit 4; }
-#     grep -qv "mint/install-node 1.0.0 →" <<< "$comment_body" || { echo "Update mint/install-node found" && exit 4; }
-#   env:
-#     GITHUB_TOKEN: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
-#     PR_NUMBER: ${{ tasks.update-leaves-github--test-create--assert.values.pr-number }}
-#
-# - key: update-leaves-github--test-update-no-changes
-#   after: update-leaves-github--test-update-changes--assert
-#   call: $LEAF_DIGEST
-#   with:
-#     repository: https://github.com/rwx-research/mint-update-leaves-testing.git
-#     ref: main
-#     github-access-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
-#     label: "mint-leaves-test-${{ run.id }}"
-#     branch-prefix: "mint-leaves-test/${{ run.id }}/"
-#     mint-file: tasks.yml
-#
-# - key: update-leaves-github--test-update-no-changes--assert
-#   after: ${{ update-leaves-github--test-update-no-changes.succeeded && update-leaves-github--test-create--assert.succeeded }}
-#   use: [update-leaves-github--gh-cli, update-leaves-github--jq-cli]
-#   run: |
-#     for i in {0..15}; do
-#       commit_count="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json commits | jq '.commits | length')"
-#       if [ "$commit_count" -eq 3 ]; then
-#           break
-#       fi
-#       sleep 1
-#     done
-#     if [ "$commit_count" != 3 ]; then
-#       echo "PR #${PR_NUMBER} has $commit_count commits, expected 3"
-#       exit 4
-#     fi
-#
-#     comment_count="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json comments | jq '.comments | length')"
-#     if [ "$comment_count" != "1" ]; then
-#       echo "PR #${PR_NUMBER} has $comment_count comments, expected 1"
-#       exit 4
-#     fi
-#   env:
-#     GITHUB_TOKEN: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
-#     PR_NUMBER: ${{ tasks.update-leaves-github--test-create--assert.values.pr-number }}
-#
-# - key: update-leaves-github--test--cleanup
-#   use: update-leaves-github--gh-cli
-#   after: ${{ update-leaves-github--test-update-no-changes--assert.finished }}
-#   run: |
-#     PR_NUMBER="$(gh --repo rwx-research/mint-update-leaves-testing pr list --author '@me' --label "$GITHUB_LABEL" --json number --jq 'max_by(.number) | .number')"
-#     if [ -n "$PR_NUMBER" ]; then
-#       gh --repo rwx-research/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
-#     fi
-#
-#     if gh --repo rwx-research/mint-update-leaves-testing label list --search "$GITHUB_LABEL" | grep -qv "no labels"; then
-#       gh --repo rwx-research/mint-update-leaves-testing label delete "$GITHUB_LABEL" --yes
-#     fi
-#   env:
-#     GITHUB_LABEL: mint-leaves-test-${{ run.id }}
-#     GITHUB_TOKEN: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+- key: assert--update-pr
+  after: update-pr
+  use: [gh-cli, clone-branch-after-update]
+  run: |
+    echo "Checking to ensure original file not present"
+    test ! -f ${{ tasks.code-change.values.file }}
+
+    echo "Checking for file added in update"
+    test -f ${{ tasks.code-change2.values.file }}
+
+    pr_details=$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json body,title,commits)
+    echo "$pr_details"
+
+    pr_title=$(echo "$pr_details" | jq -r '.title')
+    test "$pr_title" = "pull request ${{ tasks.code-change.values.nonce }}"
+
+    pr_body=$(echo "$pr_details" | jq -r '.body')
+    test "$pr_body" = "commit message ${{ tasks.code-change.values.nonce }}"
+
+    commit_count="$(echo "$pr_details" | jq '.commits | length')"
+    if [ "$commit_count" != 1 ]; then
+      echo "PR #${PR_NUMBER} has $commit_count commits, expected 1"
+      exit 1
+    fi
+
+    echo "Checking for updated PR"
+    test "${{ tasks.create-pr.values.pull-request-number }}" = "${{ tasks.update-pr.values.pull-request-number }}"
+  env:
+    GITHUB_TOKEN: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    PR_NUMBER: ${{ tasks.create-pr.values.pull-request-number }}
+
+- key: close-pr
+  after: assert--update-pr
+  run: gh --repo rwx-research/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
+  env:
+    GITHUB_TOKEN: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    PR_NUMBER: ${{ tasks.create-pr.values.pull-request-number }}
