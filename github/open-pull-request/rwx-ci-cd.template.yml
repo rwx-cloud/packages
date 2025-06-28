@@ -124,6 +124,7 @@
 
 - key: close-pr
   after: assert--update-pr
+  use: gh-cli
   run: gh --repo rwx-research/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
   env:
     GITHUB_TOKEN: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
