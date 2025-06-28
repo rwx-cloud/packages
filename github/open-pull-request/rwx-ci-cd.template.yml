@@ -15,7 +15,7 @@
   run: |
     nonce=$(date +%s)
     file="${nonce}.txt"
-    echo "$file" | $RWX_VALUES/file
+    echo "$file" | tee $RWX_VALUES/file
     touch "$file"
 
 - key: create-pr
