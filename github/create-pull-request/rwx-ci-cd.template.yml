@@ -37,8 +37,8 @@
   with:
     github-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
     branch-prefix: ${{ run.id }}
-    commit-message: "commit message ${{ tasks.code-change.values.nonce }}"
-    pull-request-title: "pull request ${{ tasks.code-change.values.nonce }}"
+    pull-request-title: "pull request title ${{ tasks.code-change.values.nonce }}"
+    pull-request-body: "pull request body ${{ tasks.code-change.values.nonce }}"
 
 - key: update-pr
   after: assert--create-pr
@@ -47,8 +47,8 @@
   with:
     github-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
     branch-prefix: ${{ run.id }}
-    commit-message: "commit message ${{ tasks.code-change.values.nonce }}"
-    pull-request-title: "pull request ${{ tasks.code-change.values.nonce }}"
+    pull-request-title: "pull request title ${{ tasks.code-change.values.nonce }}"
+    pull-request-body: "pull request body ${{ tasks.code-change.values.nonce }}"
 
 - key: clone-branch-after-create
   call: git/clone 1.6.5
@@ -77,10 +77,10 @@
     echo "$pr_details"
 
     pr_title=$(echo "$pr_details" | jq -r '.title')
-    test "$pr_title" = "pull request ${{ tasks.code-change.values.nonce }}"
+    test "$pr_title" = "pull request title ${{ tasks.code-change.values.nonce }}"
 
     pr_body=$(echo "$pr_details" | jq -r '.body')
-    test "$pr_body" = "commit message ${{ tasks.code-change.values.nonce }}"
+    test "$pr_body" = "pull request body ${{ tasks.code-change.values.nonce }}"
 
     commit_count="$(echo "$pr_details" | jq '.commits | length')"
     if [ "$commit_count" != 1 ]; then
@@ -105,10 +105,10 @@
     echo "$pr_details"
 
     pr_title=$(echo "$pr_details" | jq -r '.title')
-    test "$pr_title" = "pull request ${{ tasks.code-change.values.nonce }}"
+    test "$pr_title" = "pull request title ${{ tasks.code-change.values.nonce }}"
 
     pr_body=$(echo "$pr_details" | jq -r '.body')
-    test "$pr_body" = "commit message ${{ tasks.code-change.values.nonce }}"
+    test "$pr_body" = "pull request body ${{ tasks.code-change.values.nonce }}"
 
     commit_count="$(echo "$pr_details" | jq '.commits | length')"
     if [ "$commit_count" != 1 ]; then
