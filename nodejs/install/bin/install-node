@@ -49,8 +49,16 @@ for key in \
   108F52B48DB57BB0CC439B2997B01419BD92F80A \
   A363A499291CBBC940DD62E41F10027AF002F8B0 \
   ; do
-  gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$key" ||
+  set +e
+  output=$(gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$key" 2>&1)
+  gpg_status=$?
+  set -e
+  echo "$output"
+
+  if [ $gpg_status -ne 0 ] || echo "$output" | grep -q "contains no user ID"; then
+    echo "Retrying with ubuntu keyserver for $key"
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key"
+  fi
 done
 
 ### Install node
