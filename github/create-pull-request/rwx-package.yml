@@ -29,7 +29,7 @@ tasks:
     use: [gh-cli]
     cache: false
     run: |
-      git_status="$(git status --porcelain)"
+      git_status=$(git status --porcelain)
       if [ -n "$git_status" ]; then
         git add --all
         git commit -m "$PULL_REQUEST_TITLE"
@@ -57,9 +57,9 @@ tasks:
       git push -f origin "$branch"
 
       if [ "$need_to_create_pr" = "true" ]; then
-        gh pr create --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_TITLE"
+        gh pr create --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY"
       else
-        gh pr edit --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_TITLE"
+        gh pr edit --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY"
       fi
       gh pr view "$branch" --json number | jq -r '.number' | tee $RWX_VALUES/pull-request-number
 
