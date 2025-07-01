@@ -1,0 +1,72 @@
+name: github/create-pull-request
+version: 1.0.0
+description: Creates a pull request
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/create-pull-request
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+
+parameters:
+  github-token:
+    description: "The GitHub token to a private app"
+    required: true
+  branch-prefix:
+    description: "Branch prefix to idenitfy existing pull request"
+    required: true
+  pull-request-title:
+    description: "The title to use for the pull request"
+    required: true
+  pull-request-body:
+    description: "The body to use for the pull request"
+    required: true
+
+outputs:
+  values-from: [create-or-update-pull-request]
+
+tasks:
+  - key: gh-cli
+    call: github/install-cli 1.0.6
+
+  - key: create-or-update-pull-request
+    use: [gh-cli]
+    cache: false
+    run: |
+      git_status=$(git status --porcelain)
+      if [ -n "$git_status" ]; then
+        git add --all
+        git commit -m "$PULL_REQUEST_TITLE"
+      else
+        echo "No changes to commit"
+        exit 0
+      fi
+
+      pr_list=$(gh pr list --author @me --json number,headRefName)
+      echo "$pr_list"
+
+      latest_pr=$(echo "$pr_list" |  jq "[.[] | select(.headRefName | startswith(\"${BRANCH_PREFIX}-\"))] | max_by(.number)")
+      echo "$latest_pr"
+
+      if [ "$latest_pr" != "null" ] && [ -n "$latest_pr" ]; then
+        branch=$(echo "$latest_pr" | jq -r ".headRefName")
+        need_to_create_pr=false
+      else
+        branch="${BRANCH_PREFIX}-${RWX_RUN_ID}"
+        need_to_create_pr=true
+      fi
+      echo "$branch" | tee $RWX_VALUES/branch
+
+      git checkout -b "$branch"
+      git push -f origin "$branch"
+
+      if [ "$need_to_create_pr" = "true" ]; then
+        gh pr create --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY"
+      else
+        gh pr edit --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY"
+      fi
+
+      pr_details=$(gh pr view "$branch" --json number,url)
+      echo "$pr_details" | jq -r '.number' > "$RWX_VALUES/pull-request-number"
+      echo "$pr_details" | jq -r '.url' > "$RWX_LINKS/View pull request"
+    env:
+      BRANCH_PREFIX: ${{ params.branch-prefix }}
+      GITHUB_TOKEN: ${{ params.github-token }}
+      PULL_REQUEST_TITLE: ${{ params.pull-request-title }}
+      PULL_REQUEST_BODY: ${{ params.pull-request-body }}
