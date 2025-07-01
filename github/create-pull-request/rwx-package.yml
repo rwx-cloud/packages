@@ -61,7 +61,6 @@ tasks:
       else
         gh pr edit --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY"
       fi
-      gh pr view "$branch" --json number | jq -r '.number' | tee $RWX_VALUES/pull-request-number
 
       pr_details=$(gh pr view "$branch" --json number,url)
       echo "$pr_details" | jq -r '.number' > "$RWX_VALUES/pull-request-number"
