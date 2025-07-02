@@ -86,7 +86,6 @@ tasks:
 
   - key: labels
     after: create-or-update-pr
-    if: ${{ tasks.update-packages.values.has-changes }}
     run: |
       if [ -n "$GITHUB_LABEL" ]; then
         gh label create "$GITHUB_LABEL" --color "$GITHUB_LABEL_COLOR" || true
