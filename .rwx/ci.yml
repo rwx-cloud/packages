@@ -32,7 +32,7 @@ tasks:
       sudo apt-get clean
 
   - key: checkout
-    call: mint/git-clone 1.6.4
+    call: git/clone 1.6.7
     with:
       preserve-git-dir: true
       repository: https://github.com/rwx-cloud/packages.git
@@ -40,7 +40,7 @@ tasks:
 
   - key: node
     use: checkout
-    call: mint/install-node 1.1.4
+    call: nodejs/install 1.1.7
     with:
       node-version-file: .node-version
     filter:
@@ -85,7 +85,7 @@ tasks:
     run: |
       mkdir build
       git diff --name-only $BASE_REF $SHA > $GIT_DIFF_FILE
-      node .mint/build-tasks.mjs
+      node .rwx/build-tasks.mjs
     env:
       BASE_REF: ${{ init.base-ref }}
       BUILD_DIR: build
