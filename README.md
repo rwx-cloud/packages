@@ -1,11 +1,11 @@
-# Mint Leaves
+# RWX Packages
 
-These are leaves for [Mint](https://www.rwx.com/mint) maintained by [RWX](https://www.rwx.com).
+These are packages for [RWX](https://www.rwx.com/).
 
-For documentation on calling leaves in Mint task definitions see:
+For documentation on calling packages in task definitions see:
 
-https://www.rwx.com/docs/mint/call-leaves
+https://www.rwx.com/docs/mint/call-packages
 
-For the full list of leaves see:
+For the full list of packages see:
 
-https://cloud.rwx.com/leaves
+https://www.rwx.com/docs/mint/packages
