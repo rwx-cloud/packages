@@ -5,7 +5,7 @@
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.6.6
+    call: git/clone 1.6.7
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -31,7 +31,7 @@ If you're using GitHub, Mint will automatically provide a token that you can use
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.6.6
+    call: git/clone 1.6.7
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -43,7 +43,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.6.6
+    call: git/clone 1.6.7
     with:
       repository: git@github.com:YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -61,48 +61,50 @@ If you need to reference one of these to alter behavior of a task, be sure to in
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.6.6
+    call: git/clone 1.6.7
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
 
   - key: use-meta
     use: code
-    run: ./my-script.sh $MINT_GIT_COMMIT_SHA
+    run: ./my-script.sh $RWX_GIT_COMMIT_SHA
     env:
-      MINT_GIT_COMMIT_SHA:
+      RWX_GIT_COMMIT_SHA:
         cache-key: included
 ```
 
-### `MINT_GIT_REPOSITORY_URL`
+Note: the following environment variables are also available with the `MINT_` prefix instead of `RWX_` for backwards compatibility.
+
+### `RWX_GIT_REPOSITORY_URL`
 
 The `repository` parameter you provided to `git/clone`.
 
-### `MINT_GIT_REPOSITORY_NAME`
+### `RWX_GIT_REPOSITORY_NAME`
 
 The name of the repository, extracted from your URL for convenience. For example, given a repository URL of `git@github.com:YOUR_ORG/PROJECT.git`, this environment variable would be set to `YOUR_ORG/PROJECT`.
 
-### `MINT_GIT_COMMIT_MESSAGE`
+### `RWX_GIT_COMMIT_MESSAGE`
 
 The message of the resolved commit.
 
-### `MINT_GIT_COMMIT_SUMMARY`
+### `RWX_GIT_COMMIT_SUMMARY`
 
 The summary line of the resolved commit's message.
 
-### `MINT_GIT_COMMIT_SHA`
+### `RWX_GIT_COMMIT_SHA`
 
 The SHA of the resolved commit.
 
-### `MINT_GIT_COMMITTER_NAME`
+### `RWX_GIT_COMMITTER_NAME`
 
 The committer name associated with the resolved commit.
 
-### `MINT_GIT_COMMITTER_EMAIL`
+### `RWX_GIT_COMMITTER_EMAIL`
 
 The committer email associated with the resolved commit.
 
-### `MINT_GIT_REF`
+### `RWX_GIT_REF`
 
 The unresolved ref associated with the commit. Mint attempts to determine this for you, but in some scenarios you may want to specify. The logic is as follows:
 
@@ -111,6 +113,6 @@ The unresolved ref associated with the commit. Mint attempts to determine this f
 - If you provide a branch or tag to the `ref` parameter, we'll use that (again, you can provide a fully qualified ref or short ref name)
 - If no other case catches your ref, we'll use the resolved commit sha
 
-### `MINT_GIT_REF_NAME`
+### `RWX_GIT_REF_NAME`
 
-The name of the unresolved ref associated with the commit. For example, given a `MINT_GIT_REF` of `refs/heads/main`, `MINT_GIT_REF_NAME` would be set to `main`.
+The name of the unresolved ref associated with the commit. For example, given a `RWX_GIT_REF` of `refs/heads/main`, `RWX_GIT_REF_NAME` would be set to `main`.

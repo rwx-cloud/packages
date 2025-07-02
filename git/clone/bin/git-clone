@@ -120,17 +120,23 @@ fi
 
 # Set metadata
 printf "%s" "${CHECKOUT_REPOSITORY}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REPOSITORY_URL"
+printf "%s" "${CHECKOUT_REPOSITORY}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REPOSITORY_URL"
 printf "%s" "${CHECKOUT_REPOSITORY}" | tr ':' '/' | rev | cut -d '/' -f1,2 | rev | sed 's/\.git$//' >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REPOSITORY_NAME"
+printf "%s" "${CHECKOUT_REPOSITORY}" | tr ':' '/' | rev | cut -d '/' -f1,2 | rev | sed 's/\.git$//' >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REPOSITORY_NAME"
 
 commit_message=$(git log -n 1 --pretty=format:%B)
 printf "%s" "${commit_message}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMIT_MESSAGE"
+printf "%s" "${commit_message}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMIT_MESSAGE"
 printf "%s" "${commit_message}" | head -n 1 | tr -d '\n' >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMIT_SUMMARY"
+printf "%s" "${commit_message}" | head -n 1 | tr -d '\n' >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMIT_SUMMARY"
 
 committer_name=$(git log -n 1 --pretty=format:%an)
 printf "%s" "${committer_name}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMITTER_NAME"
+printf "%s" "${committer_name}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMITTER_NAME"
 
 committer_email=$(git log -n 1 --pretty=format:%ae)
 printf "%s" "${committer_email}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMITTER_EMAIL"
+printf "%s" "${committer_email}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMITTER_EMAIL"
 
 unresolved_ref=""
 if [[ -n "${META_REF}" ]]; then
@@ -160,8 +166,11 @@ if [[ -z "${unresolved_ref}" ]]; then
 fi
 
 printf "%s" "${commit_sha}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMIT_SHA"
+printf "%s" "${commit_sha}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMIT_SHA"
 printf "%s" "${unresolved_ref}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REF"
+printf "%s" "${unresolved_ref}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REF"
 printf "%s" "${unresolved_ref}" | sed -E 's|refs/[^/]+/||' >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REF_NAME"
+printf "%s" "${unresolved_ref}" | sed -E 's|refs/[^/]+/||' >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REF_NAME"
 
 if [[ "${PRESERVE_GIT_DIR}" == "false" ]]; then
   rm -rf .git
