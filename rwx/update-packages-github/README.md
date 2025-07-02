@@ -1,7 +1,7 @@
-# mint/update-leaves-github
+# rwx/update-packages-github
 
-Update the versions of Mint leaves used in a GitHub repository.
-When updates are available, open or update a pull request.
+Update the versions of RWX packages used in a GitHub repository.
+When updates are available, create or update a pull request.
 
 The provided `github-access-token` should be for a
 [private GitHub App](https://www.rwx.com/docs/mint/guides/github-automation)
@@ -19,25 +19,25 @@ To update minor versions (recommended):
 
 ```yaml
 tasks:
-  - key: mint-update-leaves
-    call: mint/update-leaves-github 1.0.9
+  - key: update-rwx-packages
+    call: rwx/update-packages-github 1.1.0
     with:
       repository: https://github.com/YOUR-ORG/YOUR-REPO.git
       ref: ${{ init.commit-sha }}
-      github-access-token: ${{ vaults.MY_VAULT.github-apps.MY-GITHUB-APP.token }}
+      github-access-token: ${{ vaults.your-vault.github-apps.your-github-app.token }}
 ```
 
 Customize the label and color name:
 
 ```yaml
 tasks:
-  - key: mint-update-leaves
-    call: mint/update-leaves-github 1.0.9
+  - key: update-rwx-packages
+    call: rwx/update-packages-github 1.1.0
     with:
       repository: https://github.com/YOUR-ORG/YOUR-REPO.git
       ref: ${{ init.commit-sha }}
-      github-access-token: ${{ vaults.MY_VAULT.github-apps.MY-GITHUB-APP.token }}
-      label: mint-updates
+      github-access-token: ${{ vaults.your-vault.github-apps.your-github-app.token }}
+      label: rwx-updates
       label-color: "298F21"
 ```
 
@@ -48,4 +48,4 @@ that have been created by your private GitHub App and, if not set to an empty
 string, having the provided `label`.
 
 **If you reuse the same private GitHub App for other tasks, you should not set
-`label` to an empty string. When not provided, it will default to `mint-updates`.**
+`label` to an empty string. When not provided, it will default to `rwx-updates`.**

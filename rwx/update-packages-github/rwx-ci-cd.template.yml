@@ -1,11 +1,5 @@
-- key: update-leaves-github--gh-cli
+- key: gh-cli
   call: github/install-cli 1.0.1
-
-- key: update-leaves-github--jq-cli
-  run: |
-    sudo apt-get update
-    sudo apt-get install -y jq
-    sudo apt-get clean
 
 - key: update-leaves-github--test-create
   call: $LEAF_DIGEST
@@ -15,11 +9,11 @@
     github-access-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
     label: "mint-leaves-test-${{ run.id }}"
     branch-prefix: "mint-leaves-test/${{ run.id }}/"
-    mint-file: tasks.yml
+    rwx-file: tasks.yml
 
 - key: update-leaves-github--test-create--assert
   after: update-leaves-github--test-create
-  use: [update-leaves-github--gh-cli, update-leaves-github--jq-cli]
+  use: [gh-cli]
   run: |
     PR_NUMBER="$(gh --repo rwx-research/mint-update-leaves-testing pr list --author '@me' --label "$GITHUB_LABEL" --json number --jq 'max_by(.number) | .number')"
     if [ -z "$PR_NUMBER" ]; then
@@ -77,7 +71,7 @@
 
 - key: update-leaves-github--test--partial-revert
   after: update-leaves-github--test-create--assert
-  use: [update-leaves-github--gh-cli, clone-test-repo]
+  use: [gh-cli, clone-test-repo]
   run: |
     gh --repo rwx-research/mint-update-leaves-testing pr checkout "$PR_NUMBER"
 
@@ -126,11 +120,11 @@
     github-access-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
     label: "mint-leaves-test-${{ run.id }}"
     branch-prefix: "mint-leaves-test/${{ run.id }}/"
-    mint-file: tasks.yml
+    rwx-file: tasks.yml
 
 - key: update-leaves-github--test-update-changes--assert
   after: ${{ update-leaves-github--test-update-changes.succeeded && update-leaves-github--test-create--assert.succeeded }}
-  use: [update-leaves-github--gh-cli, update-leaves-github--jq-cli]
+  use: [gh-cli]
   run: |
     # PR body should not have changes.
     pr_body="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json body | jq -r '.body')"
@@ -178,11 +172,11 @@
     github-access-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
     label: "mint-leaves-test-${{ run.id }}"
     branch-prefix: "mint-leaves-test/${{ run.id }}/"
-    mint-file: tasks.yml
+    rwx-file: tasks.yml
 
 - key: update-leaves-github--test-update-no-changes--assert
   after: ${{ update-leaves-github--test-update-no-changes.succeeded && update-leaves-github--test-create--assert.succeeded }}
-  use: [update-leaves-github--gh-cli, update-leaves-github--jq-cli]
+  use: [gh-cli]
   run: |
     for i in {0..15}; do
       commit_count="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json commits | jq '.commits | length')"
@@ -206,7 +200,7 @@
     PR_NUMBER: ${{ tasks.update-leaves-github--test-create--assert.values.pr-number }}
 
 - key: update-leaves-github--test--cleanup
-  use: update-leaves-github--gh-cli
+  use: gh-cli
   after: ${{ update-leaves-github--test-update-no-changes--assert.finished }}
   run: |
     PR_NUMBER="$(gh --repo rwx-research/mint-update-leaves-testing pr list --author '@me' --label "$GITHUB_LABEL" --json number --jq 'max_by(.number) | .number')"
