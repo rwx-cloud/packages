@@ -85,7 +85,7 @@ tasks:
         ```
 
   - key: labels
-    use: gh-cli
+    use: [gh-cli, code]
     after: create-or-update-pr
     run: |
       if [ -n "$GITHUB_LABEL" ]; then
