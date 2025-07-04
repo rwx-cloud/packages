@@ -53,8 +53,8 @@ tasks:
         rwx_args+=("--allow-major-version-change")
       fi
 
-      if [ -n "$MINT_FILE" ]; then
-        rwx_args+=("$MINT_FILE")
+      if [ -n "$RWX_FILE" ]; then
+        rwx_args+=("$RWX_FILE")
       fi
 
       rwx packages update "${rwx_args[@]}" 2>&1 | tee "$RWX_VALUES/update-output"
