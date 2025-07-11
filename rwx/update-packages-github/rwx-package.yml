@@ -22,7 +22,7 @@ parameters:
     default: "rwx-update-"
   label:
     description: "Label for opened pull requests"
-    default: "rwx-updates"
+    default: ""
   label-color:
     description: "Label color if not yet created"
     default: "298F21"
@@ -85,14 +85,13 @@ tasks:
         ```
 
   - key: labels
-    use: [gh-cli, code]
+    use: [gh-cli]
     after: create-or-update-pr
     run: |
       if [ -n "$GITHUB_LABEL" ]; then
         gh label create "$GITHUB_LABEL" --color "$GITHUB_LABEL_COLOR" || true
+        gh pr edit "$GITHUB_PR_NUMBER" --add-label "$GITHUB_LABEL"
       fi
-
-      gh pr edit "$GITHUB_PR_NUMBER" --add-label "$GITHUB_LABEL"
     env:
       GITHUB_TOKEN: ${{ params.github-access-token }}
       GITHUB_LABEL: ${{ params.label }}

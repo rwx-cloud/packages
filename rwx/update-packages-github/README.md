@@ -27,7 +27,7 @@ tasks:
       github-access-token: ${{ vaults.your-vault.github-apps.your-github-app.token }}
 ```
 
-Customize the label and color name:
+Customize the label:
 
 ```yaml
 tasks:
@@ -40,12 +40,3 @@ tasks:
       label: rwx-updates
       label-color: "298F21"
 ```
-
-Setting `label` to an empty string will skip labeling new pull requests.
-
-Pull requests that may be eligible for update are any for this repository
-that have been created by your private GitHub App and, if not set to an empty
-string, having the provided `label`.
-
-**If you reuse the same private GitHub App for other tasks, you should not set
-`label` to an empty string. When not provided, it will default to `rwx-updates`.**
