@@ -1,0 +1,117 @@
+- key: gh-cli
+  call: github/install-cli 1.0.1
+
+- key: test-create
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-research/mint-update-leaves-testing.git
+    ref: main
+    github-access-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    label: "mint-leaves-test-${{ run.id }}"
+    branch-prefix: "mint-leaves-test/${{ run.id }}/"
+    rwx-file: tasks.yml
+
+- key: test-create--assert
+  after: test-create
+  use: [gh-cli]
+  run: |
+    PR_NUMBER="$(gh --repo rwx-research/mint-update-leaves-testing pr list --author '@me' --label "$GITHUB_LABEL" --json number --jq 'max_by(.number) | .number')"
+    if [ -z "$PR_NUMBER" ]; then
+      >&2 echo "Pull request not found"
+      exit 4
+    fi
+    printf "$PR_NUMBER" > "$MINT_VALUES/pr-number"
+
+    # Check branch name
+    branch_name="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json headRefName --jq '.headRefName')"
+    if [[ "$branch_name" != "$BRANCH_PREFIX"* ]]; then
+      >&2 echo "Expected branch name to match \"${BRANCH_PREFIX}*\", but got \"$branch_name\""
+      exit 4
+    fi
+
+    # Check PR body
+    pr_body="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json body | jq -r '.body')"
+    grep -q "This PR was generated from" <<< "$pr_body" || { echo "Update header not found" && exit 4; }
+    grep -q "mint/install-go 1.0.0 →" <<< "$pr_body" || { echo "Update mint/install-go not found" && exit 4; }
+    grep -q "mint/install-node 1.0.0 →" <<< "$pr_body" || { echo "Update mint/install-node not found" && exit 4; }
+
+    # Check PR diff
+    pr_diff="$(gh --repo rwx-research/mint-update-leaves-testing pr diff "$PR_NUMBER")"
+    grep -q "\-    call: mint/install-go 1.0.0" <<< "$pr_diff" || { echo "Delete install-go 1.0.0 not found" && exit 4; }
+    grep -q "+    call: golang/install 1." <<< "$pr_diff" || { echo "Add golang/install 1.x.x not found" && exit 4; }
+    grep -q "\-    call: mint/install-node 1.0.0" <<< "$pr_diff" || { echo "Delete install-node 1.0.0 not found" && exit 4; }
+    grep -q "+    call: nodejs/install 1." <<< "$pr_diff" || { echo "Add nodejs/install 1.x.x not found" && exit 4; }
+
+    commit_count="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json commits | jq '.commits | length')"
+    if [ "$commit_count" != 1 ]; then
+      echo "PR #${PR_NUMBER} has $commit_count commits, expected 1"
+      exit 4
+    fi
+  outputs:
+    values: [pr-number]
+  env:
+    GITHUB_LABEL: mint-leaves-test-${{ run.id }}
+    GITHUB_TOKEN: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    BRANCH_PREFIX: "mint-leaves-test/${{ run.id }}/"
+
+- key: test-update
+  after: test-create--assert
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-research/mint-update-leaves-testing.git
+    ref: main
+    github-access-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    label: "mint-leaves-test-${{ run.id }}"
+    branch-prefix: "mint-leaves-test/${{ run.id }}/"
+    rwx-file: tasks.yml
+
+- key: test-update--assert
+  after: test-update
+  use: [gh-cli]
+  run: |
+    # PR body should not have changes.
+    pr_body="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json body | jq -r '.body')"
+
+    commit_count="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json commits | jq '.commits | length')"
+    if [ "$commit_count" != 1 ]; then
+      echo "PR #${PR_NUMBER} has $commit_count commits, expected 1"
+      exit 1
+    fi
+
+    # Check PR body
+    pr_body="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json body | jq -r '.body')"
+    grep -q "This PR was generated from" <<< "$pr_body" || { echo "Update header not found" && exit 4; }
+    grep -q "mint/install-go 1.0.0 →" <<< "$pr_body" || { echo "Update mint/install-go not found" && exit 4; }
+    grep -q "mint/install-node 1.0.0 →" <<< "$pr_body" || { echo "Update mint/install-node not found" && exit 4; }
+
+    # Check PR diff
+    pr_diff="$(gh --repo rwx-research/mint-update-leaves-testing pr diff "$PR_NUMBER")"
+    grep -q "\-    call: mint/install-go 1.0.0" <<< "$pr_diff" || { echo "Delete install-go 1.0.0 not found" && exit 4; }
+    grep -q "+    call: golang/install 1." <<< "$pr_diff" || { echo "Add golang/install 1.x.x not found" && exit 4; }
+    grep -q "\-    call: mint/install-node 1.0.0" <<< "$pr_diff" || { echo "Delete install-node 1.0.0 not found" && exit 4; }
+    grep -q "+    call: nodejs/install 1." <<< "$pr_diff" || { echo "Add nodejs/install 1.x.x not found" && exit 4; }
+
+    commit_count="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json commits | jq '.commits | length')"
+    if [ "$commit_count" != 1 ]; then
+      echo "PR #${PR_NUMBER} has $commit_count commits, expected 1"
+      exit 4
+    fi
+  env:
+    GITHUB_TOKEN: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    PR_NUMBER: ${{ tasks.test-create--assert.values.pr-number }}
+
+- key: update-leaves-github--test--cleanup
+  use: gh-cli
+  after: ${{ test-update--assert.finished }}
+  run: |
+    PR_NUMBER="$(gh --repo rwx-research/mint-update-leaves-testing pr list --author '@me' --label "$GITHUB_LABEL" --json number --jq 'max_by(.number) | .number')"
+    if [ -n "$PR_NUMBER" ]; then
+      gh --repo rwx-research/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
+    fi
+
+    if gh --repo rwx-research/mint-update-leaves-testing label list --search "$GITHUB_LABEL" | grep -qv "no labels"; then
+      gh --repo rwx-research/mint-update-leaves-testing label delete "$GITHUB_LABEL" --yes
+    fi
+  env:
+    GITHUB_LABEL: mint-leaves-test-${{ run.id }}
+    GITHUB_TOKEN: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}

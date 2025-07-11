@@ -1,0 +1,92 @@
+name: rwx/update-packages-github
+version: 1.1.0
+description: Update RWX packages for GitHub repositories
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/update-packages-github
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+
+parameters:
+  repository:
+    description: "GitHub HTTPS repository URL"
+    required: true
+  ref:
+    description: "The ref to check out of the git repository"
+    required: true
+  github-access-token:
+    description: "The GitHub access token to a private app"
+    required: true
+  allow-major-version-change:
+    description: "Allow updating across major versions"
+    default: false
+  branch-prefix:
+    description: "Branch prefix for opened pull requests"
+    default: "rwx-update-"
+  label:
+    description: "Label for opened pull requests"
+    default: ""
+  label-color:
+    description: "Label color if not yet created"
+    default: "298F21"
+  rwx-file:
+    description: "Scope updates to a specific file or single glob pattern of files"
+
+tasks:
+  - key: rwx-cli
+    call: rwx/install-cli 2.0.1
+
+  - key: gh-cli
+    call: github/install-cli 1.0.6
+
+  - key: code
+    call: git/clone 1.6.7
+    with:
+      repository: ${{ params.repository }}
+      ref: ${{ params.ref }}
+      github-access-token: ${{ params.github-access-token }}
+      preserve-git-dir: true
+
+  - key: update-packages
+    use: [rwx-cli, gh-cli, code]
+    cache: false
+    run: |
+      rwx_args=()
+      if [ "$ALLOW_MAJOR_VERSION_CHANGE" = "true" ]; then
+        rwx_args+=("--allow-major-version-change")
+      fi
+
+      if [ -n "$RWX_FILE" ]; then
+        rwx_args+=("$RWX_FILE")
+      fi
+
+      rwx packages update "${rwx_args[@]}" 2>&1 | tee "$RWX_VALUES/update-output"
+      echo "$RWX_RUN_URL" | tee "$RWX_VALUES/run-url"
+    env:
+      ALLOW_MAJOR_VERSION_CHANGE: ${{ params.allow-major-version-change }}
+      RWX_FILE: ${{ params.rwx-file}}
+
+  - key: create-or-update-pr
+    call: github/create-pull-request 1.0.1
+    use: update-packages
+    with:
+      github-token: ${{ params.github-access-token }}
+      branch-prefix: ${{ params.branch-prefix }}
+      pull-request-title: Update RWX packages
+      pull-request-body: |
+        This PR was generated from ${{ tasks.update-packages.values.run-url }}
+
+        ```
+        ${{ tasks.update-packages.values.update-output }}
+        ```
+
+  - key: labels
+    use: [gh-cli, code]
+    after: create-or-update-pr
+    run: |
+      if [ -n "$GITHUB_LABEL" ] && [ -n "$GITHUB_PR_NUMBER" ]; then
+        gh label create "$GITHUB_LABEL" --color "$GITHUB_LABEL_COLOR" || true
+        gh pr edit "$GITHUB_PR_NUMBER" --add-label "$GITHUB_LABEL"
+      fi
+    env:
+      GITHUB_TOKEN: ${{ params.github-access-token }}
+      GITHUB_LABEL: ${{ params.label }}
+      GITHUB_LABEL_COLOR: ${{ params.label-color }}
+      GITHUB_PR_NUMBER: ${{ tasks.create-or-update-pr.values.pull-request-number }}
