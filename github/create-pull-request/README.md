@@ -45,7 +45,7 @@ tasks:
     run: rwx packages update | tee $RWX_VALUES/update-output
 
   - key: create-pull-request
-    call: github/create-pull-request 1.0.0
+    call: github/create-pull-request 1.0.1
     use: [update-packages]
     with:
       github-token: ${{ github-apps.your-orgs-bot.token }}
