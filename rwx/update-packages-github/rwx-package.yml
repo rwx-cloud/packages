@@ -71,7 +71,7 @@ tasks:
       RWX_FILE: ${{ params.rwx-file}}
 
   - key: create-or-update-pr
-    call: github/create-pull-request 1.0.0
+    call: 03e78fadfcfe31da507c50476fdde32ebd08f3f0d0bafa31d95b62bbb3637882
     use: update-packages
     with:
       github-token: ${{ params.github-access-token }}
@@ -88,7 +88,7 @@ tasks:
     use: [gh-cli]
     after: create-or-update-pr
     run: |
-      if [ -n "$GITHUB_LABEL" ]; then
+      if [ -n "$GITHUB_LABEL" ] && [ -n "$GITHUB_PR_NUMBER" ]; then
         gh label create "$GITHUB_LABEL" --color "$GITHUB_LABEL_COLOR" || true
         gh pr edit "$GITHUB_PR_NUMBER" --add-label "$GITHUB_LABEL"
       fi
