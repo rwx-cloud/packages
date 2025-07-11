@@ -91,7 +91,23 @@ if [[ "${LFS}" == "true" ]]; then
       DATA="{\\"operation\\": \\"download\\", \\"transfer\\": [\\"basic\\"], \\"objects\\": [{\\"oid\\": \\"\$SHA256\\", \\"size\\": \$SIZE}]}"
       CURL_COMMAND+=" -d '\$DATA' \$URL"
 
-      DOWNLOAD_URL=\$(eval "\$CURL_COMMAND" | jq -r '.objects[0].actions.download.href')
+      RESPONSE=\$(eval "\$CURL_COMMAND")
+      
+      # Check if the response contains an error
+      ERROR_MESSAGE=\$(echo "\$RESPONSE" | jq -r '.objects[0].error.message // empty')
+      if [[ -n "\$ERROR_MESSAGE" ]]; then
+        echo "Error downloading LFS file \$file: \$ERROR_MESSAGE"
+        echo "Hint: Did you forget to push the LFS file(s)?"
+        exit 1
+      fi
+      
+      DOWNLOAD_URL=\$(echo "\$RESPONSE" | jq -r '.objects[0].actions.download.href')
+      
+      if [[ "\$DOWNLOAD_URL" == "null" || -z "\$DOWNLOAD_URL" ]]; then
+        echo "Error: Unable to get download URL for LFS file \$file"
+        echo "Response: \$RESPONSE"
+        exit 1
+      fi
 
       curl -o "\$file" "\$DOWNLOAD_URL"
     done
