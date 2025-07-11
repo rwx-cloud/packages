@@ -17,6 +17,13 @@ with repository permissions for:
 - Define a task to make the desired changes
 - Use this package to create a pull request, or update an existing one identified by the `branch-prefix`.
 
+## Output Values
+
+| key                 | description                                                                 |
+|---------------------|-----------------------------------------------------------------------------|
+| branch              | The branch for the pull request, or blank if a pull request was not created |
+| pull-request-number | The pull request number, or blank a pull request was not created            |
+
 ## Example
 
 This example uses a [cron trigger](https://www.rwx.com/docs/mint/cron-schedules) to update RWX packages once per week.
@@ -45,7 +52,7 @@ tasks:
     run: rwx packages update | tee $RWX_VALUES/update-output
 
   - key: create-pull-request
-    call: github/create-pull-request 1.0.0
+    call: github/create-pull-request 1.0.1
     use: [update-packages]
     with:
       github-token: ${{ github-apps.your-orgs-bot.token }}

@@ -1,5 +1,5 @@
 name: github/create-pull-request
-version: 1.0.0
+version: 1.0.1
 description: Creates a pull request
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/create-pull-request
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -29,6 +29,9 @@ tasks:
     use: [gh-cli]
     cache: false
     run: |
+      # ensure these values are always present
+      touch $RWX_VALUES/{branch,pull-request-number}
+
       git_status=$(git status --porcelain)
       if [ -n "$git_status" ]; then
         git add --all
