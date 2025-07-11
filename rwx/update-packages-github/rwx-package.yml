@@ -59,19 +59,12 @@ tasks:
 
       rwx packages update "${rwx_args[@]}" 2>&1 | tee "$RWX_VALUES/update-output"
       echo "$RWX_RUN_URL" | tee "$RWX_VALUES/run-url"
-
-      git_status=$(git status --porcelain)
-      if [ -n "$git_status" ]; then
-        echo "true" | tee "$RWX_VALUES/has-changes"
-      else
-        echo "false" | tee "$RWX_VALUES/has-changes"
-      fi
     env:
       ALLOW_MAJOR_VERSION_CHANGE: ${{ params.allow-major-version-change }}
       RWX_FILE: ${{ params.rwx-file}}
 
   - key: create-or-update-pr
-    call: 03e78fadfcfe31da507c50476fdde32ebd08f3f0d0bafa31d95b62bbb3637882
+    call: github/create-pull-request 1.0.1
     use: update-packages
     with:
       github-token: ${{ params.github-access-token }}
