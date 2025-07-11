@@ -38,9 +38,9 @@
     # Check PR diff
     pr_diff="$(gh --repo rwx-research/mint-update-leaves-testing pr diff "$PR_NUMBER")"
     grep -q "\-    call: mint/install-go 1.0.0" <<< "$pr_diff" || { echo "Delete install-go 1.0.0 not found" && exit 4; }
-    grep -q "+    call: mint/install-go 1." <<< "$pr_diff" || { echo "Add install-go 1.x.x not found" && exit 4; }
+    grep -q "+    call: golang/install 1." <<< "$pr_diff" || { echo "Add golang/install 1.x.x not found" && exit 4; }
     grep -q "\-    call: mint/install-node 1.0.0" <<< "$pr_diff" || { echo "Delete install-node 1.0.0 not found" && exit 4; }
-    grep -q "+    call: mint/install-node 1." <<< "$pr_diff" || { echo "Add install-node 1.x.x not found" && exit 4; }
+    grep -q "+    call: nodejs/install 1." <<< "$pr_diff" || { echo "Add nodejs/install 1.x.x not found" && exit 4; }
 
     commit_count="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json commits | jq '.commits | length')"
     if [ "$commit_count" != 1 ]; then
@@ -87,9 +87,9 @@
     # Check PR diff
     pr_diff="$(gh --repo rwx-research/mint-update-leaves-testing pr diff "$PR_NUMBER")"
     grep -q "\-    call: mint/install-go 1.0.0" <<< "$pr_diff" || { echo "Delete install-go 1.0.0 not found" && exit 4; }
-    grep -q "+    call: mint/install-go 1." <<< "$pr_diff" || { echo "Add install-go 1.x.x not found" && exit 4; }
+    grep -q "+    call: golang/install 1." <<< "$pr_diff" || { echo "Add golang/install 1.x.x not found" && exit 4; }
     grep -q "\-    call: mint/install-node 1.0.0" <<< "$pr_diff" || { echo "Delete install-node 1.0.0 not found" && exit 4; }
-    grep -q "+    call: mint/install-node 1." <<< "$pr_diff" || { echo "Add install-node 1.x.x not found" && exit 4; }
+    grep -q "+    call: nodejs/install 1." <<< "$pr_diff" || { echo "Add nodejs/install 1.x.x not found" && exit 4; }
 
     commit_count="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json commits | jq '.commits | length')"
     if [ "$commit_count" != 1 ]; then
