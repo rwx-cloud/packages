@@ -5,7 +5,7 @@ To install the latest version of the AWS CLI:
 ```yaml
 tasks:
   - key: aws-cli
-    call: aws/install-cli 1.0.5
+    call: aws/install-cli 1.0.6
 ```
 
 To install a specific version of the AWS CLI (only v2 of the AWS CLI is supported):
@@ -13,7 +13,7 @@ To install a specific version of the AWS CLI (only v2 of the AWS CLI is supporte
 ```yaml
 tasks:
   - key: aws-cli
-    call: aws/install-cli 1.0.5
+    call: aws/install-cli 1.0.6
     with:
       cli-version: "2.15.13"
 ```

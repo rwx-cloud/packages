@@ -1,5 +1,5 @@
 name: aws/install-cli
-version: 1.0.5
+version: 1.0.6
 description: Install the AWS CLI
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/aws/install-cli
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -48,16 +48,16 @@ tasks:
 
       # installer zip
       if [[ -n "$CLI_VERSION" ]]; then
-        curl -o "awscliv2.zip" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$CLI_VERSION.zip"
+        curl -o "awscliv2.zip" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -p)-$CLI_VERSION.zip"
       else
-        curl -o "awscliv2.zip" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+        curl -o "awscliv2.zip" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -p).zip"
       fi
 
       # signature
       if [[ -n "$CLI_VERSION" ]]; then
-        curl -o "awscliv2.sig" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$CLI_VERSION.zip.sig"
+        curl -o "awscliv2.sig" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -p)-$CLI_VERSION.zip.sig"
       else
-        curl -o "awscliv2.sig" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip.sig"
+        curl -o "awscliv2.sig" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -p).zip.sig"
       fi
 
       # import the public keys
