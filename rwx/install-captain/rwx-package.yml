@@ -13,7 +13,7 @@ tasks:
   - key: install
     run: |
       tmp="$(mktemp -d)/captain"
-      curl -o "$tmp" -fsSL "https://releases.captain.build/${CAPTAIN_VERSION}/linux/x86_64/captain"
+      curl -o "$tmp" -fsSL "https://releases.captain.build/${CAPTAIN_VERSION}/linux/$(uname -p)/captain"
       sudo install "$tmp" /usr/local/bin
       rm "$tmp"
       captain --version

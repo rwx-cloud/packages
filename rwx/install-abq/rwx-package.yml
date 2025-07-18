@@ -19,7 +19,7 @@ tasks:
       tmp="$(mktemp -d)/abq"
       curl -o $tmp -fsSL \
         -H "Authorization: Bearer $RWX_ACCESS_TOKEN" \
-        "https://cloud.rwx.com/abq/api/releases/v1/Linux/x86_64/abq?install_id=${install_id}"
+        "https://cloud.rwx.com/abq/api/releases/v1/Linux/$(uname -p)/abq?install_id=${install_id}"
       sudo install $tmp /usr/local/bin
       rm $tmp
       abq --version
