@@ -10,11 +10,11 @@
 - key: install-old-version
   call: $LEAF_DIGEST
   with:
-    go-version: "1.2"
+    go-version: "1.8"
 
 - key: install-old-version--assert
   use: install-old-version
-  run: go version | grep 1.2
+  run: go version | grep 1.8
 
 - key: install-patch-version
   call: $LEAF_DIGEST
