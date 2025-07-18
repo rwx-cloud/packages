@@ -37,6 +37,11 @@ tasks:
         exit 1
       fi
 
+      if [ "$(uname -p)" != "x86_64" ]; then
+        echo "Unsupported architecture \`$(uname -p)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        exit 1
+      fi
+
       chrome=""
 
       if [[ "${CHROME_VERSION}" == "stable" || "${CHROME_VERSION}" == "beta" || "${CHROME_VERSION}" == "dev" || "${CHROME_VERSION}" == "canary" ]]; then
