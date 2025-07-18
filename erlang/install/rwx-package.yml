@@ -18,6 +18,11 @@ tasks:
         exit 1
       fi
 
+      if [ "$(uname -p)" != "x86_64" ]; then
+        echo "Unsupported architecture \`$(uname -p)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        exit 1
+      fi
+
       if mint_os_version_gte 24.04; then
         ncurses_package="libncurses6"
       else
