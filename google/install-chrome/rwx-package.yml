@@ -38,7 +38,7 @@ tasks:
       fi
 
       if [ "$(uname -p)" != "x86_64" ]; then
-        echo "Unsupported architecture \`$(uname -p)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        echo "Google currently does not package Chrome for ARM on Linux. See [GoogleChromeLabs/chrome-for-testing#1](https://github.com/GoogleChromeLabs/chrome-for-testing/issues/1) for more information. Consider using Chromium instead of Chrome." > "$(mktemp "$MINT_ERRORS/error-XXXX")"
         exit 1
       fi
 
