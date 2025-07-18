@@ -1,5 +1,5 @@
 name: rwx/install-abq
-version: 1.1.5
+version: 1.1.6
 description: ABQ is a universal test runner that runs test suites in parallel. It’s the best tool for splitting test suites into parallel jobs in CI.
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/install-abq
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -19,7 +19,7 @@ tasks:
       tmp="$(mktemp -d)/abq"
       curl -o $tmp -fsSL \
         -H "Authorization: Bearer $RWX_ACCESS_TOKEN" \
-        "https://cloud.rwx.com/abq/api/releases/v1/Linux/x86_64/abq?install_id=${install_id}"
+        "https://cloud.rwx.com/abq/api/releases/v1/Linux/$(uname -p)/abq?install_id=${install_id}"
       sudo install $tmp /usr/local/bin
       rm $tmp
       abq --version

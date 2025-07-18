@@ -5,13 +5,13 @@ To install Elixir, you'll need to have Erlang installed.
 ```yaml
 tasks:
   - key: erlang
-    call: mint/install-erlang 1.0.4
+    call: erlang/install 1.0.8
     with:
       erlang-version: "26.2.3"
 
   - key: elixir
     use: erlang
-    call: elixir-lang/install 1.0.5
+    call: elixir-lang/install 1.0.6
     with:
       elixir-version: "1.17.2"
 ```
