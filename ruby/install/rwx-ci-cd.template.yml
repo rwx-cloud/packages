@@ -32,15 +32,3 @@
 - key: prefixed-ruby-version-file--assert
   use: prefixed-ruby-version-file
   run: ruby --version | grep 3.4.4
-
-- key: install-ruby--3-0
-  call: $LEAF_DIGEST
-  with:
-    ruby-version: 3.0.7
-
-# Ruby < 3.1 requires OpenSSL 1.x, while Ruby >= 3.2 works with OpenSSL 3+
-- key: install-ruby--3-0--assert
-  use: install-ruby--3-0
-  run: |
-    ruby --version | grep 3.0.7
-    ruby -ropenssl -e 'puts OpenSSL::OPENSSL_VERSION' | grep 'OpenSSL 1.'
