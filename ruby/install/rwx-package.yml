@@ -1,5 +1,5 @@
 name: ruby/install
-version: 1.2.5
+version: 1.2.6
 description: Install Ruby, a dynamic programming language with a focus on simplicity and productivity
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/ruby/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -82,11 +82,16 @@ tasks:
       source "$MINT_LEAF_PATH/mint-utils.sh"
       escaped_version=$(echo "$RUBY_VERSION" | sed "s/\./\\\\./g") # 3.2.2 => 3\.2\.2
       escaped_os=$(mint_os_name_version | sed "s/\./\\\\./g")
-      version_line=$(cat $MINT_LEAF_PATH/known-rubies.csv | { grep -E "^$escaped_version,[^,]+,[^,]+,$escaped_os,$(mint_arch)$" || test $? = 1; })
+      escaped_arch=$(mint_arch)
+      if [ "$escaped_arch" = "aarch64" ]; then
+        escaped_arch="arm64"
+      fi
+
+      version_line=$(cat $MINT_LEAF_PATH/known-rubies.csv | { grep -E "^$escaped_version,[^,]+,[^,]+,$escaped_os,$escaped_arch" || test $? = 1; })
       if [[ -z "$version_line" ]]; then
         cat << EOF > $(mktemp "$MINT_ERRORS/error-XXXX")
-      Ruby $RUBY_VERSION is not available in this version of [ruby/install](https://cloud.rwx.com/leaves/ruby/install) and OS.
-      Try upgrading to the most recent version of this leaf. If the Ruby version is still not available, [file an issue](https://github.com/rwx-cloud/packages/issues/new).
+      Ruby $RUBY_VERSION is not available in this version of [ruby/install](https://www.rwx.com/docs/mint/packages/ruby/install) and OS.
+      Try upgrading to the most recent version of this package. If the Ruby version is still not available, [file an issue](https://github.com/rwx-cloud/packages/issues/new).
       EOF
         exit 3
       fi
