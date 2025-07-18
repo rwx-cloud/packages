@@ -38,7 +38,7 @@ tasks:
         escaped_arch="arm64"
       fi
 
-      file="eslerlang_${ERLANG_VERSION}-1~$(mint_os_name)~$(mint_os_codename)_${escaped_arch}.deb"
+      file="esl-erlang_${ERLANG_VERSION}-1~$(mint_os_name)~$(mint_os_codename)_${escaped_arch}.deb"
       url="https://binaries2.erlang-solutions.com/$(mint_os_name)/pool/contrib/e/esl-erlang/$file"
       echo "Resolved source URL: $url"
       curl -fO "$url"
