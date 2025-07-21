@@ -1,5 +1,5 @@
 name: google/install-chrome
-version: 2.1.5
+version: 2.1.6
 description: Install Google Chrome, the official web browser from Google
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/google/install-chrome
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -34,6 +34,11 @@ tasks:
       source "$MINT_LEAF_PATH/mint-utils.sh"
       if ! mint_os_name_in ubuntu; then
         echo "Unsupported operating system \`$(mint_os_name)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        exit 1
+      fi
+
+      if [ "$(uname -p)" != "x86_64" ]; then
+        echo "Google currently does not package Chrome for ARM on Linux. See [GoogleChromeLabs/chrome-for-testing#1](https://github.com/GoogleChromeLabs/chrome-for-testing/issues/1) for more information. Consider using Chromium instead of Chrome." > "$(mktemp "$MINT_ERRORS/error-XXXX")"
         exit 1
       fi
 

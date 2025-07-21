@@ -1,31 +1,31 @@
-- key: erlang-25
+- key: erlang-27-3-3
   call: mint/install-erlang 1.0.4
   with:
-    erlang-version: 25.0.3
+    erlang-version: 27.3.3
 
-- key: erlang-26
+- key: erlang-27-3-4
   call: mint/install-erlang 1.0.4
   with:
-    erlang-version: 26.2.3
+    erlang-version: 27.3.4
 
-- key: install-1-17-2-on-25
-  use: erlang-25
+- key: install-1-17-2-on-27-3-3
+  use: erlang-27-3-3
   call: $LEAF_DIGEST
   with:
     elixir-version: 1.17.2
 
-- key: install-1-17-2-on-25--assert
-  use: install-1-17-2-on-25
+- key: install-1-17-2-on-27-3-3--assert
+  use: install-1-17-2-on-27-3-3
   run: |
     elixir --version | grep '^Elixir 1\.17\.2'
 
-- key: install-1-17-2-on-26
-  use: erlang-26
+- key: install-1-18-4-on-27-3-4
+  use: erlang-27-3-4
   call: $LEAF_DIGEST
   with:
-    elixir-version: 1.17.2
+    elixir-version: 1.18.4
 
-- key: install-1-17-2-on-26--assert
-  use: install-1-17-2-on-26
+- key: install-1-18-4-on-27-3-4--assert
+  use: install-1-18-4-on-27-3-4
   run: |
-    elixir --version | grep '^Elixir 1\.17\.2'
+    elixir --version | grep '^Elixir 1\.18\.4'

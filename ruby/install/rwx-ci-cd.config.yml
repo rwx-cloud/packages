@@ -1,26 +1,26 @@
 tests:
-  - key: ubuntu-22-04-x86-64-1-0-x86
+  - key: ubuntu-22-04-x86-64-1-1
     template: rwx-ci-cd.template.yml
     base:
       os: ubuntu 22.04
       tag: 1.1
       arch: x86_64
 
-  - key: ubuntu-24-04-x86-64-1-1-x86
-    template: rwx-ci-cd.template.yml
-    base:
-      os: ubuntu 24.04
-      tag: 1.2
-      arch: x86_64
-
-  - key: ubuntu-22-04-x86-64-1-0-arm64
+  - key: ubuntu-22-04-arm64-1-1
     template: rwx-ci-cd.template.yml
     base:
       os: ubuntu 22.04
       tag: 1.1
       arch: arm64
 
-  - key: ubuntu-24-04-x86-64-1-1-arm64
+  - key: ubuntu-24-04-x86-64-1-2
+    template: rwx-ci-cd.template.yml
+    base:
+      os: ubuntu 24.04
+      tag: 1.2
+      arch: x86_64
+
+  - key: ubuntu-24-04-arm64-1-2
     template: rwx-ci-cd.template.yml
     base:
       os: ubuntu 24.04

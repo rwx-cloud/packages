@@ -1,5 +1,5 @@
 name: erlang/install
-version: 1.0.7
+version: 1.0.8
 description: Install Erlang, a programming language used to build massively scalable soft real-time systems with requirements on high availability
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/erlang/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -18,6 +18,11 @@ tasks:
         exit 1
       fi
 
+      if [ "$(uname -p)" != "x86_64" ]; then
+        echo "Unsupported architecture \`$(uname -p)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        exit 1
+      fi
+
       if mint_os_version_gte 24.04; then
         ncurses_package="libncurses6"
       else
@@ -28,7 +33,12 @@ tasks:
       sudo apt-get install libsctp1 "$ncurses_package"
       sudo apt-get clean
 
-      file="esl-erlang_${ERLANG_VERSION}-1~$(mint_os_name)~$(mint_os_codename)_$(mint_arch_amd).deb"
+      escaped_arch=$(mint_arch_amd)
+      if [ "$escaped_arch" == "aarch64" ]; then
+        escaped_arch="arm64"
+      fi
+
+      file="esl-erlang_${ERLANG_VERSION}-1~$(mint_os_name)~$(mint_os_codename)_${escaped_arch}.deb"
       url="https://binaries2.erlang-solutions.com/$(mint_os_name)/pool/contrib/e/esl-erlang/$file"
       echo "Resolved source URL: $url"
       curl -fO "$url"
