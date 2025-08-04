@@ -22,17 +22,17 @@
   use: test-version-file
   run: node --version | grep '20\.13\.1'
 
-- key: install-22-10-0
+- key: install-22-18-0
   call: $LEAF_DIGEST
   with:
-    node-version: "22.10.0"
+    node-version: "22.18.0"
 
-- key: test-install-22-10-0
-  use: install-22-10-0
-  run: node --version | grep '22\.10\.0'
+- key: test-install-22-18-0
+  use: install-22-18-0
+  run: node --version | grep '22\.18\.0'
 
 - key: test-npm-install-g
-  use: install-22-10-0
+  use: install-22-18-0
   run: |
     npm install -g yaml
     npm root -g > $MINT_ENV/NODE_PATH
