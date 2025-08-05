@@ -7,7 +7,7 @@ You'll either need to specify `node-version` or `node-version-file`
 ```yaml
 tasks:
   - key: node
-    call: nodejs/install 1.1.8
+    call: nodejs/install 1.1.9
     with:
       node-version: "21.4.0"
 ```
@@ -20,7 +20,7 @@ Or with a file named `.node-version` containing the version of node to install:
 tasks:
   - key: node
     use: code # or whichever task provides the .node-version file
-    call: nodejs/install 1.1.8
+    call: nodejs/install 1.1.9
     with:
       node-version-file: .node-version
     filter:
