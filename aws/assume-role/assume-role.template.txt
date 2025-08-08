@@ -5,7 +5,7 @@ set -ueo pipefail
 log_error() {
   local message="$1"
   local tmpfile
-  tmpfile=$(mktemp "$MINT_ERRORS/error-XXXX")
+  tmpfile=$(mktemp "$RWX_ERRORS/error-XXXX")
   cat <<EOF > "$tmpfile"
 $message
 EOF
@@ -45,7 +45,7 @@ ROLE_SESSION_NAME="%{{ROLE_SESSION_NAME}}"
 
 role_session_name=$ROLE_SESSION_NAME
 if [[ -z "$role_session_name" ]]; then
-  role_session_name="assumed-role-for-mint-task-$MINT_TASK_ID"
+  role_session_name="assumed-role-for-rwx-task-$RWX_TASK_ID"
 fi
 
 unset AWS_PROFILE || true
