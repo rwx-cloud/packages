@@ -1,20 +1,20 @@
-- key: aws--assume-role--install-cli
+- key: install-cli
   call: aws/install-cli 1.0.2
 
-- key: aws--assume-role--test--defaults
+- key: test--defaults
   call: $LEAF_DIGEST
   with:
     region: us-east-2
-    role-to-assume: ${{ vaults.mint_leaves_aws_assume_role_testing.secrets.ROLE_TO_ASSUME }}
+    role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-assume }}
 
-- key: aws--assume-role--test--defaults--assert
-  use: [aws--assume-role--install-cli, aws--assume-role--test--defaults]
+- key: test--defaults--assert
+  use: [install-cli, test--defaults]
   run: aws sts get-caller-identity &> /dev/null # avoid leaking account/role info
   env:
-    AWS_OIDC_TOKEN: ${{ vaults.mint_leaves_aws_assume_role_testing.oidc.aws_token }}
+    AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
 
-- key: aws--assume-role--test--defaults--skip-auth--assert
-  use: [aws--assume-role--install-cli, aws--assume-role--test--defaults]
+- key: test--defaults--skip-auth--assert
+  use: [install-cli, test--defaults]
   run: |
     if ! (aws sts get-caller-identity &> /dev/null); then
       echo "Not authenticated with AWS."
@@ -25,74 +25,74 @@
   env:
     AWS_SKIP_AUTH: true
 
-- key: aws--assume-role--test--parallel-group
+- key: test--parallel-group
   call: $LEAF_DIGEST
   with:
     region: us-east-2
-    role-to-assume: ${{ vaults.mint_leaves_aws_assume_role_testing.secrets.ROLE_TO_ASSUME }}
-- key: aws--assume-role--test--parallel-group--assert
-  use: [aws--assume-role--install-cli, aws--assume-role--test--parallel-group]
+    role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-assume }}
+- key: test--parallel-group--assert
+  use: [install-cli, test--parallel-group]
   parallel: 2
   run: |
     aws sts get-caller-identity &> /dev/null # avoid leaking account/role info
   env:
-    AWS_OIDC_TOKEN: ${{ vaults.mint_leaves_aws_assume_role_testing.oidc.aws_token }}
+    AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
 
-- key: aws--assume-role--test--custom-profile
+- key: test--custom-profile
   call: $LEAF_DIGEST
   with:
     region: us-east-2
-    role-to-assume: ${{ vaults.mint_leaves_aws_assume_role_testing.secrets.ROLE_TO_ASSUME }}
+    role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-assume }}
     profile-name: custom
     oidc-token-env-var: AWS_OIDC_TOKEN_2
-- key: aws--assume-role--test--multiple-profiles--assert
-  use: [aws--assume-role--install-cli, aws--assume-role--test--defaults, aws--assume-role--test--custom-profile]
+- key: test--multiple-profiles--assert
+  use: [install-cli, test--defaults, test--custom-profile]
   run:
     - aws sts get-caller-identity &> /dev/null # avoid leaking account/role info
     - aws sts get-caller-identity --profile custom &> /dev/null # avoid leaking account/role info
   env:
-    AWS_OIDC_TOKEN: ${{ vaults.mint_leaves_aws_assume_role_testing.oidc.aws_token }}
-    AWS_OIDC_TOKEN_2: ${{ vaults.mint_leaves_aws_assume_role_testing.oidc.aws_token }}
+    AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
+    AWS_OIDC_TOKEN_2: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
 
-- key: aws--assume-role--test--defaults--role-chain
+- key: test--defaults--role-chain
   call: $LEAF_DIGEST
   with:
     region: us-east-2
-    role-to-assume: ${{ vaults.mint_leaves_aws_assume_role_testing.secrets.ROLE_TO_CHAIN_ASSUME }}
+    role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-chain-assume }}
     role-chaining: true
-- key: aws--assume-role--test--defaults--role-chain--assert
-  use: [aws--assume-role--install-cli, aws--assume-role--test--defaults, aws--assume-role--test--defaults--role-chain]
+- key: test--defaults--role-chain--assert
+  use: [install-cli, test--defaults, test--defaults--role-chain]
   run: aws sts get-caller-identity &> /dev/null # avoid leaking account/role info
   env:
-    AWS_OIDC_TOKEN: ${{ vaults.mint_leaves_aws_assume_role_testing.oidc.aws_token }}
+    AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
 
-- key: aws--assume-role--test--specified-profile-name
+- key: test--specified-profile-name
   call: $LEAF_DIGEST
   with:
     region: us-east-2
-    role-to-assume: ${{ vaults.mint_leaves_aws_assume_role_testing.secrets.ROLE_TO_ASSUME }}
+    role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-assume }}
     profile-name: my-profile
-- key: aws--assume-role--test--specified-profile-name--assert
-  use: [aws--assume-role--install-cli, aws--assume-role--test--specified-profile-name]
+- key: test--specified-profile-name--assert
+  use: [install-cli, test--specified-profile-name]
   run: aws sts get-caller-identity --profile my-profile &> /dev/null # avoid leaking account/role info
   env:
-    AWS_OIDC_TOKEN: ${{ vaults.mint_leaves_aws_assume_role_testing.oidc.aws_token }}
+    AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
 
-- key: aws--assume-role--test--specified-profile-name--role-chain
+- key: test--specified-profile-name--role-chain
   call: $LEAF_DIGEST
   with:
     region: us-east-2
-    role-to-assume: ${{ vaults.mint_leaves_aws_assume_role_testing.secrets.ROLE_TO_CHAIN_ASSUME }}
+    role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-chain-assume }}
     source-profile-name: my-profile
     profile-name: my-other-profile
     role-chaining: true
-- key: aws--assume-role--test--specified-profile-name--role-chain--assert
+- key: test--specified-profile-name--role-chain--assert
   use:
     [
-      aws--assume-role--install-cli,
-      aws--assume-role--test--specified-profile-name,
-      aws--assume-role--test--specified-profile-name--role-chain,
+      install-cli,
+      test--specified-profile-name,
+      test--specified-profile-name--role-chain,
     ]
   run: aws sts get-caller-identity --profile my-other-profile &> /dev/null # avoid leaking account/role info
   env:
-    AWS_OIDC_TOKEN: ${{ vaults.mint_leaves_aws_assume_role_testing.oidc.aws_token }}
+    AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
