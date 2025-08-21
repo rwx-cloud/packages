@@ -1,5 +1,5 @@
 name: aws/assume-role
-version: 2.0.4
+version: 2.0.5
 description: Assume an AWS role
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/aws/assume-role
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -36,9 +36,9 @@ tasks:
       set -ueo pipefail
 
       if [[ "${{ params.role-chaining}}" == "false" ]]; then
-        BEFORE_HOOK_TEMPLATE="$MINT_LEAF_PATH/assume-role.template.txt"
-        BEFORE_HOOK="$MINT_HOOKS_BEFORE_TASK/aws-assume-role--assume-${{ params.profile-name }}.sh"
-        AFTER_HOOK="$MINT_HOOKS_AFTER_TASK/aws-assume-role--assume-${{ params.profile-name }}.sh"
+        BEFORE_HOOK_TEMPLATE="$RWX_PACKAGES_PATH/assume-role.template.txt"
+        BEFORE_HOOK="$RWX_HOOKS_BEFORE_TASK/aws-assume-role--assume-${{ params.profile-name }}.sh"
+        AFTER_HOOK="$RWX_HOOKS_AFTER_TASK/aws-assume-role--assume-${{ params.profile-name }}.sh"
 
         awk \
           -v REGION="${{ params.region }}" \
@@ -58,10 +58,10 @@ tasks:
         }' "$BEFORE_HOOK_TEMPLATE" > $BEFORE_HOOK
 
       else
-        BEFORE_HOOK_TEMPLATE="$MINT_LEAF_PATH/chain-role.template.txt"
+        BEFORE_HOOK_TEMPLATE="$RWX_PACKAGES_PATH/chain-role.template.txt"
         ROLE_TO_ASSUME_HASH=$(echo -n "${{ params.role-to-assume }}" | sha1sum | awk '{print $1}')
-        BEFORE_HOOK="$MINT_HOOKS_BEFORE_TASK/aws-assume-role--chain-${{ params.profile-name }}--$ROLE_TO_ASSUME_HASH.sh"
-        AFTER_HOOK="$MINT_HOOKS_AFTER_TASK/aws-assume-role--chain-${{ params.profile-name }}--$ROLE_TO_ASSUME_HASH.sh"
+        BEFORE_HOOK="$RWX_HOOKS_BEFORE_TASK/aws-assume-role--chain-${{ params.profile-name }}--$ROLE_TO_ASSUME_HASH.sh"
+        AFTER_HOOK="$RWX_HOOKS_AFTER_TASK/aws-assume-role--chain-${{ params.profile-name }}--$ROLE_TO_ASSUME_HASH.sh"
 
         awk \
           -v REGION="${{ params.region }}" \
