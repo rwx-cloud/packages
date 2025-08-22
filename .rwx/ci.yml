@@ -7,11 +7,10 @@ on:
         publish-leaves: false
         sha: ${{ event.git.sha }}
     push:
-      if: ${{ event.git.branch == 'main' }}
       init:
         base-ref: ${{ event.github.push.before }}
         branch: ${{ event.git.branch }}
-        publish-leaves: true
+        publish-leaves: false
         sha: ${{ event.git.sha }}
 
 concurrency-pools:
