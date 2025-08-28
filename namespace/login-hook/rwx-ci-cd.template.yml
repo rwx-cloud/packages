@@ -1,0 +1,21 @@
+- key: install-cli
+  run: |
+    curl -fsSL https://get.namespace.so/cloud/install.sh | sh
+    echo "/home/ubuntu/.ns/bin" > $RWX_ENV/PATH
+
+- key: test--defaults
+  call: $LEAF_DIGEST
+  with:
+    workspace-id: ${{ vaults.rwx_packages_namespace_login_testing.vars.NAMESPACE_WORKSPACE }}
+
+- key: test--defaults--assert
+  use: [install-cli, test--defaults]
+  run: |
+    set +e
+    nsc workspace describe
+    if [ $? -ne 0 ]; then
+      >&2 echo "Expected to be logged into Namespace"
+      exit 1
+    fi
+  env:
+    NAMESPACE_OIDC_TOKEN: ${{ vaults.rwx_packages_namespace_login_testing.oidc.namespace-token }}

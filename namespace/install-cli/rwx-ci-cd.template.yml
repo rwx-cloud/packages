@@ -1,0 +1,15 @@
+- key: test-default
+  call: $LEAF_DIGEST
+
+- key: test-default--assert
+  use: test-default
+  run: nsc version | grep -q '^version v0'
+
+- key: test-specified
+  call: $LEAF_DIGEST
+  with:
+    cli-version: "0.0.436"
+
+- key: test-specified--assert
+  use: test-specified
+  run: nsc version | grep -q '^version v0\.0\.436 '
