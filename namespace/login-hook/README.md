@@ -11,10 +11,8 @@ tasks that need Namespace authentication must also specify the `NAMESPACE_OIDC_T
 
 ```yaml
 tasks:
-  - key: namespace-install
-    run: |
-      curl -fsSL https://get.namespace.so/cloud/install.sh | sh
-      echo "/home/ubuntu/.ns/bin" > $RWX_ENV/PATH
+  - key: namespace-cli
+    call: namespace/install-cli 1.0.0
 
   - key: namespace-login
     call: namespace/login-hook 1.0.0
@@ -22,7 +20,7 @@ tasks:
       workspace-id: my-namespace-workspace-id
 
   - key: namespace-build
-    use: [namespace-install, namespace-login]
+    use: [namespace-cli, namespace-login]
     run: |
       nsc build --name foo/bar --push .
     env:
@@ -36,10 +34,8 @@ However, you'll need to specify `oidc-token-env-name` to prevent conflicts.
 
 ```yaml
 tasks:
-  - key: namespace-install
-    run: |
-      curl -fsSL https://get.namespace.so/cloud/install.sh | sh
-      echo "/home/ubuntu/.ns/bin" > $RWX_ENV/PATH
+  - key: namespace-cli
+    call: namespace/install-cli 1.0.0
 
   - key: namespace-login-to-workspace-a
     call: namespace/login-hook 1.0.0
@@ -54,14 +50,14 @@ tasks:
       oidc-token-env-name: NAMESPACE_OIDC_TOKEN_B
 
   - key: namespace-build-in-workspace-a
-    use: [namespace-install, namespace-login-to-workspace-a]
+    use: [namespace-cli, namespace-login-to-workspace-a]
     run: |
       nsc build --name foo/bar --push .
     env:
       NAMESPACE_OIDC_TOKEN_A: ${{ vaults.your-rwx-vault.oidc.token-a }}
 
   - key: namespace-build-in-workspace-b
-    use: [namespace-install, namespace-login-to-workspace-b]
+    use: [namespace-cli, namespace-login-to-workspace-b]
     run: |
       nsc build --name foo/bar --push .
     env:

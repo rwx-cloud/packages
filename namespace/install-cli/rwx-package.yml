@@ -1,0 +1,27 @@
+name: namespace/install-cli
+version: 1.0.0
+description: Install the Namespace CLI
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/namespace/install-cli
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+
+parameters:
+  cli-version:
+    description: "Version of the CLI to install"
+    default: "latest"
+
+tasks:
+  - key: install
+    cache: ${{ params.cli-version != "latest" }}
+    run: |
+      export NS_ROOT=$(mktemp -d)
+      curl -fsSL -O https://get.namespace.so/cloud/install.sh
+      chmod +x ./install.sh
+      if [ "${{ params.cli-version }}" != "latest" ]; then
+        ./install.sh --version "${{ params.cli-version }}"
+      else
+        ./install.sh
+      fi
+      sudo install "$NS_ROOT/bin/nsc" /usr/local/bin
+      rm -rf "$NS_ROOT"
+      rm ./install.sh
+      nsc version
