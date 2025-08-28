@@ -11,7 +11,6 @@ parameters:
 
 tasks:
   - key: install
-    cache: ${{ params.cli-version != "latest" }}
     run: |
       export NS_ROOT=$(mktemp -d)
       curl -fsSL -O https://get.namespace.so/cloud/install.sh
@@ -25,3 +24,6 @@ tasks:
       rm -rf "$NS_ROOT"
       rm ./install.sh
       nsc version
+    cache:
+      enabled: true
+      ttl: 1 day
