@@ -1,6 +1,6 @@
 # ruby/install
 
-RWX currently supports Ruby versions 3.1.0 through 3.4.5. You'll either need to specify `ruby-version` or `ruby-version-file`.
+RWX currently supports Ruby versions 3.1.0 through 3.4.6. You'll either need to specify `ruby-version` or `ruby-version-file`.
 
 ## With a .ruby-version file
 
@@ -26,5 +26,5 @@ tasks:
   - key: ruby
     call: ruby/install 1.2.9
     with:
-      ruby-version: 3.4.5
+      ruby-version: 3.4.6
 ```
