@@ -1,6 +1,6 @@
 # ruby/install
 
-RWX currently supports Ruby versions 3.1.0 through 3.4.5. You'll either need to specify `ruby-version` or `ruby-version-file`.
+RWX currently supports Ruby versions 3.1.0 through 3.4.6. You'll either need to specify `ruby-version` or `ruby-version-file`.
 
 ## With a .ruby-version file
 
@@ -9,7 +9,7 @@ If your project has a `.ruby-version` file:
 ```yaml
 tasks:
   - key: ruby
-    call: ruby/install 1.2.9
+    call: ruby/install 1.2.10
     with:
       ruby-version-file: .ruby-version
     filter: [.ruby-version]
@@ -24,7 +24,7 @@ If your project does not have a `.ruby-version` file, you can specify the versio
 ```yaml
 tasks:
   - key: ruby
-    call: ruby/install 1.2.9
+    call: ruby/install 1.2.10
     with:
-      ruby-version: 3.4.5
+      ruby-version: 3.4.6
 ```
