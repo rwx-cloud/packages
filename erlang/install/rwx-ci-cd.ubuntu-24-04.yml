@@ -1,11 +1,11 @@
-- key: install-27-3
+- key: install-28-1
   call: $LEAF_DIGEST
   with:
-    erlang-version: '27.3'
+    erlang-version: '28.1'
 
-- key: install-27-3--assert
-  use: install-27-3
+- key: install-28-1--assert
+  use: install-28-1
   run: |
-    cat "/usr/lib/erlang/releases/27/OTP_VERSION" | tee /dev/stderr | grep "^27\.3$"
+    cat "/usr/lib/erlang/releases/28/OTP_VERSION" | tee /dev/stderr | grep "^28\.1$"
 
-    erl -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), "releases", erlang:system_info(otp_release), "OTP_VERSION"])), io:fwrite(Version), halt().' -noshell | tee /dev/stderr | grep "^27\.3$"
+    erl -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), "releases", erlang:system_info(otp_release), "OTP_VERSION"])), io:fwrite(Version), halt().' -noshell | tee /dev/stderr | grep "^28\.1$"
