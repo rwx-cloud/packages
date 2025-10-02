@@ -1,15 +1,3 @@
-- key: install-25-0-3
-  call: $LEAF_DIGEST
-  with:
-    erlang-version: 25.0.3
-
-- key: install-25-0-3--assert
-  use: install-25-0-3
-  run: |
-    cat "/usr/lib/erlang/releases/25/OTP_VERSION" | tee /dev/stderr | grep "^25\.0\.3$"
-
-    erl -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), "releases", erlang:system_info(otp_release), "OTP_VERSION"])), io:fwrite(Version), halt().' -noshell | tee /dev/stderr | grep "^25\.0\.3$"
-
 - key: install-26-2-3
   call: $LEAF_DIGEST
   with:
@@ -21,3 +9,15 @@
     cat "/usr/lib/erlang/releases/26/OTP_VERSION" | tee /dev/stderr | grep "^26\.2\.3$"
 
     erl -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), "releases", erlang:system_info(otp_release), "OTP_VERSION"])), io:fwrite(Version), halt().' -noshell | tee /dev/stderr | grep "^26\.2\.3$"
+
+- key: install-28-1
+  call: $LEAF_DIGEST
+  with:
+    erlang-version: '28.1'
+
+- key: install-28-1--assert
+  use: install-28-1
+  run: |
+    cat "/usr/lib/erlang/releases/28/OTP_VERSION" | tee /dev/stderr | grep "^28\.1$"
+
+    erl -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), "releases", erlang:system_info(otp_release), "OTP_VERSION"])), io:fwrite(Version), halt().' -noshell | tee /dev/stderr | grep "^28\.1$"

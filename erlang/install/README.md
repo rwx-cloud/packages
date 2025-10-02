@@ -5,12 +5,12 @@ To install Erlang:
 ```yaml
 tasks:
   - key: erlang
-    call: erlang/install 1.0.8
+    call: erlang/install 1.1.0
     with:
-      erlang-version: 26.2.3
+      erlang-version: 28.1
 ```
 
 ## Supported Versions
 
-This leaf installs Erlang using precompiled binaries available from Erlang Solutions.
-See [their downloads page](https://www.erlang-solutions.com/downloads/) for supported versions.
+This leaf installs Erlang using precompiled binaries available from [Hex](https://hex.pm).
+See [their documentation](https://github.com/hexpm/bob?tab=readme-ov-file#erlang-builds) for supported versions.
