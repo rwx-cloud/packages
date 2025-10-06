@@ -13,6 +13,7 @@ tasks:
   - key: download
     run: |
       set -u
+      set -x
       source "$MINT_LEAF_PATH/mint-utils.sh"
 
       if [ "$VERSION" = "latest" ]; then
