@@ -1,5 +1,5 @@
 name: tailscale/install
-version: 1.0.2
+version: 1.0.3
 description: Install Tailscale
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/tailscale/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -12,10 +12,17 @@ parameters:
 tasks:
   - key: download
     run: |
+      set -u
+      source "$MINT_LEAF_PATH/mint-utils.sh"
+
       if [ "$VERSION" = "latest" ]; then
         VERSION=$(curl -fs "https://pkgs.tailscale.com/stable/?mode=json" | jq -r .Version)
       fi
-      TAILSCALE_DIR="tailscale_${VERSION}_amd64"
+      ARCH=$(mint_arch_amd)
+      if [ "$ARCH" = "aarch64" ]; then
+        ARCH="arm64"
+      fi
+      TAILSCALE_DIR="tailscale_${VERSION}_${ARCH}"
 
       curl -L https://pkgs.tailscale.com/stable/${TAILSCALE_DIR}.tgz -O
       tar -xf ${TAILSCALE_DIR}.tgz
