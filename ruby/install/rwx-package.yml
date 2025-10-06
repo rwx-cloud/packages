@@ -1,5 +1,5 @@
 name: ruby/install
-version: 1.2.10
+version: 1.2.11
 description: Install Ruby, a dynamic programming language with a focus on simplicity and productivity
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/ruby/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
