@@ -19,7 +19,10 @@ tasks:
       if [ "$VERSION" = "latest" ]; then
         VERSION=$(curl -fs "https://pkgs.tailscale.com/stable/?mode=json" | jq -r .Version)
       fi
-      ARCH=$(mint_arch_amd)
+      ARCH=$(mint_arch)
+      if [ "$ARCH" = "aarch64" ]; then
+        ARCH="arm64"
+      fi
       TAILSCALE_DIR="tailscale_${VERSION}_${ARCH}"
 
       curl -L https://pkgs.tailscale.com/stable/${TAILSCALE_DIR}.tgz -O
