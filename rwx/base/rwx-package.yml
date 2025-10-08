@@ -1,0 +1,29 @@
+name: rwx/base
+version: 1.0.0
+description: The default base image configuration
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/base
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+
+tasks:
+  - key: configure
+    run: |
+      source "$RWX_PACKAGE_PATH/scripts/mint-utils.sh"
+      if [ "$(mint_os_name)" != "ubuntu" ]; then
+        echo "Unsupported operating system \`$(mint_os_name)\`" | tee "$(mktemp "$RWX_ERRORS/error-XXXX")"
+        exit 1
+      fi
+      export DEBIAN_FRONTEND=noniteractive
+
+      echo "LANG=C.UTF-8" > /etc/default/locale
+      cat /etc/default/locale >> /etc/environment
+
+      ${RWX_PACKAGE_PATH}/scripts/apt-install.sh
+      ${RWX_PACKAGE_PATH}/scripts/user.sh
+      ${RWX_PACKAGE_PATH}/scripts/configure.sh
+      echo ubuntu | tee $RWX_IMAGE/user
+
+  - key: docker
+    use: configure
+    run: |
+      sudo --preserve-env ${RWX_PACKAGE_PATH}/scripts/docker.sh
+      docker --version
