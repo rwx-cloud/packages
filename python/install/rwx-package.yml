@@ -1,5 +1,5 @@
 name: python/install
-version: 1.3.8
+version: 1.3.9
 description: Install Python, a programming language that lets you work quickly and integrate systems more effectively
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/python/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
