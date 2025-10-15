@@ -178,7 +178,7 @@ else
 fi
 
 if [[ -z "${unresolved_ref}" ]]; then
-  unresolved_ref="${commit_sha}"
+  unresolved_ref="${CHECKOUT_REF}"
 fi
 
 printf "%s" "${commit_sha}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMIT_SHA"
