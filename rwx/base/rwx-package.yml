@@ -8,10 +8,27 @@ tasks:
   - key: configure
     run: |
       source "$RWX_PACKAGE_PATH/scripts/mint-utils.sh"
-      if [ "$(mint_os_name)" != "ubuntu" ]; then
-        echo "Unsupported operating system \`$(mint_os_name)\`" | tee "$(mktemp "$RWX_ERRORS/error-XXXX")"
+
+      supported_os_version=("ubuntu 20.04" "ubuntu 22.04" "ubuntu 24.04")
+      current_os_version="$(mint_os_name_version)"
+
+      supported=false
+      for os_v in "${supported_os_version[@]}"; do
+        if [[ "$current_os_version" == "$os_v" ]]; then
+          supported=true
+          break
+        fi
+      done
+
+      if $supported; then
+        echo "Configuring $current_os_version"
+      else
+        error_file="$(mktemp "$RWX_ERRORS/error-XXXX")"
+        echo "Operating system not supported by rwx/base: $current_os_version\n" | tee -a $error_file
+        echo "You can pass \`config: none\` to use the image without the RWX base configuration" | tee -a $error_file
         exit 1
       fi
+
       export DEBIAN_FRONTEND=noniteractive
 
       echo "LANG=C.UTF-8" > /etc/default/locale
