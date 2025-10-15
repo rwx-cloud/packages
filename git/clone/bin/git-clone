@@ -173,7 +173,7 @@ elif [[ "${CHECKOUT_REF}" == "${commit_sha}" ]]; then
   refs_with_sha_at_head=$(git ls-remote --heads --tags origin | awk "\$1 ~ /^${commit_sha}/" | awk '{ print $2; }')
   unresolved_ref=$(echo "$refs_with_sha_at_head" | head -n 1 | tr -d '\n')
 else
-  refs_matching_provided_ref=$(git ls-remote  --heads --tags origin | grep "refs/heads/${CHECKOUT_REF}\|refs/tags/${CHECKOUT_REF}\|${CHECKOUT_REF}" | awk '{ print $2; }')
+  refs_matching_provided_ref=$(git ls-remote  --heads --tags origin | grep "refs/heads/${CHECKOUT_REF}\|refs/tags/${CHECKOUT_REF}\|${CHECKOUT_REF}" | awk '{ print $2; }' || true)
   unresolved_ref=$(echo "$refs_matching_provided_ref" | head -n 1 | tr -d '\n')
 fi
 
