@@ -14,7 +14,14 @@
 
     tasks:
       - key: os-release
-        run: cat /etc/os-release
+        run: |
+          cat /etc/os-release
+          test "$(whoami)" == "ubuntu"
+          test "$(sudo whoami)" == "root"
+
+      - key: test-docker
+        docker: true
+        run: docker run hello-world
     EOF
     done
   outputs:
