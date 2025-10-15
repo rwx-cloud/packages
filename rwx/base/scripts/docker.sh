@@ -11,16 +11,19 @@ case "$(mint_os_name_version)" in
     DOCKER_VERSION=5:28.0.4-1~ubuntu.24.04~noble
     DOCKER_BUILDX_VERSION=0.22.0-1~ubuntu.24.04~noble
     DOCKER_COMPOSE_VERSION=2.34.0-1~ubuntu.24.04~noble
+    CONTAINERD_IO_VERSION=1.7.26-1
     ;;
   "ubuntu 22.04")
-    DOCKER_VERSION=5:28.5.1-1~ubuntu.22.04~jammy
-    DOCKER_BUILDX_VERSION=0.29.1-1~ubuntu.22.04~jammy
-    DOCKER_COMPOSE_VERSION=2.40.0-1~ubuntu.22.04~jammy
+    DOCKER_VERSION=5:26.0.1-1~ubuntu.22.04~jammy
+    DOCKER_BUILDX_VERSION=0.17.1-1~ubuntu.22.04~jammy
+    DOCKER_COMPOSE_VERSION=2.29.7-1~ubuntu.22.04~jammy
+    CONTAINERD_IO_VERSION=1.7.23-1
     ;;
   "ubuntu 20.04")
     DOCKER_VERSION=5:28.1.1-1~ubuntu.20.04~focal
     DOCKER_BUILDX_VERSION=0.23.0-1~ubuntu.20.04~focal
     DOCKER_COMPOSE_VERSION=2.35.1-1~ubuntu.20.04~focal
+    CONTAINERD_IO_VERSION=1.7.27-1
     ;;
   *)
     echo "Operating system not supported"
@@ -37,7 +40,7 @@ apt-get install -y \
   docker-ce=$DOCKER_VERSION \
   docker-ce-cli=$DOCKER_VERSION \
   docker-ce-rootless-extras=$DOCKER_VERSION \
-  containerd.io=1.7.26-1 \
+  containerd.io=$CONTAINERD_IO_VERSION \
   docker-buildx-plugin=$DOCKER_BUILDX_VERSION \
   docker-compose-plugin=$DOCKER_COMPOSE_VERSION
 apt-get clean
