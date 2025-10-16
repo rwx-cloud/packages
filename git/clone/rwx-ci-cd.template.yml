@@ -373,10 +373,3 @@
   run: |
     test -e test-checkout-package-submodule
     test ! -e test-checkout-package-submodule/README.md
-
-- key: git-clone--test-head
-  call: $LEAF_DIGEST
-  with:
-    repository: https://github.com/rwx-cloud/test-checkout-package.git
-    ref: HEAD
-    github-access-token: ${{ github['rwx-cloud'].token }}
