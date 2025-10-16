@@ -1,43 +1,12 @@
-- key: build-embedded-runs
+- key: base
+  call: $LEAF_DIGEST
+
+- key: test-user
   run: |
-    images=(
-      "ubuntu:20.04"
-      "ubuntu:22.04"
-      "ubuntu:24.04"
-    )
+    cat /etc/os-release
+    test "$(whoami)" == "ubuntu"
+    test "$(sudo whoami)" == "root"
 
-    for image in "${images[@]}"; do
-      cat << EOF > "${image//[:\/]/-}.yml"
-    base:
-      image: $image
-      config: $LEAF_DIGEST
-
-    tasks:
-      - key: os-release
-        run: |
-          cat /etc/os-release
-          test "$(whoami)" == "ubuntu"
-          test "$(sudo whoami)" == "root"
-
-      - key: test-docker
-        docker: true
-        run: docker run hello-world
-    EOF
-    done
-  outputs:
-    artifacts:
-      - key: ubuntu-20-04
-        path: ubuntu-20.04.yml
-      - key: ubuntu-22-04
-        path: ubuntu-22.04.yml
-      - key: ubuntu-24-04
-        path: ubuntu-24.04.yml
-
-- key: test-ubuntu-20-04
-  call: ${{ tasks.build-embedded-runs.artifacts.ubuntu-20-04 }}
-
-- key: test-ubuntu-22-04
-  call: ${{ tasks.build-embedded-runs.artifacts.ubuntu-22-04 }}
-
-- key: test-ubuntu-24-04
-  call: ${{ tasks.build-embedded-runs.artifacts.ubuntu-24-04 }}
+- key: test-docker
+  docker: true
+  run: docker run hello-world
