@@ -2,11 +2,13 @@
   call: $LEAF_DIGEST
 
 - key: test-user
+  use: base
   run: |
     cat /etc/os-release
     test "$(whoami)" == "ubuntu"
     test "$(sudo whoami)" == "root"
 
 - key: test-docker
+  use: base
   docker: true
   run: docker run hello-world
