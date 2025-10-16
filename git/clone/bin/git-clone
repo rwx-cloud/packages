@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -ueo pipefail
 
+if [[ "${CHECKOUT_REF}" == "HEAD" ]]; then
+  echo "Error: Cloning from HEAD is ambiguous. If you want to clone from the HEAD of your current branch, resolve it first by running:" >&2
+  echo "  git rev-parse HEAD" >&2
+  echo "and then pass the resulting commit SHA as the ref instead." >&2
+  exit 1
+fi
+
 mkdir -p "${CHECKOUT_PATH}"
 realpath -m --relative-to=. "${CHECKOUT_PATH}/.git" > $MINT_VALUES/git-dir-path
 cd "${CHECKOUT_PATH}"
