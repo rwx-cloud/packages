@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -ueo pipefail
 
+if [[ "${CHECKOUT_REF}" == "HEAD" ]]; then
+  echo "Error: Cloning from HEAD is ambiguous. If you want to clone from the HEAD of a particular branch" >&2
+  echo "pass in the name of that branch as the ref instead." >&2
+  exit 1
+fi
+
 mkdir -p "${CHECKOUT_PATH}"
 realpath -m --relative-to=. "${CHECKOUT_PATH}/.git" > $MINT_VALUES/git-dir-path
 cd "${CHECKOUT_PATH}"
@@ -173,12 +179,12 @@ elif [[ "${CHECKOUT_REF}" == "${commit_sha}" ]]; then
   refs_with_sha_at_head=$(git ls-remote --heads --tags origin | awk "\$1 ~ /^${commit_sha}/" | awk '{ print $2; }')
   unresolved_ref=$(echo "$refs_with_sha_at_head" | head -n 1 | tr -d '\n')
 else
-  refs_matching_provided_ref=$(git ls-remote  --heads --tags origin | grep "refs/heads/${CHECKOUT_REF}\|refs/tags/${CHECKOUT_REF}\|${CHECKOUT_REF}" | awk '{ print $2; }')
+  refs_matching_provided_ref=$(git ls-remote  --heads --tags origin | grep "refs/heads/${CHECKOUT_REF}\|refs/tags/${CHECKOUT_REF}\|${CHECKOUT_REF}" | awk '{ print $2; }' || true)
   unresolved_ref=$(echo "$refs_matching_provided_ref" | head -n 1 | tr -d '\n')
 fi
 
 if [[ -z "${unresolved_ref}" ]]; then
-  unresolved_ref="${commit_sha}"
+  unresolved_ref="${CHECKOUT_REF}"
 fi
 
 printf "%s" "${commit_sha}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMIT_SHA"
