@@ -1,3 +1,6 @@
+# These tests are not executing with the bootstrapping flag set on the task.
+# They mimic the bootstrapping process but are not executing it exactly.
+
 - key: alpine
   call: $LEAF_DIGEST
   with:
