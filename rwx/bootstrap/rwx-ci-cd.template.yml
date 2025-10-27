@@ -9,7 +9,7 @@
 - key: alpine-test
   use: alpine
   run: |
-    source image/etc/os-release
+    . image/etc/os-release
     test "$NAME" = "Alpine Linux"
     test "$ID" = "alpine"
     test "$VERSION_ID" = "3.22.2"
