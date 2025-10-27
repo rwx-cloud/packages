@@ -41,15 +41,15 @@ tmp="$(mktemp -d)"
 cd "$tmp"
 
 if [[ -n "$CLI_VERSION" ]]; then
-  curl -o "awscliv2.zip" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -p)-$CLI_VERSION.zip"
+  curl -o "awscliv2.zip" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m)-$CLI_VERSION.zip"
 else
-  curl -o "awscliv2.zip" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -p).zip"
+  curl -o "awscliv2.zip" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip"
 fi
 
 if [[ -n "$CLI_VERSION" ]]; then
-  curl -o "awscliv2.sig" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -p)-$CLI_VERSION.zip.sig"
+  curl -o "awscliv2.sig" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m)-$CLI_VERSION.zip.sig"
 else
-  curl -o "awscliv2.sig" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -p).zip.sig"
+  curl -o "awscliv2.sig" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip.sig"
 fi
 
 # import the public keys
@@ -127,5 +127,6 @@ if [ "$(id -u)" -eq 0 ]; then
 else
   sudo ./aws/install
 fi
+cd ~
 rm -rf "$tmp"
 aws --version
