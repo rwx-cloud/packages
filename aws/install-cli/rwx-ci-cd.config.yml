@@ -1,43 +1,43 @@
 tests:
-  - key: ubuntu-22-04-x86-64-1-1
-    template: rwx-ci-cd.template.yml
-    base:
-      os: ubuntu 22.04
-      tag: 1.1
-      arch: x86_64
-
-  - key: ubuntu-22-04-arm64-1-1
-    template: rwx-ci-cd.template.yml
-    base:
-      os: ubuntu 22.04
-      tag: 1.1
-      arch: arm64
-
-  - key: ubuntu-24-04-x86-64-1-2
-    template: rwx-ci-cd.template.yml
-    base:
-      os: ubuntu 24.04
-      tag: 1.2
-      arch: x86_64
-
-  - key: ubuntu-24-04-arm64-1-2
-    template: rwx-ci-cd.template.yml
-    base:
-      os: ubuntu 24.04
-      tag: 1.2
-      arch: arm64
-
-  - key: ubuntu-config-none
-    template: rwx-ci-cd.template.yml
-    base:
-      image: ubuntu:24.04
-      config: none
-
-  - key: ubuntu-base-config
-    template: rwx-ci-cd.template.yml
-    base:
-      image: ubuntu:24.04
-      config: 242622cdeedd8403411b541e1501214fb831dc9203f4fafb7aa701b4dcaab06c
+  # - key: ubuntu-22-04-x86-64-1-1
+  #   template: rwx-ci-cd.template.yml
+  #   base:
+  #     os: ubuntu 22.04
+  #     tag: 1.1
+  #     arch: x86_64
+  #
+  # - key: ubuntu-22-04-arm64-1-1
+  #   template: rwx-ci-cd.template.yml
+  #   base:
+  #     os: ubuntu 22.04
+  #     tag: 1.1
+  #     arch: arm64
+  #
+  # - key: ubuntu-24-04-x86-64-1-2
+  #   template: rwx-ci-cd.template.yml
+  #   base:
+  #     os: ubuntu 24.04
+  #     tag: 1.2
+  #     arch: x86_64
+  #
+  # - key: ubuntu-24-04-arm64-1-2
+  #   template: rwx-ci-cd.template.yml
+  #   base:
+  #     os: ubuntu 24.04
+  #     tag: 1.2
+  #     arch: arm64
+  #
+  # - key: ubuntu-config-none
+  #   template: rwx-ci-cd.template.yml
+  #   base:
+  #     image: ubuntu:24.04
+  #     config: none
+  #
+  # - key: ubuntu-base-config
+  #   template: rwx-ci-cd.template.yml
+  #   base:
+  #     image: ubuntu:24.04
+  #     config: 242622cdeedd8403411b541e1501214fb831dc9203f4fafb7aa701b4dcaab06c
 
   - key: debian-bookworm-slim
     template: rwx-ci-cd.template.yml

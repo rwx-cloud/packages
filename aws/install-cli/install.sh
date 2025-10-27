@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+export DEBIAN_FRONTEND=noninteractive
+
 . "$MINT_LEAF_PATH/mint-utils.sh"
 
 needed=""
