@@ -1,0 +1,4 @@
+- key: test
+  call: $LEAF_DIGEST
+  with:
+    image: public.ecr.aws/docker/library/alpine:3.22.2

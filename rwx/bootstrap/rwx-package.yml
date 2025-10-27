@@ -1,0 +1,17 @@
+name: rwx/bootstrap
+version: 1.0.0
+description: Used internally in RWX to bootstrap base images
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/bootstrap
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+
+parameters:
+  image:
+    description: "The container image to use"
+    required: true
+
+tasks:
+  - key: bootstrap
+    run: $RWX_PACKAGE_PATH/bootstrap.sh
+    docker: true
+    env:
+      IMAGE: ${{ params.image }}
