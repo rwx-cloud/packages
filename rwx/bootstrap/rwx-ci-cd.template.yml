@@ -1,4 +1,24 @@
-- key: test
+- key: alpine
   call: $LEAF_DIGEST
   with:
     image: public.ecr.aws/docker/library/alpine:3.22.2
+
+- key: alpine-test
+  use: alpine
+  run: |
+    source image/etc/os-release
+    test "$NAME" = "Alpine Linux"
+    test "$ID" = "alpine"
+    test "$VERSION_ID" = "3.22.2"
+    test "$PRETTY_NAME" = "Alpine Linux v3.22"
+
+- key: redis
+  call: $LEAF_DIGEST
+  with:
+    image: public.ecr.aws/docker/library/redis:8.2.2-alpine3.22
+
+- key: test-env
+  use: redis
+  run: |
+    test -n "$REDIS_DOWNLOAD_URL"
+    test -n "$REDIS_DOWNLOAD_SHA"
