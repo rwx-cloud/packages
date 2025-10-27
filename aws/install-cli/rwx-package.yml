@@ -1,5 +1,5 @@
 name: aws/install-cli
-version: 1.0.7
+version: 1.1.0
 description: Install the AWS CLI
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/aws/install-cli
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues

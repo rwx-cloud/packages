@@ -26,3 +26,21 @@ tests:
       os: ubuntu 24.04
       tag: 1.2
       arch: arm64
+
+  - key: ubuntu-config-none
+    template: rwx-ci-cd.template.yml
+    base:
+      image: ubuntu:24.04
+      config: none
+
+  - key: ubuntu-base-config
+    template: rwx-ci-cd.template.yml
+    base:
+      image: ubuntu:24.04
+      config: 242622cdeedd8403411b541e1501214fb831dc9203f4fafb7aa701b4dcaab06c
+
+  - key: debian-bookworm-slim
+    template: rwx-ci-cd.template.yml
+    base:
+      image: debian:bookworm-slim
+      config: none

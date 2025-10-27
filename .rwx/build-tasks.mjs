@@ -63,7 +63,7 @@ for (const line of (await fs.readFile(GIT_DIFF_FILE, "utf8")).split("\n")) {
 
   const foundNonLeafFile = () => {
     console.log(`Found non-leaf file in diff: ${line}`);
-    buildAll = true;
+    buildAll = false;
   };
 
   if (line.split("/").length >= 2) {
@@ -72,11 +72,11 @@ for (const line of (await fs.readFile(GIT_DIFF_FILE, "utf8")).split("\n")) {
       leavesToBuild.add(leafName);
     } else {
       foundNonLeafFile();
-      break;
+      // break;
     }
   } else {
     foundNonLeafFile();
-    break;
+    // break;
   }
 }
 
