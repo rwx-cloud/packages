@@ -35,6 +35,9 @@ if [ -n "$needed" ]; then
   fi
 fi
 
+tmp="$(mktemp -d)"
+cd "$tmp"
+
 if [[ -n "$CLI_VERSION" ]]; then
   curl -o "awscliv2.zip" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -p)-$CLI_VERSION.zip"
 else
