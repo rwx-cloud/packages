@@ -1,5 +1,5 @@
 name: git/clone
-version: 1.6.10
+version: 1.7.0
 description: Clone git repositories over ssh or http, with support for Git Large File Storage (LFS)
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/git/clone
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -21,7 +21,7 @@ parameters:
     description: "The ref to check out of the git repository"
     required: true
   meta-ref:
-    description: "The unresolved name of the ref being checked out (used to set MINT_GIT_REF_NAME). e.g. refs/heads/main or refs/tags/v1.0.0"
+    description: "The unresolved name of the ref being checked out (used to set RWX_GIT_REF_NAME). e.g. refs/heads/main or refs/tags/v1.0.0"
     required: false
   repository:
     description: "The url of a git repository."
@@ -39,13 +39,38 @@ parameters:
 tasks:
   - key: setup
     run: |
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
       if ! mint_os_package_manager_in apt; then
         echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
         exit 1
       fi
 
-      sudo install $MINT_LEAF_PATH/bin/git-ssh-command /usr/local/bin
+      needed=""
+
+      if ! command -v jq >/dev/null 2>&1; then
+        needed="$needed jq"
+      fi
+
+      if ! command -v curl >/dev/null 2>&1; then
+        needed="$needed curl"
+      fi
+
+      if [ -n "$needed" ]; then
+        cat << EOF > ${RWX_ERRORS}/missing-packages
+      The \`git/clone\` requires packages that were missing:$needed
+
+      Define a task which installs those packages, and specify it as a \`use\` dependency of the \`git/clone\` task
+      EOF
+        exit 1
+      fi
+
+      if ! command -v git >/dev/null 2>&1; then
+        mint_maybe_sudo apt-get -y update
+        mint_maybe_sudo apt-get -y install git
+        mint_maybe_sudo apt-get -y clean
+      fi
+
+      mint_maybe_sudo install $RWX_PACKAGE_PATH/bin/git-ssh-command /usr/local/bin
       echo "git-ssh-command" >> $MINT_ENV/GIT_SSH_COMMAND
       if [[ -n "$GIT_SSH_KEY" ]]; then
         httpRegex="https?:\/\/"
@@ -127,15 +152,17 @@ tasks:
         exit 0
       fi
 
-      sudo apt-get update
-      sudo apt-get install git-lfs
-      sudo apt-get clean
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
+
+      mint_maybe_sudo apt-get -y update
+      mint_maybe_sudo apt-get -y install git-lfs
+      mint_maybe_sudo apt-get -y clean
     env:
       LFS: ${{ params.lfs }}
 
   - key: git-clone
     use: [setup, install-lfs]
-    run: $MINT_LEAF_PATH/bin/git-clone
+    run: $RWX_PACKAGE_PATH/bin/git-clone
     env:
       GIT_LFS_SKIP_SMUDGE: 1
       CACHE_BUST: ${{ tasks.get-latest-sha-for-ref.values.latest-sha-cache-buster }}

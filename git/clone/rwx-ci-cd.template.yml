@@ -1,5 +1,15 @@
+- key: system-packages
+  run: |
+    # running from a base with `config: none`; need jq too
+    if ! command -v curl; then
+      apt-get -y update
+      apt-get -y install curl jq
+      apt-get clean
+    fi
+
 - key: git-clone--test-ssh-key
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
@@ -12,6 +22,7 @@
 
 - key: git-clone--test-github-access-token
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
@@ -23,6 +34,7 @@
 
 - key: git-clone--test-public-https
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: https://github.com/rwx-cloud/packages.git
     ref: ad19b2fcb2e5f838be7b88aef436766bf067ffa1
@@ -35,6 +47,7 @@
 
 - key: git-clone--test-path
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: https://github.com/rwx-cloud/packages.git
     ref: ad19b2fcb2e5f838be7b88aef436766bf067ffa1
@@ -48,6 +61,7 @@
 
 - key: git-clone--test-preserve-git-dir
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
@@ -70,6 +84,7 @@
 
 - key: git-clone--test-commit-sha-ref-meta
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
@@ -89,6 +104,7 @@
 
 - key: git-clone--test-commit-sha-non-main-ref-meta
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: 4704503c51f6b5dd6346e219888488ed693dc54c
@@ -108,6 +124,7 @@
 
 - key: git-clone--test-explicit-branch-ref-meta
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: refs/heads/main
@@ -127,6 +144,7 @@
 
 - key: git-clone--test-implicit-branch-ref-meta
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: main
@@ -146,6 +164,7 @@
 
 - key: git-clone--test-explicit-tag-ref-meta
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: refs/tags/v1
@@ -165,6 +184,7 @@
 
 - key: git-clone--test-implicit-tag-ref-meta
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: v1
@@ -184,6 +204,7 @@
 
 - key: git-clone--test-meta-ref-override
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: v1
@@ -204,6 +225,7 @@
 
 - key: git-clone--test-ssh-repo-name
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: main
@@ -223,6 +245,7 @@
 
 - key: git-clone--test-https-repo-name
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: main
@@ -241,6 +264,7 @@
 
 - key: git-clone--test-preserve-git-dir-with-path
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
@@ -265,6 +289,7 @@
 
 - key: git-clone--test-lfs-with-github-token
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
@@ -278,6 +303,7 @@
 
 - key: git-clone--test-lfs-with-ssh-key
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: git@github.com:rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
@@ -292,6 +318,7 @@
 
 - key: git-clone--test-lfs-with-preserve-data
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
@@ -307,6 +334,7 @@
 
 - key: git-clone--test-lfs-with-path
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
@@ -321,6 +349,7 @@
 
 - key: git-clone--test-fetch-full-depth
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
@@ -333,6 +362,7 @@
 
 - key: git-clone--test-submodules
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
@@ -347,6 +377,7 @@
 
 - key: git-clone--test-submodules-preserve-git-dir
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
@@ -362,6 +393,7 @@
 
 - key: git-clone--test-submodules-false
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3

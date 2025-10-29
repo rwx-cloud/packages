@@ -5,7 +5,7 @@
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.6.10
+    call: git/clone 1.7.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -31,7 +31,7 @@ If you're using GitHub, Mint will automatically provide a token that you can use
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.6.10
+    call: git/clone 1.7.0
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -43,7 +43,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.6.10
+    call: git/clone 1.7.0
     with:
       repository: git@github.com:YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -61,7 +61,7 @@ If you need to reference one of these to alter behavior of a task, be sure to in
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.6.10
+    call: git/clone 1.7.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
