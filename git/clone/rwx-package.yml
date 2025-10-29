@@ -57,7 +57,7 @@ tasks:
 
       if [ -n "$needed" ]; then
         cat << EOF > ${RWX_ERRORS}/missing-packages
-      The \`git/clone\` requires packages that were missing:$needed
+      The \`git/clone\` package requires system packages that were missing:$needed
 
       Define a task which installs those packages, and specify it as a \`use\` dependency of the \`git/clone\` task
       EOF
