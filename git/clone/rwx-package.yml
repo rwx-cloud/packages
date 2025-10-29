@@ -187,6 +187,7 @@ tasks:
       CREDENTIAL_HELPER: ${{ tasks.setup.values.credential-helper }}
       FETCH_FULL_DEPTH: ${{ params.fetch-full-depth }}
       SUBMODULES: ${{ params.submodules }}
+      PATCHES_DIR: ${{ run.mint-dir }}/.patches
 
   - key: configure-git
     use: [git-clone]
