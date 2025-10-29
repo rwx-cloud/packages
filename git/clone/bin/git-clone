@@ -213,8 +213,6 @@ for file in "$PATCHES_DIR"/*; do
       echo "Patch file $filename matches checked out sha."
       echo "Generating dynamic git-patch task..."
 
-      echo $file > $RWX_VALUES/patch-file
-
       cat << EOF > $MINT_DYNAMIC_TASKS/patch.yml
 - key: git-patch
   use: git-clone 
@@ -236,9 +234,11 @@ for file in "$PATCHES_DIR"/*; do
 
   env:
     CHECKOUT_PATH: \${{ params.path }}
-    PATCH_FILE: \${{ tasks.git-clone.values.patch-file }}
-    # Reference the patches dir artifact so it's available
-    PATCHES_DIR: \${{ run.mint-dir }}/.patches
+    PATCH_FILE: \${{ run.dir }}/.patches/$filename
+
+  filter:
+    \${{ run.dir }}: [.patches/$filename]
+
 EOF
     else
       echo "Patch file $filename does not match checked out sha $commit_sha. Skipping..."
