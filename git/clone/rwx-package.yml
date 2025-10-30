@@ -132,6 +132,9 @@ tasks:
       CHECKOUT_REF: ${{ params.ref }}
       CHECKOUT_REPOSITORY: ${{ params.repository }}
       CREDENTIAL_HELPER: ${{ tasks.setup.values.credential-helper }}
+      PATCHES_DIR: ${{ run.dir }}/.patches
+    filter:
+      ${{ run.dir }}: [.patches]
     cache: ${{ params.ref =~ '^[0-9a-f]{40}$' }}
 
   - key: install-lfs
@@ -170,9 +173,6 @@ tasks:
       CREDENTIAL_HELPER: ${{ tasks.setup.values.credential-helper }}
       FETCH_FULL_DEPTH: ${{ params.fetch-full-depth }}
       SUBMODULES: ${{ params.submodules }}
-      PATCHES_DIR: ${{ run.dir }}/.patches
-    filter:
-      ${{ run.dir }}: [.patches]
 
   - key: configure-git
     use: [git-clone]
