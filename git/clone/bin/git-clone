@@ -11,15 +11,15 @@ if [[ "${PRESERVE_GIT_DIR}" == "true" || "${FETCH_FULL_DEPTH}" == "true" ]]; the
     CREDENTIAL_ARG="-c credential.helper='${CREDENTIAL_HELPER}'"
   fi
   eval "git clone $CREDENTIAL_ARG \"${CHECKOUT_REPOSITORY}\" ."
-  git fetch origin "${CHECKOUT_REF}"
-  git checkout "${CHECKOUT_REF}"
+  git fetch origin "${RESOLVED_SHA}"
+  git checkout "${RESOLVED_SHA}"
 else
   git init -b main
   git remote add origin "${CHECKOUT_REPOSITORY}"
   if [[ "${CREDENTIAL_HELPER}" != "" ]]; then
     git config --local credential.helper "${CREDENTIAL_HELPER}"
   fi
-  git fetch --depth=1 origin "${CHECKOUT_REF}"
+  git fetch --depth=1 origin "${RESOLVED_SHA}"
   git checkout FETCH_HEAD
 fi
 

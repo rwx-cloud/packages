@@ -178,7 +178,8 @@ tasks:
         value: ${{ params.github-access-token }}
         cache-key: excluded
       CHECKOUT_PATH: ${{ params.path }}
-      CHECKOUT_REF: ${{ tasks.get-latest-sha-for-ref.values.sha }}
+      CHECKOUT_REF: ${{ params.ref }}
+      RESOLVED_SHA: ${{ tasks.get-latest-sha-for-ref.values.sha }}
       CHECKOUT_REPOSITORY: ${{ params.repository }}
       META_REF: ${{ params.meta-ref }}
       LFS: ${{ params.lfs }}
