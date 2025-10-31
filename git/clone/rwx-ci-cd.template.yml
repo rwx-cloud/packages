@@ -125,8 +125,15 @@
       echo "Expected MINT_GIT_REF to be refs/heads/main, got $MINT_GIT_REF"
       exit 1
     fi
+
+    if [[ "$RWX_GIT_REF" != "refs/heads/main" ]]; then
+      echo "Expected RWX_GIT_REF to be refs/heads/main, got $RWX_GIT_REF"
+      exit 1
+    fi
   env:
     MINT_GIT_REF:
+      cache-key: included
+    RWX_GIT_REF:
       cache-key: included
 
 - key: git-clone--test-commit-sha-non-main-ref-meta
@@ -145,8 +152,15 @@
       echo "Expected MINT_GIT_REF to be refs/heads/do-not-delete-this-branch, got $MINT_GIT_REF"
       exit 1
     fi
+
+    if [[ "$RWX_GIT_REF" != "refs/heads/do-not-delete-this-branch" ]]; then
+      echo "Expected RWX_GIT_REF to be refs/heads/do-not-delete-this-branch, got $RWX_GIT_REF"
+      exit 1
+    fi
   env:
     MINT_GIT_REF:
+      cache-key: included
+    RWX_GIT_REF:
       cache-key: included
 
 - key: git-clone--test-explicit-branch-ref-meta
@@ -165,8 +179,15 @@
       echo "Expected MINT_GIT_REF to be refs/heads/main, got $MINT_GIT_REF"
       exit 1
     fi
+
+    if [[ "$RWX_GIT_REF" != "refs/heads/main" ]]; then
+      echo "Expected RWX_GIT_REF to be refs/heads/main, got $RWX_GIT_REF"
+      exit 1
+    fi
   env:
     MINT_GIT_REF:
+      cache-key: included
+    RWX_GIT_REF:
       cache-key: included
 
 - key: git-clone--test-implicit-branch-ref-meta
@@ -185,8 +206,15 @@
       echo "Expected MINT_GIT_REF to be refs/heads/main, got $MINT_GIT_REF"
       exit 1
     fi
+
+    if [[ "$RWX_GIT_REF" != "refs/heads/main" ]]; then
+      echo "Expected RWX_GIT_REF to be refs/heads/main, got $RWX_GIT_REF"
+      exit 1
+    fi
   env:
     MINT_GIT_REF:
+      cache-key: included
+    RWX_GIT_REF:
       cache-key: included
 
 - key: git-clone--test-explicit-tag-ref-meta
@@ -205,8 +233,15 @@
       echo "Expected MINT_GIT_REF to be refs/tags/v1, got $MINT_GIT_REF"
       exit 1
     fi
+
+    if [[ "$RWX_GIT_REF" != "refs/tags/v1" ]]; then
+      echo "Expected RWX_GIT_REF to be refs/tags/v1, got $RWX_GIT_REF"
+      exit 1
+    fi
   env:
     MINT_GIT_REF:
+      cache-key: included
+    RWX_GIT_REF:
       cache-key: included
 
 - key: git-clone--test-implicit-tag-ref-meta
@@ -225,8 +260,15 @@
       echo "Expected MINT_GIT_REF to be refs/tags/v1, got $MINT_GIT_REF"
       exit 1
     fi
+
+    if [[ "$RWX_GIT_REF" != "refs/tags/v1" ]]; then
+      echo "Expected RWX_GIT_REF to be refs/tags/v1, got $RWX_GIT_REF"
+      exit 1
+    fi
   env:
     MINT_GIT_REF:
+      cache-key: included
+    RWX_GIT_REF:
       cache-key: included
 
 - key: git-clone--test-meta-ref-override
@@ -246,8 +288,15 @@
       echo "Expected MINT_GIT_REF to be refs/heads/main, got $MINT_GIT_REF"
       exit 1
     fi
+
+    if [[ "$RWX_GIT_REF" != "refs/heads/main" ]]; then
+      echo "Expected RWX_GIT_REF to be refs/heads/main, got $RWX_GIT_REF"
+      exit 1
+    fi
   env:
     MINT_GIT_REF:
+      cache-key: included
+    RWX_GIT_REF:
       cache-key: included
 
 - key: git-clone--test-ssh-repo-name
@@ -266,8 +315,15 @@
       echo "Expected MINT_GIT_REPOSITORY_NAME to be rwx-cloud/test-checkout-package, got $MINT_GIT_REPOSITORY_NAME"
       exit 1
     fi
+
+    if [[ "$RWX_GIT_REPOSITORY_NAME" != "rwx-cloud/test-checkout-package" ]]; then
+      echo "Expected RWX_GIT_REPOSITORY_NAME to be rwx-cloud/test-checkout-package, got $RWX_GIT_REPOSITORY_NAME"
+      exit 1
+    fi
   env:
     MINT_GIT_REPOSITORY_NAME:
+      cache-key: included
+    RWX_GIT_REPOSITORY_NAME:
       cache-key: included
 
 - key: git-clone--test-https-repo-name
@@ -285,8 +341,15 @@
       echo "Expected MINT_GIT_REPOSITORY_NAME to be rwx-cloud/test-checkout-package, got $MINT_GIT_REPOSITORY_NAME"
       exit 1
     fi
+
+    if [[ "$RWX_GIT_REPOSITORY_NAME" != "rwx-cloud/test-checkout-package" ]]; then
+      echo "Expected RWX_GIT_REPOSITORY_NAME to be rwx-cloud/test-checkout-package, got $RWX_GIT_REPOSITORY_NAME"
+      exit 1
+    fi
   env:
     MINT_GIT_REPOSITORY_NAME:
+      cache-key: included
+    RWX_GIT_REPOSITORY_NAME:
       cache-key: included
 
 - key: git-clone--test-preserve-git-dir-with-path

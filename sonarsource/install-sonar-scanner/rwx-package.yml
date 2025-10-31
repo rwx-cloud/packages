@@ -1,5 +1,5 @@
 name: sonarsource/install-sonar-scanner
-version: 1.0.2
+version: 1.0.3
 description: Install SonarSource's sonar-scanner
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/sonarsource/install-sonar-scanner
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -33,8 +33,8 @@ tasks:
       unzip sonar-scanner.zip
       rm -f sonar-scanner.zip
       sudo mv sonar-scanner-* /opt/sonar-scanner
-      echo "/opt/sonar-scanner/bin" > "${MINT_ENV}/PATH"
-      echo "/opt/sonar-scanner/cache" > "${MINT_ENV}/SONAR_USER_HOME"
+      echo "/opt/sonar-scanner/bin" > "${RWX_ENV}/PATH"
+      echo "/opt/sonar-scanner/cache" > "${RWX_ENV}/SONAR_USER_HOME"
 
       # Set the correct permissions
       chmod +x /opt/sonar-scanner/bin/sonar-scanner

@@ -2,7 +2,7 @@
 set -ueo pipefail
 
 mkdir -p "${CHECKOUT_PATH}"
-realpath -m --relative-to=. "${CHECKOUT_PATH}/.git" > $MINT_VALUES/git-dir-path
+realpath -m --relative-to=. "${CHECKOUT_PATH}/.git" > $RWX_VALUES/git-dir-path
 cd "${CHECKOUT_PATH}"
 
 if [[ "${PRESERVE_GIT_DIR}" == "true" || "${FETCH_FULL_DEPTH}" == "true" ]]; then
@@ -44,12 +44,12 @@ fi
 if [[ "${LFS}" == "true" ]]; then
   LFS_FILES=$(git-lfs ls-files -n)
   if [[ "${LFS_FILES}" != "" ]]; then
-    echo $LFS_FILES > $MINT_VALUES/lfs-files
+    echo $LFS_FILES > $RWX_VALUES/lfs-files
     FILTER_PATH_PREFIX="${CHECKOUT_PATH%/}/"
     FILTER_LINES=$(echo "$LFS_FILES" | jq -c --raw-input --slurp --arg prefix "$FILTER_PATH_PREFIX" 'split("\n") | map(select(. != "") | $prefix + .)')
 
     LFS_ENDPOINT=$(git-lfs env | grep "Endpoint=" | awk -F'[ =]' '{print $2}')
-    cat << EOF > $MINT_DYNAMIC_TASKS/lfs.yml
+    cat << EOF > $RWX_DYNAMIC_TASKS/lfs.yml
 - key: lfs-files
   use: configure-git
   run: |
@@ -126,7 +126,7 @@ if [[ "${LFS}" == "true" ]]; then
   filter: ${FILTER_LINES}
 EOF
       if [[ "${PRESERVE_GIT_DIR}" == "true" ]]; then
-        cat << EOF > $MINT_DYNAMIC_TASKS/lfs-cleanup.yml
+        cat << EOF > $RWX_DYNAMIC_TASKS/lfs-cleanup.yml
 - key: lfs-cleanup
   use: lfs-files
   run: git add -Av
@@ -136,24 +136,24 @@ EOF
 fi
 
 # Set metadata
-printf "%s" "${CHECKOUT_REPOSITORY}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REPOSITORY_URL"
-printf "%s" "${CHECKOUT_REPOSITORY}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REPOSITORY_URL"
-printf "%s" "${CHECKOUT_REPOSITORY}" | tr ':' '/' | rev | cut -d '/' -f1,2 | rev | sed 's/\.git$//' >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REPOSITORY_NAME"
-printf "%s" "${CHECKOUT_REPOSITORY}" | tr ':' '/' | rev | cut -d '/' -f1,2 | rev | sed 's/\.git$//' >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REPOSITORY_NAME"
+printf "%s" "${CHECKOUT_REPOSITORY}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REPOSITORY_URL"
+printf "%s" "${CHECKOUT_REPOSITORY}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REPOSITORY_URL"
+printf "%s" "${CHECKOUT_REPOSITORY}" | tr ':' '/' | rev | cut -d '/' -f1,2 | rev | sed 's/\.git$//' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REPOSITORY_NAME"
+printf "%s" "${CHECKOUT_REPOSITORY}" | tr ':' '/' | rev | cut -d '/' -f1,2 | rev | sed 's/\.git$//' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REPOSITORY_NAME"
 
 commit_message=$(git log -n 1 --pretty=format:%B)
-printf "%s" "${commit_message}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMIT_MESSAGE"
-printf "%s" "${commit_message}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMIT_MESSAGE"
-printf "%s" "${commit_message}" | head -n 1 | tr -d '\n' >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMIT_SUMMARY"
-printf "%s" "${commit_message}" | head -n 1 | tr -d '\n' >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMIT_SUMMARY"
+printf "%s" "${commit_message}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMIT_MESSAGE"
+printf "%s" "${commit_message}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMIT_MESSAGE"
+printf "%s" "${commit_message}" | head -n 1 | tr -d '\n' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMIT_SUMMARY"
+printf "%s" "${commit_message}" | head -n 1 | tr -d '\n' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMIT_SUMMARY"
 
 committer_name=$(git log -n 1 --pretty=format:%an)
-printf "%s" "${committer_name}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMITTER_NAME"
-printf "%s" "${committer_name}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMITTER_NAME"
+printf "%s" "${committer_name}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMITTER_NAME"
+printf "%s" "${committer_name}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMITTER_NAME"
 
 committer_email=$(git log -n 1 --pretty=format:%ae)
-printf "%s" "${committer_email}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMITTER_EMAIL"
-printf "%s" "${committer_email}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMITTER_EMAIL"
+printf "%s" "${committer_email}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMITTER_EMAIL"
+printf "%s" "${committer_email}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMITTER_EMAIL"
 
 unresolved_ref=""
 if [[ -n "${META_REF}" ]]; then
@@ -165,7 +165,7 @@ if [[ -n "${META_REF}" ]]; then
   git fetch origin "${unresolved_ref}:${unresolved_ref}"
   result=$(git for-each-ref "${unresolved_ref}" --format="%(refname)" --contains "${commit_sha}")
   if [[ -z "${result}" ]]; then
-    cat << EOF > $(mktemp "$MINT_ERRORS/error-XXXX")
+    cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
 The \`meta-ref\` provided does not contain the resolved commit sha.
 EOF
     exit 1
@@ -182,12 +182,12 @@ if [[ -z "${unresolved_ref}" ]]; then
   unresolved_ref="${CHECKOUT_REF}"
 fi
 
-printf "%s" "${commit_sha}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMIT_SHA"
-printf "%s" "${commit_sha}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMIT_SHA"
-printf "%s" "${unresolved_ref}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REF"
-printf "%s" "${unresolved_ref}" >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REF"
-printf "%s" "${unresolved_ref}" | sed -E 's|refs/[^/]+/||' >> "$MINT_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REF_NAME"
-printf "%s" "${unresolved_ref}" | sed -E 's|refs/[^/]+/||' >> "$MINT_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REF_NAME"
+printf "%s" "${commit_sha}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMIT_SHA"
+printf "%s" "${commit_sha}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMIT_SHA"
+printf "%s" "${unresolved_ref}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REF"
+printf "%s" "${unresolved_ref}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REF"
+printf "%s" "${unresolved_ref}" | sed -E 's|refs/[^/]+/||' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REF_NAME"
+printf "%s" "${unresolved_ref}" | sed -E 's|refs/[^/]+/||' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REF_NAME"
 
 if [[ "${PRESERVE_GIT_DIR}" == "false" ]]; then
   rm -rf .git

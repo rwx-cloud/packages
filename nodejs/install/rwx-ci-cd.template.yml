@@ -35,7 +35,7 @@
   use: install-22-18-0
   run: |
     npm install -g yaml
-    npm root -g > $MINT_ENV/NODE_PATH
+    npm root -g > $RWX_ENV/NODE_PATH
 
 - key: test-npm-install-g--assert
   use: test-npm-install-g

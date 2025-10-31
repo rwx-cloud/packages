@@ -1,5 +1,5 @@
 name: google/install-chrome
-version: 2.1.6
+version: 2.1.7
 description: Install Google Chrome, the official web browser from Google
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/google/install-chrome
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -31,14 +31,14 @@ outputs:
 tasks:
   - key: resolve-chrome-version
     run: |
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
       if ! mint_os_name_in ubuntu; then
-        echo "Unsupported operating system \`$(mint_os_name)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        echo "Unsupported operating system \`$(mint_os_name)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
       if [ "$(uname -p)" != "x86_64" ]; then
-        echo "Google currently does not package Chrome for ARM on Linux. See [GoogleChromeLabs/chrome-for-testing#1](https://github.com/GoogleChromeLabs/chrome-for-testing/issues/1) for more information. Consider using Chromium instead of Chrome." > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        echo "Google currently does not package Chrome for ARM on Linux. See [GoogleChromeLabs/chrome-for-testing#1](https://github.com/GoogleChromeLabs/chrome-for-testing/issues/1) for more information. Consider using Chromium instead of Chrome." > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
@@ -59,7 +59,7 @@ tasks:
       fi
 
       if [[ -z "${chrome}" ]]; then
-        cat << EOF > $(mktemp "$MINT_ERRORS/error-XXXX")
+        cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
       The \`chrome-version\` provided does not resolve to a version of Google Chrome known by [Chrome for Testing](https://github.com/GoogleChromeLabs/chrome-for-testing).
       EOF
         exit 1
@@ -68,11 +68,11 @@ tasks:
       resolved_version=$(echo "$chrome" | jq -r '.version')
       # restrict usage to Chrome >= 115
       if echo "$resolved_version" | awk -F . '{ if ($1 >= 115) { exit 0 } else { exit 1 } }'; then
-        echo "${resolved_version}" > "${MINT_VALUES}/chrome-version"
-        echo "${chrome}" | jq -r '[.downloads.chrome[] | select(.platform == "linux64")] | last.url' > "${MINT_VALUES}/chrome-download-url"
-        echo "${chrome}" | jq -r '[.downloads.chromedriver[] | select(.platform == "linux64")] | last.url' > "${MINT_VALUES}/chromedriver-download-url"
+        echo "${resolved_version}" > "${RWX_VALUES}/chrome-version"
+        echo "${chrome}" | jq -r '[.downloads.chrome[] | select(.platform == "linux64")] | last.url' > "${RWX_VALUES}/chrome-download-url"
+        echo "${chrome}" | jq -r '[.downloads.chromedriver[] | select(.platform == "linux64")] | last.url' > "${RWX_VALUES}/chromedriver-download-url"
       else
-        cat << EOF > $(mktemp "${MINT_ERRORS}/error-XXXX")
+        cat << EOF > $(mktemp "${RWX_ERRORS}/error-XXXX")
       The \`chrome-version\` provided is less than 115. Only versions 115 and higher are supported.
       EOF
         exit 1
@@ -85,7 +85,7 @@ tasks:
 
   - key: install
     run: |
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
       os_packages=""
       if mint_os_version_gte 24.04; then
         os_packages="libasound2t64 libgtk-4-1 libatk-bridge2.0-0t64 libatk1.0-0t64 libatspi2.0-0t64 libcups2t64 libglib2.0-0t64 libgtk-3-0t64"
@@ -116,7 +116,7 @@ tasks:
       sudo apt-get clean
 
       path_additions=""
-      echo "${CHROME_VERSION}" > "${MINT_VALUES}/chrome-version"
+      echo "${CHROME_VERSION}" > "${RWX_VALUES}/chrome-version"
 
       echo "Installing Chrome ${CHROME_VERSION}"
       echo
@@ -130,7 +130,7 @@ tasks:
       chrome_sandbox_binary="${CHROME_DIRECTORY}/chrome_sandbox"
       sudo chown root:root "${chrome_sandbox_binary}"
       sudo chmod 4755 "${chrome_sandbox_binary}"
-      echo "${chrome_sandbox_binary}" > "${MINT_ENV}/CHROME_DEVEL_SANDBOX"
+      echo "${chrome_sandbox_binary}" > "${RWX_ENV}/CHROME_DEVEL_SANDBOX"
 
       # Store useful chrome values
       chrome_binary="${CHROME_DIRECTORY}/chrome"
@@ -164,7 +164,7 @@ tasks:
 
       if [[ -n "${path_additions}" ]]; then
         echo "Adding ${path_additions} to PATH"
-        echo "${path_additions}" >> "${MINT_ENV}/PATH"
+        echo "${path_additions}" >> "${RWX_ENV}/PATH"
       fi
 
       rm -f chrome.zip

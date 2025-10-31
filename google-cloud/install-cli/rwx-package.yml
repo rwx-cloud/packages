@@ -1,5 +1,5 @@
 name: google-cloud/install-cli
-version: 1.1.5
+version: 1.1.6
 description: Install the Google Cloud SDK CLI
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/install-cli
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -15,9 +15,9 @@ parameters:
 tasks:
   - key: install-cli
     run: |
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
       if [ "$(mint_os_name)" != "ubuntu" ]; then
-        echo "Unsupported operating system \`$(mint_os_name)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        echo "Unsupported operating system \`$(mint_os_name)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
@@ -59,7 +59,7 @@ tasks:
       echo
       bin_dir="${install_dir}/google-cloud-sdk/bin"
       echo "Adding ${bin_dir} to PATH"
-      echo "$bin_dir" >> "${MINT_ENV}/PATH"
+      echo "$bin_dir" >> "${RWX_ENV}/PATH"
       export PATH="${bin_dir}:$PATH"
 
       echo

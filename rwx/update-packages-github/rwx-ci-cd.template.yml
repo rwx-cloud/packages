@@ -20,7 +20,7 @@
       >&2 echo "Pull request not found"
       exit 4
     fi
-    printf "$PR_NUMBER" > "$MINT_VALUES/pr-number"
+    printf "$PR_NUMBER" > "$RWX_VALUES/pr-number"
 
     # Check branch name
     branch_name="$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json headRefName --jq '.headRefName')"

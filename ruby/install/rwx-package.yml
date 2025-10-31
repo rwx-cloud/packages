@@ -1,5 +1,5 @@
 name: ruby/install
-version: 1.2.12
+version: 1.2.13
 description: Install Ruby, a dynamic programming language with a focus on simplicity and productivity
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/ruby/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -20,9 +20,9 @@ tasks:
       #
       # Check OS support
       #
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
       if ! mint_os_package_manager_in apt; then
-        echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
@@ -31,7 +31,7 @@ tasks:
       #
       if [ "$RUBY_VERSION" = "" ]; then
         if [ "$RUBY_VERSION_FILE" = "" ]; then
-          cat << EOF > $(mktemp "$MINT_ERRORS/error-XXXX")
+          cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
       Invalid parameters: \`ruby-version\` or \`ruby-version-file\` must be set.
       EOF
           exit 2
@@ -39,7 +39,7 @@ tasks:
 
         RUBY_VERSION="$(cat "$RUBY_VERSION_FILE" | sed 's/ruby-//')"
         if [ "$RUBY_VERSION" = "" ]; then
-          cat << EOF > $(mktemp "$MINT_ERRORS/error-XXXX")
+          cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
       Invalid parameters: the contents of \`ruby-version-file\` did not specify a Ruby version.
       EOF
           exit 2
@@ -79,7 +79,7 @@ tasks:
       #
       # Find the prebuilt Ruby
       echo "Looking for Ruby $RUBY_VERSION..."
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
       escaped_version=$(echo "$RUBY_VERSION" | sed "s/\./\\\\./g") # 3.2.2 => 3\.2\.2
       escaped_os=$(mint_os_name_version | sed "s/\./\\\\./g")
       escaped_arch=$(mint_arch)
@@ -87,9 +87,9 @@ tasks:
         escaped_arch="arm64"
       fi
 
-      version_line=$(cat $MINT_LEAF_PATH/known-rubies.csv | { grep -E "^$escaped_version,[^,]+,[^,]+,$escaped_os,$escaped_arch" || test $? = 1; })
+      version_line=$(cat $RWX_PACKAGE_PATH/known-rubies.csv | { grep -E "^$escaped_version,[^,]+,[^,]+,$escaped_os,$escaped_arch" || test $? = 1; })
       if [[ -z "$version_line" ]]; then
-        cat << EOF > $(mktemp "$MINT_ERRORS/error-XXXX")
+        cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
       Ruby $RUBY_VERSION is not available in this version of [ruby/install](https://www.rwx.com/docs/mint/packages/ruby/install) and OS.
       Try upgrading to the most recent version of this package. If the Ruby version is still not available, [file an issue](https://github.com/rwx-cloud/packages/issues/new).
       EOF
@@ -124,7 +124,7 @@ tasks:
       # Add Ruby to PATH
       path_to_ruby="$HOME/.rubies/ruby-$RUBY_VERSION/bin"
       echo "Adding $path_to_ruby to \$PATH"
-      echo "$path_to_ruby" >> "$MINT_ENV/PATH"
+      echo "$path_to_ruby" >> "$RWX_ENV/PATH"
 
       # cleanup
       rm exclude.txt

@@ -94,7 +94,7 @@
   run: chromedriver --version | grep '129\.'
 
 - key: test--headed-and-headless-chrome-works--install-ruby
-  call: mint/install-ruby 1.2.0
+  call: ruby/install 1.2.12
   with:
     ruby-version: 3.3.4
 
@@ -169,7 +169,7 @@
     ruby selenium.rb | tee /dev/stderr | grep "Example Domain"
 
 - key: test--testcafe-finds-chrome--install-node
-  call: mint/install-node 1.1.3
+  call: nodejs/install 1.1.9
   with:
     node-version: 22.12.0
 
