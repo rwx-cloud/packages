@@ -26,3 +26,9 @@ tests:
       os: ubuntu 24.04
       tag: 1.2
       arch: arm64
+
+  - key: ubuntu-root
+    template: rwx-ci-cd.template.yml
+    base:
+      image: ubuntu:24.04
+      config: none

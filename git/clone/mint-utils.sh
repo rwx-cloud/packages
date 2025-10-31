@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# mint-utils version 1.0.3
+# mint-utils version 1.0.5
 
 detected_os=""
 detected_os_version=""
@@ -106,6 +106,24 @@ function mint_contains {
   return 1
 }
 
+function mint_os_name_in {
+  mint_contains "$(mint_os_name)" "$@"
+}
+
 function mint_os_package_manager_in {
   mint_contains "$(mint_os_package_manager)" "$@"
+}
+
+function mint_maybe_sudo() {
+  if [ "$(id -u)" -eq 0 ]; then
+    "$@"
+  else
+    # If sudo is available, use it
+    if command -v sudo >/dev/null 2>&1; then
+      sudo "$@"
+    else
+      echo "Error: need root privileges but 'sudo' not found" >&2
+      return 1
+    fi
+  fi
 }
