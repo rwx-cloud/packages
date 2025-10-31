@@ -21,7 +21,7 @@ tasks:
       set -u
 
       PROFILE_NAME="$(echo "$REGISTRY" | tr -cd '[:alnum:]')"
-      BEFORE_HOOK="${MINT_HOOKS_BEFORE_TASK}/docker-login--${PROFILE_NAME}.sh"
+      BEFORE_HOOK="${RWX_HOOKS_BEFORE_TASK}/docker-login--${PROFILE_NAME}.sh"
       AFTER_HOOK="${MINT_HOOKS_AFTER_TASK}/docker-login--${PROFILE_NAME}.sh"
 
       cat <<'EOF' > "$BEFORE_HOOK"
