@@ -15,7 +15,7 @@ parameters:
 tasks:
   - key: install-cli
     run: |
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
       if [ "$(mint_os_name)" != "ubuntu" ]; then
         echo "Unsupported operating system \`$(mint_os_name)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
         exit 1

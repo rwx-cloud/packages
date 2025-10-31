@@ -19,12 +19,12 @@ tasks:
   - key: install-python
     run: |
       set -u
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
 
       #
       # Check OS support
       #
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
       if ! mint_os_name_in ubuntu; then
         echo "Unsupported operating system \`$(mint_os_name)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
         exit 1
@@ -66,7 +66,7 @@ tasks:
         escaped_arch="arm64"
       fi
 
-      version_line=$(cat $MINT_LEAF_PATH/known-pythons.csv | { grep -E "^$escaped_version,[^,]+,[^,]+,$escaped_os,$escaped_arch" || test $? = 1; })
+      version_line=$(cat $RWX_PACKAGE_PATH/known-pythons.csv | { grep -E "^$escaped_version,[^,]+,[^,]+,$escaped_os,$escaped_arch" || test $? = 1; })
       if [[ -z "$version_line" ]]; then
         cat << EOF > $(mktemp "$MINT_ERRORS/error-XXXX")
       Python $PYTHON_VERSION is not available in this version of [python/install](https://www.rwx.com/docs/mint/packages/python/install) and OS.

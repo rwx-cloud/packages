@@ -13,7 +13,7 @@ tasks:
   - key: download
     run: |
       set -u
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
 
       if [ "$VERSION" = "latest" ]; then
         VERSION=$(curl -fs "https://pkgs.tailscale.com/stable/?mode=json" | jq -r .Version)

@@ -31,7 +31,7 @@ outputs:
 tasks:
   - key: resolve-chrome-version
     run: |
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
       if ! mint_os_name_in ubuntu; then
         echo "Unsupported operating system \`$(mint_os_name)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
         exit 1
@@ -85,7 +85,7 @@ tasks:
 
   - key: install
     run: |
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
       os_packages=""
       if mint_os_version_gte 24.04; then
         os_packages="libasound2t64 libgtk-4-1 libatk-bridge2.0-0t64 libatk1.0-0t64 libatspi2.0-0t64 libcups2t64 libglib2.0-0t64 libgtk-3-0t64"

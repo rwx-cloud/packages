@@ -121,7 +121,7 @@ tasks:
 
   - key: get-latest-sha-for-ref
     use: setup
-    run: $MINT_LEAF_PATH/bin/get-latest-sha-for-ref
+    run: $RWX_PACKAGE_PATH/bin/get-latest-sha-for-ref
     env:
       GIT_SSH_KEY:
         value: ${{ params.ssh-key }}

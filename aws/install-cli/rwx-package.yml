@@ -13,7 +13,7 @@ tasks:
   - key: install-unzip-if-necessary
     run: |
       if ! command -v unzip &> /dev/null; then
-        source "$MINT_LEAF_PATH/mint-utils.sh"
+        source "$RWX_PACKAGE_PATH/mint-utils.sh"
         if ! mint_os_package_manager_in apt; then
           echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
           exit 1
@@ -27,7 +27,7 @@ tasks:
   - key: install-gpg-if-necessary
     run: |
       if ! command -v gpg &> /dev/null; then
-        source "$MINT_LEAF_PATH/mint-utils.sh"
+        source "$RWX_PACKAGE_PATH/mint-utils.sh"
         if ! mint_os_package_manager_in apt; then
           echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
           exit 1

@@ -11,6 +11,6 @@ parameters:
 
 tasks:
   - key: install
-    run: $MINT_LEAF_PATH/bin/install-go
+    run: $RWX_PACKAGE_PATH/bin/install-go
     env:
       GO_VERSION: ${{ params.go-version }}

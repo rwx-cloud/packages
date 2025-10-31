@@ -72,7 +72,7 @@ tasks:
       echo "All changed files:"
       cat files.txt
 
-      cat files.txt | $MINT_LEAF_PATH/bin/glob_patterns "$PATTERNS" > matches.txt
+      cat files.txt | $RWX_PACKAGE_PATH/bin/glob_patterns "$PATTERNS" > matches.txt
       echo
       echo "All matched files:"
       cat matches.txt
