@@ -33,7 +33,7 @@ for file in "$PATCHES_DIR"/*; do
       echo "Patch file $filename matches the resolved sha."
       echo "Generating dynamic git-patch task..."
 
-      cat << EOF > $MINT_DYNAMIC_TASKS/patch.yml
+      cat << EOF > $RWX_DYNAMIC_TASKS/patch.yml
 - key: git-patch
   use: git-clone 
   run: |

@@ -49,7 +49,7 @@ if [[ "${LFS}" == "true" ]]; then
     FILTER_LINES=$(echo "$LFS_FILES" | jq -c --raw-input --slurp --arg prefix "$FILTER_PATH_PREFIX" 'split("\n") | map(select(. != "") | $prefix + .)')
 
     LFS_ENDPOINT=$(git-lfs env | grep "Endpoint=" | awk -F'[ =]' '{print $2}')
-    cat << EOF > $MINT_DYNAMIC_TASKS/lfs.yml
+    cat << EOF > $RWX_DYNAMIC_TASKS/lfs.yml
 - key: lfs-files
   use: configure-git
   run: |
@@ -126,7 +126,7 @@ if [[ "${LFS}" == "true" ]]; then
   filter: ${FILTER_LINES}
 EOF
       if [[ "${PRESERVE_GIT_DIR}" == "true" ]]; then
-        cat << EOF > $MINT_DYNAMIC_TASKS/lfs-cleanup.yml
+        cat << EOF > $RWX_DYNAMIC_TASKS/lfs-cleanup.yml
 - key: lfs-cleanup
   use: lfs-files
   run: git add -Av
