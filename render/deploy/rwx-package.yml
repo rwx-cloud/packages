@@ -34,7 +34,7 @@ tasks:
         exit 1
       fi
 
-      echo "$service_id" > "${MINT_VALUES}/service-id"
+      echo "$service_id" > "${RWX_VALUES}/service-id"
       echo "Service ID: ${service_id}"
     env:
       RENDER_API_KEY: "${{ params.render-api-key }}"
@@ -58,7 +58,7 @@ tasks:
         exit 1
       fi
 
-      echo "$deploy_id" > "${MINT_VALUES}/deploy-id"
+      echo "$deploy_id" > "${RWX_VALUES}/deploy-id"
       echo "Deploy ID: ${deploy_id}"
     env:
       GIT_REF: "${{ params.ref }}"

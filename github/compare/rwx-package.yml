@@ -29,30 +29,30 @@ tasks:
     run: |
       echo "Base ref resolves to:"
       if [[ "${BASE_REF}" =~ ^[0-9a-f]{40}$ ]]; then
-        echo "${BASE_REF}" | tee $MINT_VALUES/base-sha
+        echo "${BASE_REF}" | tee $RWX_VALUES/base-sha
       else
         if [[ "${BASE_REF}" =~ ^refs/heads/ || "${BASE_REF}" =~ ^refs/heads/ ]]; then
           ref=$(echo "${BASE_REF}" | sed 's|refs/||')
           sha=$(gh api "/repos/${REPOSITORY}/git/ref/${ref}" | jq -e -r '.object.sha')
-          echo "${sha}" | tee $MINT_VALUES/base-sha
+          echo "${sha}" | tee $RWX_VALUES/base-sha
         else
           sha=$(gh api "/repos/${REPOSITORY}/git/ref/heads/${BASE_REF}" | jq -e -r '.object.sha')
-          echo "${sha}" | tee $MINT_VALUES/base-sha
+          echo "${sha}" | tee $RWX_VALUES/base-sha
         fi
       fi
 
       echo
       echo "Head ref resolves to:"
       if [[ "${HEAD_REF}" =~ ^[0-9a-f]{40}$ ]]; then
-        echo "${HEAD_REF}" | tee $MINT_VALUES/head-sha
+        echo "${HEAD_REF}" | tee $RWX_VALUES/head-sha
       else
         if [[ "${HEAD_REF}" =~ ^refs/heads/ || "${HEAD_REF}" =~ ^refs/heads/ ]]; then
           ref=$(echo "${HEAD_REF}" | sed 's|refs/||')
           sha=$(gh api "/repos/${REPOSITORY}/git/ref/${ref}" | jq -e -r '.object.sha')
-          echo "${sha}" | tee $MINT_VALUES/head-sha
+          echo "${sha}" | tee $RWX_VALUES/head-sha
         else
           sha=$(gh api "/repos/${REPOSITORY}/git/ref/heads/${HEAD_REF}" | jq -e -r '.object.sha')
-          echo "${sha}" | tee $MINT_VALUES/head-sha
+          echo "${sha}" | tee $RWX_VALUES/head-sha
         fi
       fi
     env:
@@ -78,14 +78,14 @@ tasks:
       cat matches.txt
 
       matches=$(cat matches.txt)
-      echo "${matches}" > $MINT_VALUES/changes
+      echo "${matches}" > $RWX_VALUES/changes
 
       if [ "${matches}" == "" ]; then
-        echo "false" > $MINT_VALUES/has-changes
-        echo "false" > $MINT_VALUES/have-changes
+        echo "false" > $RWX_VALUES/has-changes
+        echo "false" > $RWX_VALUES/have-changes
       else
-        echo "true" > $MINT_VALUES/has-changes
-        echo "true" > $MINT_VALUES/have-changes
+        echo "true" > $RWX_VALUES/has-changes
+        echo "true" > $RWX_VALUES/have-changes
       fi
     env:
       GITHUB_TOKEN:

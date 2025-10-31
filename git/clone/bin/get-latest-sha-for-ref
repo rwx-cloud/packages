@@ -15,7 +15,7 @@ if [[ $RESOLVED_SHA == "" ]]; then
   RESOLVED_SHA="${CHECKOUT_REF}"
 fi
 echo "Latest SHA for ${CHECKOUT_REF}: ${RESOLVED_SHA}"
-printf "${RESOLVED_SHA}" >> "$MINT_VALUES/sha"
+printf "${RESOLVED_SHA}" >> "$RWX_VALUES/sha"
 
 if [ ! -d "$PATCHES_DIR" ]; then
   echo ""

@@ -68,9 +68,9 @@ tasks:
       resolved_version=$(echo "$chrome" | jq -r '.version')
       # restrict usage to Chrome >= 115
       if echo "$resolved_version" | awk -F . '{ if ($1 >= 115) { exit 0 } else { exit 1 } }'; then
-        echo "${resolved_version}" > "${MINT_VALUES}/chrome-version"
-        echo "${chrome}" | jq -r '[.downloads.chrome[] | select(.platform == "linux64")] | last.url' > "${MINT_VALUES}/chrome-download-url"
-        echo "${chrome}" | jq -r '[.downloads.chromedriver[] | select(.platform == "linux64")] | last.url' > "${MINT_VALUES}/chromedriver-download-url"
+        echo "${resolved_version}" > "${RWX_VALUES}/chrome-version"
+        echo "${chrome}" | jq -r '[.downloads.chrome[] | select(.platform == "linux64")] | last.url' > "${RWX_VALUES}/chrome-download-url"
+        echo "${chrome}" | jq -r '[.downloads.chromedriver[] | select(.platform == "linux64")] | last.url' > "${RWX_VALUES}/chromedriver-download-url"
       else
         cat << EOF > $(mktemp "${RWX_ERRORS}/error-XXXX")
       The \`chrome-version\` provided is less than 115. Only versions 115 and higher are supported.
@@ -116,7 +116,7 @@ tasks:
       sudo apt-get clean
 
       path_additions=""
-      echo "${CHROME_VERSION}" > "${MINT_VALUES}/chrome-version"
+      echo "${CHROME_VERSION}" > "${RWX_VALUES}/chrome-version"
 
       echo "Installing Chrome ${CHROME_VERSION}"
       echo

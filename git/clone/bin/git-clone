@@ -2,7 +2,7 @@
 set -ueo pipefail
 
 mkdir -p "${CHECKOUT_PATH}"
-realpath -m --relative-to=. "${CHECKOUT_PATH}/.git" > $MINT_VALUES/git-dir-path
+realpath -m --relative-to=. "${CHECKOUT_PATH}/.git" > $RWX_VALUES/git-dir-path
 cd "${CHECKOUT_PATH}"
 
 if [[ "${PRESERVE_GIT_DIR}" == "true" || "${FETCH_FULL_DEPTH}" == "true" ]]; then
@@ -44,7 +44,7 @@ fi
 if [[ "${LFS}" == "true" ]]; then
   LFS_FILES=$(git-lfs ls-files -n)
   if [[ "${LFS_FILES}" != "" ]]; then
-    echo $LFS_FILES > $MINT_VALUES/lfs-files
+    echo $LFS_FILES > $RWX_VALUES/lfs-files
     FILTER_PATH_PREFIX="${CHECKOUT_PATH%/}/"
     FILTER_LINES=$(echo "$LFS_FILES" | jq -c --raw-input --slurp --arg prefix "$FILTER_PATH_PREFIX" 'split("\n") | map(select(. != "") | $prefix + .)')
 
