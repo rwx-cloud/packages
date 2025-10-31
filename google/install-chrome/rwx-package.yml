@@ -33,12 +33,12 @@ tasks:
     run: |
       source "$RWX_PACKAGE_PATH/mint-utils.sh"
       if ! mint_os_name_in ubuntu; then
-        echo "Unsupported operating system \`$(mint_os_name)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        echo "Unsupported operating system \`$(mint_os_name)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
       if [ "$(uname -p)" != "x86_64" ]; then
-        echo "Google currently does not package Chrome for ARM on Linux. See [GoogleChromeLabs/chrome-for-testing#1](https://github.com/GoogleChromeLabs/chrome-for-testing/issues/1) for more information. Consider using Chromium instead of Chrome." > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        echo "Google currently does not package Chrome for ARM on Linux. See [GoogleChromeLabs/chrome-for-testing#1](https://github.com/GoogleChromeLabs/chrome-for-testing/issues/1) for more information. Consider using Chromium instead of Chrome." > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
@@ -59,7 +59,7 @@ tasks:
       fi
 
       if [[ -z "${chrome}" ]]; then
-        cat << EOF > $(mktemp "$MINT_ERRORS/error-XXXX")
+        cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
       The \`chrome-version\` provided does not resolve to a version of Google Chrome known by [Chrome for Testing](https://github.com/GoogleChromeLabs/chrome-for-testing).
       EOF
         exit 1
@@ -72,7 +72,7 @@ tasks:
         echo "${chrome}" | jq -r '[.downloads.chrome[] | select(.platform == "linux64")] | last.url' > "${MINT_VALUES}/chrome-download-url"
         echo "${chrome}" | jq -r '[.downloads.chromedriver[] | select(.platform == "linux64")] | last.url' > "${MINT_VALUES}/chromedriver-download-url"
       else
-        cat << EOF > $(mktemp "${MINT_ERRORS}/error-XXXX")
+        cat << EOF > $(mktemp "${RWX_ERRORS}/error-XXXX")
       The \`chrome-version\` provided is less than 115. Only versions 115 and higher are supported.
       EOF
         exit 1

@@ -27,7 +27,7 @@ tasks:
   - key: auth-oidc
     run: |
       if ! command -v az &> /dev/null; then
-        cat << 'EOF' > $(mktemp "$MINT_ERRORS/error-XXXX")
+        cat << 'EOF' > $(mktemp "$RWX_ERRORS/error-XXXX")
       The Azure CLI (az) must be installed. To install it, you can use the `azure/install-cli` leaf.
       EOF
         exit 1

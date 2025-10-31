@@ -26,7 +26,7 @@ tasks:
       #
       source "$RWX_PACKAGE_PATH/mint-utils.sh"
       if ! mint_os_name_in ubuntu; then
-        echo "Unsupported operating system \`$(mint_os_name)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        echo "Unsupported operating system \`$(mint_os_name)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
@@ -34,7 +34,7 @@ tasks:
       # Ensure we have a python version
       #
       if [ "$PYTHON_VERSION" = "" ]; then
-        cat << EOF > $(mktemp "$MINT_ERRORS/error-XXXX")
+        cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
       Invalid parameters: \`python-version\` must be set.
       EOF
         exit 2
@@ -68,7 +68,7 @@ tasks:
 
       version_line=$(cat $RWX_PACKAGE_PATH/known-pythons.csv | { grep -E "^$escaped_version,[^,]+,[^,]+,$escaped_os,$escaped_arch" || test $? = 1; })
       if [[ -z "$version_line" ]]; then
-        cat << EOF > $(mktemp "$MINT_ERRORS/error-XXXX")
+        cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
       Python $PYTHON_VERSION is not available in this version of [python/install](https://www.rwx.com/docs/mint/packages/python/install) and OS.
       Try upgrading to the most recent version of this package. If the Python version is still not available, [file an issue](https://github.com/rwx-cloud/packages/issues/new).
       EOF

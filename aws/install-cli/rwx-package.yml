@@ -15,7 +15,7 @@ tasks:
       if ! command -v unzip &> /dev/null; then
         source "$RWX_PACKAGE_PATH/mint-utils.sh"
         if ! mint_os_package_manager_in apt; then
-          echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+          echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
           exit 1
         fi
 
@@ -29,7 +29,7 @@ tasks:
       if ! command -v gpg &> /dev/null; then
         source "$RWX_PACKAGE_PATH/mint-utils.sh"
         if ! mint_os_package_manager_in apt; then
-          echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+          echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
           exit 1
         fi
 

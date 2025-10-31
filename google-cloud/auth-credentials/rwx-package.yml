@@ -16,7 +16,7 @@ tasks:
   - key: require-gcloud
     run: |
       if ! command -v gcloud &> /dev/null; then
-        cat << 'EOF' > $(mktemp "$MINT_ERRORS/error-XXXX")
+        cat << 'EOF' > $(mktemp "$RWX_ERRORS/error-XXXX")
       The Google Cloud CLI (gcloud) must be installed. To install it, you can use the `google-cloud/install-cli` leaf.
       EOF
         exit 2

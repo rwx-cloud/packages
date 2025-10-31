@@ -165,7 +165,7 @@ if [[ -n "${META_REF}" ]]; then
   git fetch origin "${unresolved_ref}:${unresolved_ref}"
   result=$(git for-each-ref "${unresolved_ref}" --format="%(refname)" --contains "${commit_sha}")
   if [[ -z "${result}" ]]; then
-    cat << EOF > $(mktemp "$MINT_ERRORS/error-XXXX")
+    cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
 The \`meta-ref\` provided does not contain the resolved commit sha.
 EOF
     exit 1

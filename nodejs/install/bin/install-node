@@ -3,7 +3,7 @@ set -ueo pipefail
 
 if [ "$NODE_VERSION" = "" ]; then
   if [ "$NODE_VERSION_FILE" = "" ]; then
-    cat << EOF > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+    cat << EOF > "$(mktemp "$RWX_ERRORS/error-XXXX")"
 Invalid parameters: \`node-version\` or \`node-version-file\` must be set.
 EOF
     exit 2
@@ -18,7 +18,7 @@ if [ "$NODE_VERSION" = "" ]; then
 fi
 
 if ! [[ "$NODE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    cat << EOF > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+    cat << EOF > "$(mktemp "$RWX_ERRORS/error-XXXX")"
 Invalid node version.
 
 Expected value matching \`[0-9]+\.[0-9]+\.[0-9]+\`
@@ -87,7 +87,7 @@ gpgv --keyring="/tmp/nodejs-keyring.kbx" < SHASUMS256.txt.asc
 gpg_exit=$?
 set -e
 if [[ $gpg_exit != 0 ]]; then
-    cat << EOF > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+    cat << EOF > "$(mktemp "$RWX_ERRORS/error-XXXX")"
 Failed to verify the GPG signature of the Node release file.
 
 Check to see if you are using the latest version of \`nodejs/install\`
