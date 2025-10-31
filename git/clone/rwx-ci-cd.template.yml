@@ -84,6 +84,7 @@
 
 - key: git-clone--test-preserve-git-dir-from-ref
   call: $LEAF_DIGEST
+  use: system-packages
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: do-not-delete-this-branch
