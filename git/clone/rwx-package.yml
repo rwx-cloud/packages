@@ -1,5 +1,5 @@
 name: git/clone
-version: 1.7.1
+version: 1.8.0
 description: Clone git repositories over ssh or http, with support for Git Large File Storage (LFS)
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/git/clone
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -121,24 +121,7 @@ tasks:
 
   - key: get-latest-sha-for-ref
     use: setup
-    run: |
-      if [[ "${CHECKOUT_REF}" == "HEAD" ]]; then
-        echo "Error: Cloning from HEAD is ambiguous. If you want to clone from the HEAD of a particular branch" >&2
-        echo "pass in the name of that branch as the ref instead." >&2
-        exit 1
-      fi
-
-      CREDENTIAL_ARG=""
-      if [[ "${CREDENTIAL_HELPER}" != "" ]]; then
-        CREDENTIAL_ARG="-c credential.helper='${CREDENTIAL_HELPER}'"
-      fi
-      COMMAND="git $CREDENTIAL_ARG ls-remote \"${CHECKOUT_REPOSITORY}\" \"${CHECKOUT_REF}\""
-      RESOLVED_SHA=$(eval $COMMAND | awk '{print $1}')
-      if [[ $RESOLVED_SHA == "" ]]; then
-        RESOLVED_SHA="${CHECKOUT_REF}"
-      fi
-      echo "Latest SHA for ${CHECKOUT_REF}: ${RESOLVED_SHA}"
-      printf "${RESOLVED_SHA}" >> "$MINT_VALUES/sha"
+    run: $MINT_LEAF_PATH/bin/get-latest-sha-for-ref
     env:
       GIT_SSH_KEY:
         value: ${{ params.ssh-key }}
@@ -149,6 +132,9 @@ tasks:
       CHECKOUT_REF: ${{ params.ref }}
       CHECKOUT_REPOSITORY: ${{ params.repository }}
       CREDENTIAL_HELPER: ${{ tasks.setup.values.credential-helper }}
+      PATCHES_DIR: ${{ run.dir }}/.patches
+    filter:
+      ${{ run.dir }}: [.patches]
     cache: ${{ params.ref =~ '^[0-9a-f]{40}$' }}
 
   - key: install-lfs
