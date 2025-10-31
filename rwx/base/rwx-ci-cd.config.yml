@@ -1,0 +1,18 @@
+tests:
+  - key: ubuntu-20-04
+    template: rwx-ci-cd.template.yml
+    base:
+      image: ubuntu:20.04
+      config: none
+
+  - key: ubuntu-22-04
+    template: rwx-ci-cd.template.yml
+    base:
+      image: ubuntu:22.04
+      config: none
+
+  - key: ubuntu-24-04
+    template: rwx-ci-cd.template.yml
+    base:
+      image: ubuntu:24.04
+      config: none
