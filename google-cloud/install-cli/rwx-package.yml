@@ -59,7 +59,7 @@ tasks:
       echo
       bin_dir="${install_dir}/google-cloud-sdk/bin"
       echo "Adding ${bin_dir} to PATH"
-      echo "$bin_dir" >> "${MINT_ENV}/PATH"
+      echo "$bin_dir" >> "${RWX_ENV}/PATH"
       export PATH="${bin_dir}:$PATH"
 
       echo

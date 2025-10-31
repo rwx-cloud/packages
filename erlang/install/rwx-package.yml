@@ -72,7 +72,7 @@ tasks:
       tar -xzf "${archive_path}" -C "${ERL_ROOT}" --strip-components=1
 
       "${ERL_ROOT}/Install" -minimal "${ERL_ROOT}"
-      echo "${ERL_ROOT}/bin" > $MINT_ENV/PATH
+      echo "${ERL_ROOT}/bin" > $RWX_ENV/PATH
       export PATH="${ERL_ROOT}/bin:${PATH}"
 
       major_version=$(echo "$ERLANG_VERSION" | cut -d. -f1)

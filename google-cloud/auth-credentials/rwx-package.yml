@@ -34,7 +34,7 @@ tasks:
       echo '${{ params.credentials-json }}' >"$credentials_file"
       chmod 0600 "$credentials_file"
 
-      echo "$credentials_file" >> "${MINT_ENV}/GOOGLE_APPLICATION_CREDENTIALS"
+      echo "$credentials_file" >> "${RWX_ENV}/GOOGLE_APPLICATION_CREDENTIALS"
       export GOOGLE_APPLICATION_CREDENTIALS="$credentials_file"
 
       echo

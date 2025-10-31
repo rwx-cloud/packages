@@ -130,7 +130,7 @@ tasks:
       chrome_sandbox_binary="${CHROME_DIRECTORY}/chrome_sandbox"
       sudo chown root:root "${chrome_sandbox_binary}"
       sudo chmod 4755 "${chrome_sandbox_binary}"
-      echo "${chrome_sandbox_binary}" > "${MINT_ENV}/CHROME_DEVEL_SANDBOX"
+      echo "${chrome_sandbox_binary}" > "${RWX_ENV}/CHROME_DEVEL_SANDBOX"
 
       # Store useful chrome values
       chrome_binary="${CHROME_DIRECTORY}/chrome"
@@ -164,7 +164,7 @@ tasks:
 
       if [[ -n "${path_additions}" ]]; then
         echo "Adding ${path_additions} to PATH"
-        echo "${path_additions}" >> "${MINT_ENV}/PATH"
+        echo "${path_additions}" >> "${RWX_ENV}/PATH"
       fi
 
       rm -f chrome.zip

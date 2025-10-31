@@ -101,7 +101,7 @@ tasks:
       echo "Extracted Python $PYTHON_VERSION!"
 
       # Add pip to PATH
-      echo "$HOME/.local/bin" >> "$MINT_ENV/PATH"
+      echo "$HOME/.local/bin" >> "$RWX_ENV/PATH"
 
       # Update dynamic linker cache to pick up the new Python libraries
       sudo ldconfig

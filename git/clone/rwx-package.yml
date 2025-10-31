@@ -71,7 +71,7 @@ tasks:
       fi
 
       mint_maybe_sudo install $RWX_PACKAGE_PATH/bin/git-ssh-command /usr/local/bin
-      echo "git-ssh-command" >> $MINT_ENV/GIT_SSH_COMMAND
+      echo "git-ssh-command" >> $RWX_ENV/GIT_SSH_COMMAND
       if [[ -n "$GIT_SSH_KEY" ]]; then
         httpRegex="https?:\/\/"
         if [[ "$CHECKOUT_REPOSITORY" =~ $httpRegex ]]; then

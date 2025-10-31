@@ -74,7 +74,7 @@ tasks:
       sudo mkdir -p "$ELIXIR_ROOT"
       sudo unzip -q "${archive_path}" -d "${ELIXIR_ROOT}"
 
-      echo "${ELIXIR_ROOT}/bin" > "$MINT_ENV/PATH"
+      echo "${ELIXIR_ROOT}/bin" > "$RWX_ENV/PATH"
       export PATH="${ELIXIR_ROOT}/bin:${PATH}"
 
       elixir --version | tee /dev/stderr | grep "^Elixir ${ELIXIR_VERSION}"

@@ -124,7 +124,7 @@ tasks:
       # Add Ruby to PATH
       path_to_ruby="$HOME/.rubies/ruby-$RUBY_VERSION/bin"
       echo "Adding $path_to_ruby to \$PATH"
-      echo "$path_to_ruby" >> "$MINT_ENV/PATH"
+      echo "$path_to_ruby" >> "$RWX_ENV/PATH"
 
       # cleanup
       rm exclude.txt

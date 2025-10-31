@@ -121,6 +121,6 @@ tasks:
       echo "Installed Rust and components"
       rustc --version
       cargo --version
-      echo "~/.cargo/bin" > "${MINT_ENV}/PATH"
+      echo "~/.cargo/bin" > "${RWX_ENV}/PATH"
     env:
       RUST_VERSION: ${{ params.rust-version }}
