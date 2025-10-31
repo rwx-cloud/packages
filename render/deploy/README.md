@@ -14,7 +14,7 @@ tasks:
 
   - key: deploy
     after: test
-    call: render/deploy 1.0.3
+    call: render/deploy 1.0.4
     with:
       ref: ${{ init.commit-sha }}
       render-api-key: ${{ vaults.your-vault.secrets.RENDER_API_KEY }}

@@ -1,5 +1,5 @@
 name: google-cloud/auth-oidc
-version: 1.0.7
+version: 1.0.8
 description: Authenticate to Google Cloud with OIDC and Workload Identity Federation
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/auth-oidc
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues

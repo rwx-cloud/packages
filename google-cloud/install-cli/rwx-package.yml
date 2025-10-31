@@ -1,5 +1,5 @@
 name: google-cloud/install-cli
-version: 1.1.5
+version: 1.1.6
 description: Install the Google Cloud SDK CLI
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/install-cli
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues

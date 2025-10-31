@@ -1,5 +1,5 @@
 name: namespace/login-hook
-version: 1.0.0
+version: 1.0.1
 description: RWX hook to log in to Namespace
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/namespace/login-hook
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues

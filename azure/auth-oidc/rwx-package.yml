@@ -1,5 +1,5 @@
 name: azure/auth-oidc
-version: 1.0.2
+version: 1.0.3
 description: Authenticate the Azure CLI via OIDC
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/azure/auth-oidc
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues

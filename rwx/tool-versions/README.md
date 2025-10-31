@@ -20,23 +20,23 @@ Capture the versions to pass to other tasks:
 ```yaml
 tasks:
   - key: code
-    call: mint/git-clone 1.5.1
+    call: git/clone 1.8.1
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: ${{ init.ref }
 
   - key: tool-versions
     use: code
-    call: rwx/tool-versions 1.0.4
+    call: rwx/tool-versions 1.0.5
     filter: [.tool-versions]
 
   - key: nodejs
-    call: mint/install-node 1.1.0
+    call: nodejs/install 1.1.10
     with:
       node-version: ${{ tasks.tool-versions.values.nodejs }}
 
   - key: ruby
-    call: mint/install-ruby 1.1.5
+    call: ruby/install 1.2.13
     with:
       ruby-version: ${{ tasks.tool-versions.values.ruby }}
 ```

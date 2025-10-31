@@ -1,5 +1,5 @@
 name: rwx/tool-versions
-version: 1.0.4
+version: 1.0.5
 description: Extract tool versions from a .tool-versions file.
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/tool-versions
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues

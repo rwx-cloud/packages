@@ -10,11 +10,11 @@ To authenticate with an identity using a subscription:
 ```yaml
 tasks:
   - key: azure-cli
-    call: azure/install-cli 1.0.1
+    call: azure/install-cli 1.0.8
 
   - key: azure-auth
     use: azure-cli
-    call: azure/auth-oidc 1.0.2
+    call: azure/auth-oidc 1.0.3
     with:
       oidc-token: ${{ vaults.your-vault.oidc.your-token }}
       client-id: ${{ vaults.your-vault.secrets.your-azure-client-id }}
