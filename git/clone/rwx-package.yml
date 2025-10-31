@@ -1,5 +1,5 @@
 name: git/clone
-version: 1.7.0
+version: 1.7.1
 description: Clone git repositories over ssh or http, with support for Git Large File Storage (LFS)
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/git/clone
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -122,17 +122,23 @@ tasks:
   - key: get-latest-sha-for-ref
     use: setup
     run: |
+      if [[ "${CHECKOUT_REF}" == "HEAD" ]]; then
+        echo "Error: Cloning from HEAD is ambiguous. If you want to clone from the HEAD of a particular branch" >&2
+        echo "pass in the name of that branch as the ref instead." >&2
+        exit 1
+      fi
+
       CREDENTIAL_ARG=""
       if [[ "${CREDENTIAL_HELPER}" != "" ]]; then
         CREDENTIAL_ARG="-c credential.helper='${CREDENTIAL_HELPER}'"
       fi
-      CACHE_BUSTER_COMMAND="git $CREDENTIAL_ARG ls-remote \"${CHECKOUT_REPOSITORY}\" \"${CHECKOUT_REF}\""
-      LATEST_SHA_CACHE_BUSTER=$(eval $CACHE_BUSTER_COMMAND | awk '{print $1}')
-      if [[ $LATEST_SHA_CACHE_BUSTER == "" ]]; then
-        LATEST_SHA_CACHE_BUSTER="${CHECKOUT_REF}"
+      COMMAND="git $CREDENTIAL_ARG ls-remote \"${CHECKOUT_REPOSITORY}\" \"${CHECKOUT_REF}\""
+      RESOLVED_SHA=$(eval $COMMAND | awk '{print $1}')
+      if [[ $RESOLVED_SHA == "" ]]; then
+        RESOLVED_SHA="${CHECKOUT_REF}"
       fi
-      echo "Latest SHA for ${CHECKOUT_REF}: ${LATEST_SHA_CACHE_BUSTER}"
-      printf "${LATEST_SHA_CACHE_BUSTER}" >> "$MINT_VALUES/latest-sha-cache-buster"
+      echo "Latest SHA for ${CHECKOUT_REF}: ${RESOLVED_SHA}"
+      printf "${RESOLVED_SHA}" >> "$MINT_VALUES/sha"
     env:
       GIT_SSH_KEY:
         value: ${{ params.ssh-key }}
@@ -165,7 +171,6 @@ tasks:
     run: $RWX_PACKAGE_PATH/bin/git-clone
     env:
       GIT_LFS_SKIP_SMUDGE: 1
-      CACHE_BUST: ${{ tasks.get-latest-sha-for-ref.values.latest-sha-cache-buster }}
       GIT_SSH_KEY:
         value: ${{ params.ssh-key }}
         cache-key: excluded
@@ -174,6 +179,7 @@ tasks:
         cache-key: excluded
       CHECKOUT_PATH: ${{ params.path }}
       CHECKOUT_REF: ${{ params.ref }}
+      RESOLVED_SHA: ${{ tasks.get-latest-sha-for-ref.values.sha }}
       CHECKOUT_REPOSITORY: ${{ params.repository }}
       META_REF: ${{ params.meta-ref }}
       LFS: ${{ params.lfs }}

@@ -82,6 +82,33 @@
   env:
     GITHUB_TOKEN: ${{ github['rwx-cloud'].token }}
 
+- key: git-clone--test-preserve-git-dir-from-ref
+  call: $LEAF_DIGEST
+  use: system-packages
+  with:
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
+    ref: do-not-delete-this-branch
+    github-access-token: ${{ github['rwx-cloud'].token }}
+    preserve-git-dir: true
+
+- key: git-clone--test-preserve-git-dir-from-ref--assert
+  use: git-clone--test-preserve-git-dir-from-ref
+  run: |
+    test -d .git
+    test -e file-in-repo.txt
+    git fetch
+
+    GIT_EMAIL=$(git config user.email)
+    GIT_USERNAME=$(git config user.name)
+    SHA=$(git rev-parse HEAD)
+    REF=$(git symbolic-ref --short HEAD)
+    test $GIT_EMAIL = "141855219+rwx-mint[bot]@users.noreply.github.com"
+    test $GIT_USERNAME = "rwx-mint[bot]"
+    test $SHA = "4704503c51f6b5dd6346e219888488ed693dc54c"
+    test $REF = "do-not-delete-this-branch"
+  env:
+    GITHUB_TOKEN: ${{ github['rwx-cloud'].token }}
+
 - key: git-clone--test-commit-sha-ref-meta
   call: $LEAF_DIGEST
   use: system-packages
