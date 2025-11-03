@@ -1,5 +1,5 @@
 name: hashicorp/install-terraform
-version: 1.0.9
+version: 1.0.10
 description: Install the Terraform CLI, a tool for building, changing, and versioning infrastructure safely and efficiently
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/hashicorp/install-terraform
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
