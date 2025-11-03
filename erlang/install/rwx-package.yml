@@ -1,5 +1,5 @@
 name: erlang/install
-version: 1.1.0
+version: 1.1.1
 description: Install Erlang, a programming language used to build massively scalable soft real-time systems with requirements on high availability
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/erlang/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -12,9 +12,9 @@ parameters:
 tasks:
   - key: install
     run: |
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
       if [ "$(mint_os_name)" != "ubuntu" ]; then
-        echo "Unsupported operating system \`$(mint_os_name)\`" | tee "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        echo "Unsupported operating system \`$(mint_os_name)\`" | tee "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
@@ -43,7 +43,7 @@ tasks:
 
       build_line="$(curl -fsSL "${builds_url}" | grep "^OTP-${ERLANG_VERSION} ")"
       if [ -z "${build_line}" ]; then
-        echo "Unable to find OTP-${ERLANG_VERSION} in ${builds_url}" | tee "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        echo "Unable to find OTP-${ERLANG_VERSION} in ${builds_url}" | tee "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
@@ -72,7 +72,7 @@ tasks:
       tar -xzf "${archive_path}" -C "${ERL_ROOT}" --strip-components=1
 
       "${ERL_ROOT}/Install" -minimal "${ERL_ROOT}"
-      echo "${ERL_ROOT}/bin" > $MINT_ENV/PATH
+      echo "${ERL_ROOT}/bin" > $RWX_ENV/PATH
       export PATH="${ERL_ROOT}/bin:${PATH}"
 
       major_version=$(echo "$ERLANG_VERSION" | cut -d. -f1)

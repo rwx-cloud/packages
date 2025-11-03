@@ -1,5 +1,5 @@
 name: twingate/setup
-version: 1.0.7
+version: 1.0.8
 description: Install & setup Twingate
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/twingate/setup
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -12,9 +12,9 @@ parameters:
 tasks:
   - key: install
     run: |
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
       if ! mint_os_package_manager_in apt; then
-        echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 

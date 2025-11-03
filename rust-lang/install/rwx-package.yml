@@ -1,5 +1,5 @@
 name: rust-lang/install
-version: 1.0.4
+version: 1.0.5
 description: Install Rust, a language empowering everyone to build reliable and efficient software.
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/rust-lang/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -121,6 +121,6 @@ tasks:
       echo "Installed Rust and components"
       rustc --version
       cargo --version
-      echo "~/.cargo/bin" > "${MINT_ENV}/PATH"
+      echo "~/.cargo/bin" > "${RWX_ENV}/PATH"
     env:
       RUST_VERSION: ${{ params.rust-version }}

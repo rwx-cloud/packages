@@ -60,11 +60,11 @@ sudo mkdir -p "$install_dir"
 sudo tar -C "$install_dir" --strip-components=1 -xzf "${source_dir}/${filename}"
 
 echo "Adding ${install_dir}/bin to PATH"
-echo "${install_dir}/bin" >> "$MINT_ENV/PATH"
+echo "${install_dir}/bin" >> "$RWX_ENV/PATH"
 export PATH="${install_dir}/bin:$PATH"
 
 echo "Setting GOROOT to ${install_dir}"
 export GOROOT="${install_dir}"
-echo "${GOROOT}" >> "$MINT_ENV/GOROOT"
+echo "${GOROOT}" >> "$RWX_ENV/GOROOT"
 
 go version

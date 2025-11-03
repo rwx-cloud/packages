@@ -5,10 +5,10 @@ To assume a role:
 ```yaml
 tasks:
   - key: aws-cli
-    call: aws/install-cli 1.0.2
+    call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.5
+    call: aws/assume-role 2.0.6
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -27,10 +27,10 @@ If for some reason you need to opt-out of role assumption, your task can set spe
 ```yaml
 tasks:
   - key: aws-cli
-    call: aws/install-cli 1.0.2
+    call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.5
+    call: aws/assume-role 2.0.6
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -47,10 +47,10 @@ To specify the length of the session:
 ```yaml
 tasks:
   - key: aws-cli
-    call: aws/install-cli 1.0.2
+    call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.5
+    call: aws/assume-role 2.0.6
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -70,10 +70,10 @@ To choose a name for the session:
 ```yaml
 tasks:
   - key: aws-cli
-    call: aws/install-cli 1.0.2
+    call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.5
+    call: aws/assume-role 2.0.6
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -93,10 +93,10 @@ To configure a specific profile:
 ```yaml
 tasks:
   - key: aws-cli
-    call: aws/install-cli 1.0.2
+    call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.5
+    call: aws/assume-role 2.0.6
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -116,17 +116,17 @@ To assume another role, via chaining:
 ```yaml
 tasks:
   - key: aws-cli
-    call: aws/install-cli 1.0.2
+    call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.5
+    call: aws/assume-role 2.0.6
     with:
       oidc-token: ${{ vaults.your-vault.oidc.your-token }}
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
 
   - key: chained-role
-    call: aws/assume-role 2.0.5
+    call: aws/assume-role 2.0.6
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-other-role
@@ -146,17 +146,17 @@ To assume another role, via chaining, with specific profiles:
 ```yaml
 tasks:
   - key: aws-cli
-    call: aws/install-cli 1.0.2
+    call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.5
+    call: aws/assume-role 2.0.6
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
       profile-name: your-profile
 
   - key: chained-role
-    call: aws/assume-role 2.0.5
+    call: aws/assume-role 2.0.6
     with:
       source-profile-name: your-profile
       region: us-east-2
@@ -187,7 +187,7 @@ As a result of this, upon retrying a task, a new token will be used, preventing 
 ```yaml
 tasks:
   - key: aws-cli
-    call: aws/install-cli 1.0.2
+    call: aws/install-cli 1.0.8
 
   - key: assume-role
     use: aws-cli
@@ -207,10 +207,10 @@ tasks:
 ```yaml
 tasks:
   - key: aws-cli
-    call: aws/install-cli 1.0.2
+    call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.5
+    call: aws/assume-role 2.0.6
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -231,7 +231,7 @@ tasks:
 ```yaml
 tasks:
   - key: aws-cli
-    call: aws/install-cli 1.0.2
+    call: aws/install-cli 1.0.8
 
   - key: assume-role
     use: aws-cli
@@ -258,17 +258,17 @@ tasks:
 ```yaml
 tasks:
   - key: aws-cli
-    call: aws/install-cli 1.0.2
+    call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.5
+    call: aws/assume-role 2.0.6
     with:
       oidc-token: ${{ vaults.your-vault.oidc.your-token }}
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
 
   - key: chain-role
-    call: aws/assume-role 2.0.5
+    call: aws/assume-role 2.0.6
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-other-role

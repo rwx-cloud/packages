@@ -20,7 +20,7 @@ To update minor versions (recommended):
 ```yaml
 tasks:
   - key: update-rwx-packages
-    call: rwx/update-packages-github 1.1.0
+    call: rwx/update-packages-github 1.1.1
     with:
       repository: https://github.com/YOUR-ORG/YOUR-REPO.git
       ref: ${{ init.commit-sha }}
@@ -32,7 +32,7 @@ Customize the label:
 ```yaml
 tasks:
   - key: update-rwx-packages
-    call: rwx/update-packages-github 1.1.0
+    call: rwx/update-packages-github 1.1.1
     with:
       repository: https://github.com/YOUR-ORG/YOUR-REPO.git
       ref: ${{ init.commit-sha }}

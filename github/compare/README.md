@@ -15,11 +15,11 @@ Outputs:
 ```yaml
 tasks:
   - key: github-cli
-    call: github/install-cli 1.0.1
+    call: github/install-cli 1.0.8
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.0.3
+    call: github/compare 1.0.4
     with:
       repository: my-organization/my-repository
       base-ref: abc123
@@ -37,11 +37,11 @@ tasks:
 ```yaml
 tasks:
   - key: github-cli
-    call: github/install-cli 1.0.1
+    call: github/install-cli 1.0.8
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.0.3
+    call: github/compare 1.0.4
     with:
       repository: my-organization/my-repository
       base-ref: abc123
@@ -75,11 +75,11 @@ on:
 
 tasks:
   - key: github-cli
-    call: github/install-cli 1.0.1
+    call: github/install-cli 1.0.8
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.0.3
+    call: github/compare 1.0.4
     with:
       repository: my-organization/my-repository
       base-ref: ${{ init.base-ref }}
@@ -107,11 +107,11 @@ on:
 
 tasks:
   - key: github-cli
-    call: github/install-cli 1.0.1
+    call: github/install-cli 1.0.8
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.0.3
+    call: github/compare 1.0.4
     with:
       repository: my-organization/my-repository
       base-ref: ${{ init.base-ref }}

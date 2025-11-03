@@ -1,5 +1,5 @@
 name: namespace/login-hook
-version: 1.0.0
+version: 1.0.1
 description: RWX hook to log in to Namespace
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/namespace/login-hook
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -18,8 +18,8 @@ tasks:
       set -u
 
       PROFILE_NAME="$(echo "$NAMESPACE_WORKSPACE_ID" | tr -cd '[:alnum:]')"
-      BEFORE_HOOK="${MINT_HOOKS_BEFORE_TASK}/namespace-login--${PROFILE_NAME}.sh"
-      AFTER_HOOK="${MINT_HOOKS_AFTER_TASK}/namespace-login--${PROFILE_NAME}.sh"
+      BEFORE_HOOK="${RWX_HOOKS_BEFORE_TASK}/namespace-login--${PROFILE_NAME}.sh"
+      AFTER_HOOK="${RWX_HOOKS_AFTER_TASK}/namespace-login--${PROFILE_NAME}.sh"
 
       cat <<'EOF' > "$BEFORE_HOOK"
       #!/usr/bin/env bash

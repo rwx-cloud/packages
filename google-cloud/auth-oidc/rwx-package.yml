@@ -1,5 +1,5 @@
 name: google-cloud/auth-oidc
-version: 1.0.7
+version: 1.0.8
 description: Authenticate to Google Cloud with OIDC and Workload Identity Federation
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/auth-oidc
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -30,7 +30,7 @@ tasks:
       set -ueo pipefail
 
       if ! command -v gcloud &> /dev/null; then
-        cat << 'EOF' > $(mktemp "$MINT_ERRORS/error-XXXX")
+        cat << 'EOF' > $(mktemp "$RWX_ERRORS/error-XXXX")
       The Google Cloud CLI (gcloud) must be installed. To install it, you can use the `google-cloud/install-cli` leaf.
       EOF
         exit 2
@@ -85,7 +85,7 @@ tasks:
       echo "$credentials_content" >"$credentials_file"
       chmod 0600 "$credentials_file"
 
-      echo "$credentials_file" >> "${MINT_ENV}/GOOGLE_APPLICATION_CREDENTIALS"
+      echo "$credentials_file" >> "${RWX_ENV}/GOOGLE_APPLICATION_CREDENTIALS"
       export GOOGLE_APPLICATION_CREDENTIALS="$credentials_file"
 
       echo

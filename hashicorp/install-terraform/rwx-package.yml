@@ -1,5 +1,5 @@
 name: hashicorp/install-terraform
-version: 1.0.8
+version: 1.0.9
 description: Install the Terraform CLI, a tool for building, changing, and versioning infrastructure safely and efficiently
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/hashicorp/install-terraform
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -12,9 +12,9 @@ parameters:
 tasks:
   - key: install
     run: |
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
       if ! mint_os_package_manager_in apt; then
-        echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 

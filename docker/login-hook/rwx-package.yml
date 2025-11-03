@@ -1,5 +1,5 @@
 name: docker/login-hook
-version: 1.0.3
+version: 1.0.4
 description: Mint hook to log in to a Docker registry
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/docker/login-hook
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -21,8 +21,8 @@ tasks:
       set -u
 
       PROFILE_NAME="$(echo "$REGISTRY" | tr -cd '[:alnum:]')"
-      BEFORE_HOOK="${MINT_HOOKS_BEFORE_TASK}/docker-login--${PROFILE_NAME}.sh"
-      AFTER_HOOK="${MINT_HOOKS_AFTER_TASK}/docker-login--${PROFILE_NAME}.sh"
+      BEFORE_HOOK="${RWX_HOOKS_BEFORE_TASK}/docker-login--${PROFILE_NAME}.sh"
+      AFTER_HOOK="${RWX_HOOKS_AFTER_TASK}/docker-login--${PROFILE_NAME}.sh"
 
       cat <<'EOF' > "$BEFORE_HOOK"
       #!/usr/bin/env bash

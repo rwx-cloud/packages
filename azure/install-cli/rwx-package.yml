@@ -1,5 +1,5 @@
 name: azure/install-cli
-version: 1.0.7
+version: 1.0.8
 description: Install the Azure CLI
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/azure/install-cli
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -14,9 +14,9 @@ tasks:
     run: |
       # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt#option-2-step-by-step-installation-instructions
 
-      source "$MINT_LEAF_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/mint-utils.sh"
       if ! mint_os_package_manager_in apt; then
-        echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$MINT_ERRORS/error-XXXX")"
+        echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
@@ -56,7 +56,7 @@ tasks:
       else
         version=$(echo "${versions}" | { grep "${VERSION}" || test $? = 1; })
         if [[ -z "${version}" ]]; then
-          cat << EOF > $(mktemp "$MINT_ERRORS/error-XXXX")
+          cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
       Azure CLI version \`${VERSION}\` is not available. Choose one of:
 
       \`\`\`
