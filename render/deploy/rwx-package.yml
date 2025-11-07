@@ -1,5 +1,5 @@
 name: render/deploy
-version: 1.0.4
+version: 1.0.5
 description: Deploy to Render.com
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/render/deploy
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -66,7 +66,7 @@ tasks:
       SERVICE_ID: "${{ tasks.locate-service.values.service-id }}"
 
   - key: wait-for-completion
-    timeout-minutes: 15
+    timeout: 15m
     run: |
       echo "Polling for deploy completion..."
       status=""
