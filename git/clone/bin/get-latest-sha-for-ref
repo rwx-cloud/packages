@@ -12,8 +12,8 @@ if [ "${CREDENTIAL_HELPER}" != "" ]; then
   CREDENTIAL_ARG="-c credential.helper='${CREDENTIAL_HELPER}'"
 fi
 COMMAND="git $CREDENTIAL_ARG ls-remote \"${CHECKOUT_REPOSITORY}\" \"${CHECKOUT_REF}\""
-RESOLVED_SHA=$(eval $COMMAND | awk '{print $1}')
-if [ $RESOLVED_SHA = "" ]; then
+RESOLVED_SHA=$(eval "$COMMAND" | awk '{print $1}')
+if [ "$RESOLVED_SHA" = "" ]; then
   RESOLVED_SHA="${CHECKOUT_REF}"
 fi
 echo "Latest SHA for ${CHECKOUT_REF}: ${RESOLVED_SHA}"

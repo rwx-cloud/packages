@@ -75,6 +75,7 @@ tasks:
       fi
 
       if [ -n "$packages_to_install" ]; then
+        package_manager="$(rwx_os_package_manager)"
         case "$package_manager" in
           apt)
             rwx_maybe_sudo apt-get -y update
