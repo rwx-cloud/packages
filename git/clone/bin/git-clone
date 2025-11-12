@@ -42,11 +42,11 @@ if [ "${SUBMODULES}" = "true" ] && [ -f .gitmodules ]; then
 fi
 
 if [ "${LFS}" = "true" ]; then
-  LFS_FILES=$(git-lfs ls-files -n -z)
+  LFS_FILES=$(git-lfs ls-files -n)
   if [ "${LFS_FILES}" != "" ]; then
     printf '%s\n' "$LFS_FILES" > "$RWX_VALUES/lfs-files"
     FILTER_PATH_PREFIX="${CHECKOUT_PATH%/}/"
-    FILTER_LINES=$(printf '%s\n' "$LFS_FILES" | tr '\0' '\n' | jq -c --raw-input --slurp --arg prefix "$FILTER_PATH_PREFIX" 'split("\n") | map(select(. != "") | $prefix + .)')
+    FILTER_LINES=$(printf '%s\n' "$LFS_FILES" | jq -c --raw-input --slurp --arg prefix "$FILTER_PATH_PREFIX" 'split("\n") | map(select(. != "") | $prefix + .)')
 
     LFS_ENDPOINT=$(git-lfs env | grep "Endpoint=" | awk -F'[ =]' '{print $2}')
     cat << EOF > "$RWX_DYNAMIC_TASKS/lfs.yml"
@@ -71,7 +71,7 @@ if [ "${LFS}" = "true" ]; then
       DOWNLOAD_HEADERS+=" -H 'Authorization: Bearer \$GITHUB_TOKEN'"
     fi
 
-    while IFS= read -r file; do
+    while read -r file; do
       while read -r line; do
         case "\$line" in
           version*) VERSION=\$(printf '%s\n' "\$line" | awk '{print \$2}') ;;
