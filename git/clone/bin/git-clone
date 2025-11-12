@@ -72,7 +72,7 @@ if [ "${LFS}" = "true" ]; then
     cd "\${CHECKOUT_PATH}"
 
     DOWNLOAD_HEADERS="-H 'Accept: application/vnd.git-lfs+json'"
-    DOWNLOAD_HEADERS="$DOWNLOAD_HEADERS -H 'Content-Type: application/json'"
+    DOWNLOAD_HEADERS="\$DOWNLOAD_HEADERS -H 'Content-Type: application/json'"
 
     if [ -n "\$GIT_SSH_KEY" ]; then
       SSH_PART=\$(printf '%s\n' "\$CHECKOUT_REPOSITORY" | sed 's/:.*//')
@@ -81,10 +81,10 @@ if [ "${LFS}" = "true" ]; then
       SSH_CREDENTIALS=\$(git-ssh-command \$SSH_PART git-lfs-authenticate \$REPO_PART download)
       DYNAMIC_HEADERS=\$(printf '%s\n' "\$SSH_CREDENTIALS" | jq -r '.header | to_entries | .[] | "\\(.key): \\(.value)"')
       while read -r header; do
-        DOWNLOAD_HEADERS="$DOWNLOAD_HEADERS -H '\$header'"
+        DOWNLOAD_HEADERS="\$DOWNLOAD_HEADERS -H '\$header'"
       done <<< "\$DYNAMIC_HEADERS"
     else
-      DOWNLOAD_HEADERS="$DOWNLOAD_HEADERS -H 'Authorization: Bearer \$GITHUB_TOKEN'"
+      DOWNLOAD_HEADERS="\$DOWNLOAD_HEADERS -H 'Authorization: Bearer \$GITHUB_TOKEN'"
     fi
 
     while read -r file; do
