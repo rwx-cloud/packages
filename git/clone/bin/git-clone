@@ -80,15 +80,15 @@ if [ "${LFS}" = "true" ]; then
 
       SSH_CREDENTIALS=\$(git-ssh-command \$SSH_PART git-lfs-authenticate \$REPO_PART download)
       DYNAMIC_HEADERS=\$(printf '%s\n' "\$SSH_CREDENTIALS" | jq -r '.header | to_entries | .[] | "\\(.key): \\(.value)"')
-      while read -r header; do
+      printf '%s\n' "\$DYNAMIC_HEADERS" | while IFS= read -r header; do
         DOWNLOAD_HEADERS="\$DOWNLOAD_HEADERS -H '\$header'"
-      done <<< "\$DYNAMIC_HEADERS"
+      done
     else
       DOWNLOAD_HEADERS="\$DOWNLOAD_HEADERS -H 'Authorization: Bearer \$GITHUB_TOKEN'"
     fi
 
-    while read -r file; do
-      while read -r line; do
+    printf '%s\n' "\$LFS_FILES" | while IFS= read -r file; do
+      while IFS= read -r line; do
         case "\$line" in
           version*) VERSION=\$(printf '%s\n' "\$line" | awk '{print \$2}') ;;
           oid*) SHA256=\$(printf '%s\n' "\$line" | awk '{print \$2}' | cut -d ':' -f 2) ;;
@@ -120,7 +120,7 @@ if [ "${LFS}" = "true" ]; then
       fi
 
       curl -o "\$file" "\$DOWNLOAD_URL"
-    done <<< "\$LFS_FILES"
+    done
   env:
     CHECKOUT_REPOSITORY: \${{ params.repository }}
     GIT_SSH_KEY:
