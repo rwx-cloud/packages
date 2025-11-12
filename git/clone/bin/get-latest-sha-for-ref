@@ -17,7 +17,7 @@ if [ "$RESOLVED_SHA" = "" ]; then
   RESOLVED_SHA="${CHECKOUT_REF}"
 fi
 echo "Latest SHA for ${CHECKOUT_REF}: ${RESOLVED_SHA}"
-printf "${RESOLVED_SHA}" >> "$RWX_VALUES/sha"
+printf '%s' "${RESOLVED_SHA}" >> "$RWX_VALUES/sha"
 
 if [ ! -d "$PATCHES_DIR" ]; then
   echo ""
@@ -35,7 +35,7 @@ for file in "$PATCHES_DIR"/*; do
       echo "Patch file $filename matches the resolved sha."
       echo "Generating dynamic git-patch task..."
 
-      cat << EOF > $RWX_DYNAMIC_TASKS/patch.yml
+      cat << EOF > "$RWX_DYNAMIC_TASKS/patch.yml"
 - key: git-patch
   use: git-clone
   run: |
@@ -48,11 +48,11 @@ for file in "$PATCHES_DIR"/*; do
 
     # Export env vars
     PATCH_GIT_COMMIT_SHA="\${RWX_GIT_COMMIT_SHA}+patch"
-    printf "%s" "\${PATCH_GIT_COMMIT_SHA}" >> "\${RWX_CACHE_KEY_EXCLUDED_ENV}/MINT_GIT_COMMIT_SHA"
-    printf "%s" "\${PATCH_GIT_COMMIT_SHA}" >> "\${RWX_CACHE_KEY_EXCLUDED_ENV}/RWX_GIT_COMMIT_SHA"
+    printf '%s' "\${PATCH_GIT_COMMIT_SHA}" >> "\${RWX_CACHE_KEY_EXCLUDED_ENV}/MINT_GIT_COMMIT_SHA"
+    printf '%s' "\${PATCH_GIT_COMMIT_SHA}" >> "\${RWX_CACHE_KEY_EXCLUDED_ENV}/RWX_GIT_COMMIT_SHA"
 
     # Upload an artifact
-    cp \${PATCH_FILE} \$RWX_ARTIFACTS/\$(basename "\$PATCH_FILE").patch
+    cp "\${PATCH_FILE}" "\$RWX_ARTIFACTS/\$(basename "\$PATCH_FILE").patch"
   env:
     CHECKOUT_PATH: \${{ params.path }}
     PATCH_FILE: \${{ run.dir }}/.patches/$filename

@@ -56,7 +56,7 @@ tasks:
       fi
 
       if [ -n "$needed" ]; then
-        cat << EOF > ${RWX_ERRORS}/missing-packages
+        cat << EOF > "${RWX_ERRORS}/missing-packages"
       The \`git/clone\` package requires system packages that were missing:$needed
 
       Define a task which installs those packages, and specify it as a \`use\` dependency of the \`git/clone\` task
@@ -89,8 +89,8 @@ tasks:
         esac
       fi
 
-      rwx_maybe_sudo install $RWX_PACKAGE_PATH/bin/git-ssh-command /usr/local/bin
-      echo "git-ssh-command" >> $RWX_ENV/GIT_SSH_COMMAND
+      rwx_maybe_sudo install "$RWX_PACKAGE_PATH/bin/git-ssh-command" /usr/local/bin
+      echo "git-ssh-command" >> "$RWX_ENV/GIT_SSH_COMMAND"
       if [ -n "$GIT_SSH_KEY" ]; then
         case "$CHECKOUT_REPOSITORY" in
           http://*|https://*)
@@ -247,12 +247,12 @@ tasks:
         https://api.github.com/graphql \
       )
 
-      GIT_USERNAME=$(echo $ACCESS_TOKEN_DATA | jq -r '.data.viewer.login')
-      ACCESS_TOKEN_ID=$(echo $ACCESS_TOKEN_DATA | jq -r '.data.viewer.databaseId')
+      GIT_USERNAME=$(printf '%s\n' "$ACCESS_TOKEN_DATA" | jq -r '.data.viewer.login')
+      ACCESS_TOKEN_ID=$(printf '%s\n' "$ACCESS_TOKEN_DATA" | jq -r '.data.viewer.databaseId')
       GIT_EMAIL="${ACCESS_TOKEN_ID}+${GIT_USERNAME}@users.noreply.github.com"
 
-      git config user.email $GIT_EMAIL
-      git config user.name $GIT_USERNAME
+      git config user.email "$GIT_EMAIL"
+      git config user.name "$GIT_USERNAME"
     env:
       CHECKOUT_PATH: ${{ params.path }}
       GITHUB_TOKEN:
