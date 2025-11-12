@@ -99,7 +99,7 @@ if [ "${LFS}" = "true" ]; then
       CURL_COMMAND="curl -X POST \$DOWNLOAD_HEADERS"
       URL="$LFS_ENDPOINT/objects/batch"
       DATA="{\\"operation\\": \\"download\\", \\"transfer\\": [\\"basic\\"], \\"objects\\": [{\\"oid\\": \\"\$SHA256\\", \\"size\\": \$SIZE}]}"
-      CURL_COMMAND+=" -d '\$DATA' \$URL"
+      CURL_COMMAND="\$CURL_COMMAND -d '\$DATA' \$URL"
 
       RESPONSE=\$(eval "\$CURL_COMMAND")
 
