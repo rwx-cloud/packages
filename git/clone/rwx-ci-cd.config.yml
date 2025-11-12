@@ -32,3 +32,9 @@ tests:
     base:
       image: ubuntu:24.04
       config: none
+
+  - key: alpine-latest
+    template: rwx-ci-cd.template.yml
+    base:
+      image: alpine:latest
+      config: none

@@ -5,20 +5,20 @@
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.8.1
+    call: git/clone 1.9.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
 ```
 
-This example shows a hardcoded `ref` of `main`, but most of the time you'll pass the ref to clone using an [init parameter](https://www.rwx.com/docs/mint/init-parameters) like this:
+This example shows a hardcoded `ref` of `main`, but most of the time you'll pass the ref to clone using an [init parameter](https://www.rwx.com/docs/rwx/init-parameters) like this:
 
 ```
 ref: ${{ init.ref }}
 ```
 
-By using an init parameter, you can specify the ref when running via the Mint CLI while also setting the value based on version control events.
-For more examples see the Mint documentation on [getting started with GitHub](https://www.rwx.com/docs/mint/getting-started/github).
+By using an init parameter, you can specify the ref when running via the RWX CLI while also setting the value based on version control events.
+For more examples see the documentation on [getting started with GitHub](https://www.rwx.com/docs/rwx/getting-started/github).
 
 ## Clone Private Repositories
 
@@ -26,12 +26,12 @@ To clone private repositories, you'll either need to pass an `ssh-key` to clone 
 
 ### Cloning GitHub Repositories over HTTPS
 
-If you're using GitHub, Mint will automatically provide a token that you can use to clone your repositories.
+If you're using GitHub, RWX will automatically provide a token that you can use to clone your repositories.
 
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.8.1
+    call: git/clone 1.9.0
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -43,14 +43,14 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.8.1
+    call: git/clone 1.9.0
     with:
       repository: git@github.com:YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
       ssh-key: ${{ secrets.PROJECT_REPO_SSH_KEY }}
 ```
 
-You'll want to store your SSH key as a [Mint vault secret](https://www.rwx.com/docs/mint/vaults).
+You'll want to store your SSH key as a [vault secret](https://www.rwx.com/docs/rwx/vaults).
 
 ## Metadata
 
@@ -61,7 +61,7 @@ If you need to reference one of these to alter behavior of a task, be sure to in
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.8.1
+    call: git/clone 1.9.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -106,7 +106,7 @@ The committer email associated with the resolved commit.
 
 ### `RWX_GIT_REF`
 
-The unresolved ref associated with the commit. Mint attempts to determine this for you, but in some scenarios you may want to specify. The logic is as follows:
+The unresolved ref associated with the commit. `git/clone` attempts to determine this for you, but in some scenarios you may want to specify. The logic is as follows:
 
 - If you have provided the `meta-ref` parameter, we'll use that (note: you can specify the fully qualified ref including its `refs/heads/` or `refs/tags/` prefix, or you can specify only the short name)
 - If you provide a commit sha to the `ref` parameter, we'll try to find a branch or tag with that commit at HEAD

@@ -1,10 +1,10 @@
-#!/usr/bin/env bash
-set -ueo pipefail
+#!/bin/sh
+set -e
 
-GIT_SSH_KEY=${GIT_SSH_KEY:-}
+GIT_SSH_KEY="${GIT_SSH_KEY:-}"
 
-if [[ $GIT_SSH_KEY == "" ]]; then
-  >&2 echo 'fatal: The environment variable GIT_SSH_KEY must be set to use git over ssh.'
+if [ "$GIT_SSH_KEY" = "" ]; then
+  echo 'fatal: The environment variable GIT_SSH_KEY must be set to use git over ssh.' >&2
   exit 1
 fi
 
@@ -15,8 +15,8 @@ touch "${REPOSITORY_KEY_FILE}"
 chmod 600 "$REPOSITORY_KEY_FILE"
 echo "${GIT_SSH_KEY}" > "$REPOSITORY_KEY_FILE"
 
-function cleanup {
-  rm -rf $TMP_DIR
+cleanup() {
+  rm -rf "$TMP_DIR"
 }
 
 trap cleanup EXIT

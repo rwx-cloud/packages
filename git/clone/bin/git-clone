@@ -1,13 +1,13 @@
-#!/usr/bin/env bash
-set -ueo pipefail
+#!/bin/sh
+set -e
 
 mkdir -p "${CHECKOUT_PATH}"
-realpath -m --relative-to=. "${CHECKOUT_PATH}/.git" > $RWX_VALUES/git-dir-path
+realpath -m --relative-to=. "${CHECKOUT_PATH}/.git" > "$RWX_VALUES/git-dir-path"
 cd "${CHECKOUT_PATH}"
 
-if [[ "${PRESERVE_GIT_DIR}" == "true" || "${FETCH_FULL_DEPTH}" == "true" ]]; then
+if [ "${PRESERVE_GIT_DIR}" = "true" ] || [ "${FETCH_FULL_DEPTH}" = "true" ]; then
   CREDENTIAL_ARG=""
-  if [[ "${CREDENTIAL_HELPER}" != "" ]]; then
+  if [ "${CREDENTIAL_HELPER}" != "" ]; then
     CREDENTIAL_ARG="-c credential.helper='${CREDENTIAL_HELPER}'"
   fi
   eval "git clone $CREDENTIAL_ARG \"${CHECKOUT_REPOSITORY}\" ."
@@ -17,7 +17,7 @@ if [[ "${PRESERVE_GIT_DIR}" == "true" || "${FETCH_FULL_DEPTH}" == "true" ]]; the
 else
   git init -b main
   git remote add origin "${CHECKOUT_REPOSITORY}"
-  if [[ "${CREDENTIAL_HELPER}" != "" ]]; then
+  if [ "${CREDENTIAL_HELPER}" != "" ]; then
     git config --local credential.helper "${CREDENTIAL_HELPER}"
   fi
   git fetch --depth=1 origin "${RESOLVED_SHA}"
@@ -27,91 +27,84 @@ fi
 commit_sha=$(git rev-parse HEAD | tr -d '\n')
 echo "Checked out git repository at ${commit_sha}"
 
-if [[ "${SUBMODULES}" == "true" && -f .gitmodules ]]; then
-  if [[ "${CREDENTIAL_HELPER}" != "" ]]; then
+if [ "${SUBMODULES}" = "true" ] && [ -f .gitmodules ]; then
+  if [ "${CREDENTIAL_HELPER}" != "" ]; then
     git config --global credential.helper "${CREDENTIAL_HELPER}"
   fi
 
   git submodule update --init --recursive
 
-  if [[ "${CREDENTIAL_HELPER}" != "" ]]; then
+  if [ "${CREDENTIAL_HELPER}" != "" ]; then
     git config --global --unset credential.helper
   fi
 
   echo "Submodules initialized and updated"
 fi
 
-if [[ "${LFS}" == "true" ]]; then
-  LFS_FILES=$(git-lfs ls-files -n)
-  if [[ "${LFS_FILES}" != "" ]]; then
-    echo $LFS_FILES > $RWX_VALUES/lfs-files
+if [ "${LFS}" = "true" ]; then
+  LFS_FILES=$(git-lfs ls-files -n -z)
+  if [ "${LFS_FILES}" != "" ]; then
+    printf '%s\n' "$LFS_FILES" > "$RWX_VALUES/lfs-files"
     FILTER_PATH_PREFIX="${CHECKOUT_PATH%/}/"
-    FILTER_LINES=$(echo "$LFS_FILES" | jq -c --raw-input --slurp --arg prefix "$FILTER_PATH_PREFIX" 'split("\n") | map(select(. != "") | $prefix + .)')
+    FILTER_LINES=$(printf '%s\n' "$LFS_FILES" | tr '\0' '\n' | jq -c --raw-input --slurp --arg prefix "$FILTER_PATH_PREFIX" 'split("\n") | map(select(. != "") | $prefix + .)')
 
     LFS_ENDPOINT=$(git-lfs env | grep "Endpoint=" | awk -F'[ =]' '{print $2}')
-    cat << EOF > $RWX_DYNAMIC_TASKS/lfs.yml
+    cat << EOF > "$RWX_DYNAMIC_TASKS/lfs.yml"
 - key: lfs-files
   use: configure-git
   run: |
     cd "\${CHECKOUT_PATH}"
 
-    DOWNLOAD_HEADERS=(
-      "Accept: application/vnd.git-lfs+json"
-      "Content-Type: application/json"
-    )
+    DOWNLOAD_HEADERS="-H 'Accept: application/vnd.git-lfs+json'"
+    DOWNLOAD_HEADERS+=" -H 'Content-Type: application/json'"
 
-    if [[ -n "\$GIT_SSH_KEY" ]]; then
-      SSH_PART=\$(echo "\$CHECKOUT_REPOSITORY" | sed 's/:.*//')
-      REPO_PART=\$(echo "\$CHECKOUT_REPOSITORY" | sed 's/.*://')
+    if [ -n "\$GIT_SSH_KEY" ]; then
+      SSH_PART=\$(printf '%s\n' "\$CHECKOUT_REPOSITORY" | sed 's/:.*//')
+      REPO_PART=\$(printf '%s\n' "\$CHECKOUT_REPOSITORY" | sed 's/.*://')
 
       SSH_CREDENTIALS=\$(git-ssh-command \$SSH_PART git-lfs-authenticate \$REPO_PART download)
-      DYNAMIC_HEADERS=\$(echo "\$SSH_CREDENTIALS" | jq -r '.header | to_entries | .[] | "\\(.key): \\(.value)"')
+      DYNAMIC_HEADERS=\$(printf '%s\n' "\$SSH_CREDENTIALS" | jq -r '.header | to_entries | .[] | "\\(.key): \\(.value)"')
       while read -r header; do
-        DOWNLOAD_HEADERS+=("\$header")
+        DOWNLOAD_HEADERS+=" -H '\$header'"
       done <<< "\$DYNAMIC_HEADERS"
     else
-      DOWNLOAD_HEADERS+=("Authorization: Bearer \$GITHUB_TOKEN")
+      DOWNLOAD_HEADERS+=" -H 'Authorization: Bearer \$GITHUB_TOKEN'"
     fi
 
-    LFS_FILES_ARRAY=(\$LFS_FILES)
-
-    for file in \${LFS_FILES_ARRAY[@]}; do
+    while IFS= read -r file; do
       while read -r line; do
-        case \$line in
-          version*) VERSION=\$(echo \$line | awk '{print \$2}') ;;
-          oid*) SHA256=\$(echo \$line | awk '{print \$2}' | cut -d ':' -f 2) ;;
-          size*) SIZE=\$(echo \$line | awk '{print \$2}') ;;
+        case "\$line" in
+          version*) VERSION=\$(printf '%s\n' "\$line" | awk '{print \$2}') ;;
+          oid*) SHA256=\$(printf '%s\n' "\$line" | awk '{print \$2}' | cut -d ':' -f 2) ;;
+          size*) SIZE=\$(printf '%s\n' "\$line" | awk '{print \$2}') ;;
         esac
-      done < \$file
+      done < "\$file"
 
-      CURL_COMMAND="curl -X POST"
-      for header in "\${DOWNLOAD_HEADERS[@]}"; do
-        CURL_COMMAND+=" -H \\"\$header\\""
-      done
+      CURL_COMMAND="curl -X POST \$DOWNLOAD_HEADERS"
       URL="$LFS_ENDPOINT/objects/batch"
       DATA="{\\"operation\\": \\"download\\", \\"transfer\\": [\\"basic\\"], \\"objects\\": [{\\"oid\\": \\"\$SHA256\\", \\"size\\": \$SIZE}]}"
       CURL_COMMAND+=" -d '\$DATA' \$URL"
 
       RESPONSE=\$(eval "\$CURL_COMMAND")
-      
+
       # Check if the response contains an error
-      ERROR_MESSAGE=\$(echo "\$RESPONSE" | jq -r '.objects[0].error.message // empty')
-      if [[ -n "\$ERROR_MESSAGE" ]]; then
+      ERROR_MESSAGE=\$(printf '%s\n' "\$RESPONSE" | jq -r '.objects[0].error.message // empty')
+      if [ -n "\$ERROR_MESSAGE" ]; then
         echo "Error downloading LFS file \$file: \$ERROR_MESSAGE"
         echo "Hint: Did you forget to push the LFS file(s)?"
         exit 1
       fi
-      
-      DOWNLOAD_URL=\$(echo "\$RESPONSE" | jq -r '.objects[0].actions.download.href')
-      
-      if [[ "\$DOWNLOAD_URL" == "null" || -z "\$DOWNLOAD_URL" ]]; then
+
+      DOWNLOAD_URL=\$(printf '%s\n' "\$RESPONSE" | jq -r '.objects[0].actions.download.href')
+
+      if [ "\$DOWNLOAD_URL" = "null" ] || [ -z "\$DOWNLOAD_URL" ]; then
         echo "Error: Unable to get download URL for LFS file \$file"
         echo "Response: \$RESPONSE"
         exit 1
       fi
 
       curl -o "\$file" "\$DOWNLOAD_URL"
-    done
+    done <<< "\$LFS_FILES"
   env:
     CHECKOUT_REPOSITORY: \${{ params.repository }}
     GIT_SSH_KEY:
@@ -125,8 +118,8 @@ if [[ "${LFS}" == "true" ]]; then
     PRESERVE_GIT_DIR: \${{ params.preserve-git-dir }}
   filter: ${FILTER_LINES}
 EOF
-      if [[ "${PRESERVE_GIT_DIR}" == "true" ]]; then
-        cat << EOF > $RWX_DYNAMIC_TASKS/lfs-cleanup.yml
+      if [ "${PRESERVE_GIT_DIR}" = "true" ]; then
+        cat << EOF > "$RWX_DYNAMIC_TASKS/lfs-cleanup.yml"
 - key: lfs-cleanup
   use: lfs-files
   run: git add -Av
@@ -156,29 +149,29 @@ printf "%s" "${committer_email}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_COMMIT
 printf "%s" "${committer_email}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMITTER_EMAIL"
 
 unresolved_ref=""
-if [[ -n "${META_REF}" ]]; then
+if [ -n "${META_REF}" ]; then
   refs_matching_provided_ref=$(git ls-remote --heads --tags origin | grep "refs/heads/${META_REF}\|refs/tags/${META_REF}\|${META_REF}" | awk '{ print $2; }')
-  unresolved_ref=$(echo "$refs_matching_provided_ref" | head -n 1 | tr -d '\n')
+  unresolved_ref=$(printf '%s\n' "$refs_matching_provided_ref" | head -n 1 | tr -d '\n')
 
   # also, ensure the meta-ref contains the resolved commit sha
   # first fetch the ref so it will appear in git for-each-ref under refs/heads or refs/tags
   git fetch origin "${unresolved_ref}:${unresolved_ref}"
   result=$(git for-each-ref "${unresolved_ref}" --format="%(refname)" --contains "${commit_sha}")
-  if [[ -z "${result}" ]]; then
-    cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
+  if [ -z "${result}" ]; then
+    cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXXXX")
 The \`meta-ref\` provided does not contain the resolved commit sha.
 EOF
     exit 1
   fi
-elif [[ "${CHECKOUT_REF}" == "${commit_sha}" ]]; then
+elif [ "${CHECKOUT_REF}" = "${commit_sha}" ]; then
   refs_with_sha_at_head=$(git ls-remote --heads --tags origin | awk "\$1 ~ /^${commit_sha}/" | awk '{ print $2; }')
-  unresolved_ref=$(echo "$refs_with_sha_at_head" | head -n 1 | tr -d '\n')
+  unresolved_ref=$(printf '%s\n' "$refs_with_sha_at_head" | head -n 1 | tr -d '\n')
 else
   refs_matching_provided_ref=$(git ls-remote  --heads --tags origin | grep "refs/heads/${CHECKOUT_REF}\|refs/tags/${CHECKOUT_REF}\|${CHECKOUT_REF}" | awk '{ print $2; }' || true)
-  unresolved_ref=$(echo "$refs_matching_provided_ref" | head -n 1 | tr -d '\n')
+  unresolved_ref=$(printf '%s\n' "$refs_matching_provided_ref" | head -n 1 | tr -d '\n')
 fi
 
-if [[ -z "${unresolved_ref}" ]]; then
+if [ -z "${unresolved_ref}" ]; then
   unresolved_ref="${CHECKOUT_REF}"
 fi
 
@@ -189,10 +182,10 @@ printf "%s" "${unresolved_ref}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REF"
 printf "%s" "${unresolved_ref}" | sed -E 's|refs/[^/]+/||' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REF_NAME"
 printf "%s" "${unresolved_ref}" | sed -E 's|refs/[^/]+/||' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REF_NAME"
 
-if [[ "${PRESERVE_GIT_DIR}" == "false" ]]; then
+if [ "${PRESERVE_GIT_DIR}" = "false" ]; then
   rm -rf .git
 
-  if [[ "${SUBMODULES}" == "true" && -f .gitmodules ]]; then
+  if [ "${SUBMODULES}" = "true" ] && [ -f .gitmodules ]; then
     git config --file .gitmodules --get-regexp path | awk '{ print $2 }' | xargs -I {} rm -rf {}/.git
   fi
 fi

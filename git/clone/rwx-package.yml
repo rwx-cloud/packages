@@ -1,5 +1,5 @@
 name: git/clone
-version: 1.8.1
+version: 1.9.0
 description: Clone git repositories over ssh or http, with support for Git Large File Storage (LFS)
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/git/clone
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -30,7 +30,7 @@ parameters:
     description: "The ssh key to use if cloning over ssh"
     required: false
   fetch-full-depth:
-    description: "Whether to use a shallow fetch or a full-depth fetch when the repository is cloned and when not preserving the git directory (when `preserve-git-dir` is true, this parameter has no effect). Typically, setting this to `false` (the default) will result in better cloning performance within Mint. However, for certain large repositories, a full depth fetch may be faster."
+    description: "Whether to use a shallow fetch or a full-depth fetch when the repository is cloned and when not preserving the git directory (when `preserve-git-dir` is true, this parameter has no effect). Typically, setting this to `false` (the default) will result in better cloning performance within RWX. However, for certain large repositories, a full depth fetch may be faster."
     default: false
   submodules:
     description: Whether to clone submodules
@@ -39,9 +39,9 @@ parameters:
 tasks:
   - key: setup
     run: |
-      source "$RWX_PACKAGE_PATH/mint-utils.sh"
-      if ! mint_os_package_manager_in apt; then
-        echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+      . "$RWX_PACKAGE_PATH/rwx-utils.sh"
+      if ! rwx_os_package_manager_in apt apk; then
+        echo "Unsupported operating system or package manager \`$(rwx_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXXXX")"
         exit 1
       fi
 
@@ -64,56 +64,92 @@ tasks:
         exit 1
       fi
 
+      packages_to_install=""
+
       if ! command -v git >/dev/null 2>&1; then
-        mint_maybe_sudo apt-get -y update
-        mint_maybe_sudo apt-get -y install git
-        mint_maybe_sudo apt-get -y clean
+        packages_to_install="$packages_to_install git"
       fi
 
-      mint_maybe_sudo install $RWX_PACKAGE_PATH/bin/git-ssh-command /usr/local/bin
+      if ! command -v ssh >/dev/null 2>&1; then
+        packages_to_install="$packages_to_install openssh-client"
+      fi
+
+      if [ -n "$packages_to_install" ]; then
+        case "$package_manager" in
+          apt)
+            rwx_maybe_sudo apt-get -y update
+            rwx_maybe_sudo apt-get -y install $packages_to_install
+            rwx_maybe_sudo apt-get -y clean
+            ;;
+          apk)
+            apk_packages=$(echo "$packages_to_install" | sed 's/openssh-client/openssh/g')
+            rwx_maybe_sudo apk add --no-cache $apk_packages
+            ;;
+        esac
+      fi
+
+      rwx_maybe_sudo install $RWX_PACKAGE_PATH/bin/git-ssh-command /usr/local/bin
       echo "git-ssh-command" >> $RWX_ENV/GIT_SSH_COMMAND
-      if [[ -n "$GIT_SSH_KEY" ]]; then
-        httpRegex="https?:\/\/"
-        if [[ "$CHECKOUT_REPOSITORY" =~ $httpRegex ]]; then
-          errorMessage=$(mktemp "$RWX_ERRORS/error-XXXX")
-          cat << EOF > $errorMessage
+      if [ -n "$GIT_SSH_KEY" ]; then
+        case "$CHECKOUT_REPOSITORY" in
+          http://*|https://*)
+            errorMessage=$(mktemp "$RWX_ERRORS/error-XXXXXX")
+            cat << EOF > "$errorMessage"
       Invalid parameters: \`repository\` points to an HTTP URL, but \`ssh-key\` was set.
 
       The current value is \`$CHECKOUT_REPOSITORY\`.
       EOF
-          githubRegex="https?:\/\/github.com\/(.*)\/(.*)\.git"
-          if [[ $CHECKOUT_REPOSITORY =~ $githubRegex ]]; then
-            org="${BASH_REMATCH[1]}"
-            repo="${BASH_REMATCH[2]}"
+            github_path="${CHECKOUT_REPOSITORY#https://github.com/}"
+            if [ "$github_path" = "$CHECKOUT_REPOSITORY" ]; then
+              github_path="${CHECKOUT_REPOSITORY#http://github.com/}"
+            fi
+            if [ "$github_path" != "$CHECKOUT_REPOSITORY" ]; then
+              case "$github_path" in
+                */*)
+                  org="${github_path%%/*}"
+                  repo_part="${github_path#*/}"
+                  repo="${repo_part%.git}"
 
-            truncate -s-1 $errorMessage
-            echo " Perhaps you meant \`git@github.com:$org/$repo.git\`?" >> $errorMessage
-          fi
-          exit 2
-        fi
+                  truncate -s-1 "$errorMessage"
+                  echo " Perhaps you meant \`git@github.com:$org/$repo.git\`?" >> "$errorMessage"
+                  ;;
+              esac
+            fi
+            exit 2
+            ;;
+        esac
 
-        echo -n "" > $RWX_VALUES/credential-helper
+        : > "$RWX_VALUES/credential-helper"
       else
-        if [[ "$CHECKOUT_REPOSITORY" != http* ]]; then
-          errorMessage=$(mktemp "$RWX_ERRORS/error-XXXX")
-          cat << EOF > $errorMessage
+        case "$CHECKOUT_REPOSITORY" in
+          http://*|https://*)
+            ;;
+          *)
+            errorMessage=$(mktemp "$RWX_ERRORS/error-XXXXXX")
+            cat << EOF > "$errorMessage"
       Invalid parameters: \`repository\` must point to an HTTP URL if \`ssh-key\` is not set.
 
       The current value is \`$CHECKOUT_REPOSITORY\`.
       EOF
-          githubRegex="git@github.com:(.*)\/(.*).git"
-          if [[ $CHECKOUT_REPOSITORY =~ $githubRegex ]]; then
-            org="${BASH_REMATCH[1]}"
-            repo="${BASH_REMATCH[2]}"
+            ssh_path="${CHECKOUT_REPOSITORY#git@github.com:}"
+            if [ "$ssh_path" != "$CHECKOUT_REPOSITORY" ]; then
+              case "$ssh_path" in
+                */*)
+                  org="${ssh_path%%/*}"
+                  repo_part="${ssh_path#*/}"
+                  repo="${repo_part%.git}"
 
-            truncate -s-1 $errorMessage
-            echo " Perhaps you meant \`https://github.com/$org/$repo.git\`?" >> $errorMessage
-          fi
-          exit 2
-        fi
+                  truncate -s-1 "$errorMessage"
+                  echo " Perhaps you meant \`https://github.com/$org/$repo.git\`?" >> "$errorMessage"
+                  ;;
+              esac
+            fi
+            exit 2
+            ;;
+        esac
 
         echo "Setting credential.helper to clone using github-access-token"
-        echo -n '!bash -c "echo username=x-access-token && echo password=${GITHUB_TOKEN}"' > $RWX_VALUES/credential-helper
+        printf '%s' '!sh -c "echo username=x-access-token && echo password=${GITHUB_TOKEN}"' > "$RWX_VALUES/credential-helper"
       fi
     env:
       GIT_SSH_KEY: ${{ params.ssh-key }}
@@ -139,16 +175,28 @@ tasks:
 
   - key: install-lfs
     run: |
-      if [[ "${LFS}" != "true" ]]; then
+      if [ "${LFS}" != "true" ]; then
         echo "params.lfs is false; skipping lfs install"
         exit 0
       fi
 
-      source "$RWX_PACKAGE_PATH/mint-utils.sh"
+      . "$RWX_PACKAGE_PATH/rwx-utils.sh"
 
-      mint_maybe_sudo apt-get -y update
-      mint_maybe_sudo apt-get -y install git-lfs
-      mint_maybe_sudo apt-get -y clean
+      package_manager="$(rwx_os_package_manager)"
+      case "$package_manager" in
+        apt)
+          rwx_maybe_sudo apt-get -y update
+          rwx_maybe_sudo apt-get -y install git-lfs
+          rwx_maybe_sudo apt-get -y clean
+          ;;
+        apk)
+          rwx_maybe_sudo apk add --no-cache git-lfs
+          ;;
+        *)
+          echo "Unsupported operating system or package manager \`$package_manager\` for installing git-lfs" > "$(mktemp "$RWX_ERRORS/error-XXXXXX")"
+          exit 1
+          ;;
+      esac
     env:
       LFS: ${{ params.lfs }}
 
@@ -177,15 +225,15 @@ tasks:
   - key: configure-git
     use: [git-clone]
     run: |
-      if [[ "${PRESERVE_GIT_DIR}" == "false" ]]; then
+      if [ "${PRESERVE_GIT_DIR}" = "false" ]; then
         exit 0
       fi
-      if [[ -z "$GITHUB_TOKEN" ]]; then
+      if [ -z "$GITHUB_TOKEN" ]; then
         exit 0
       fi
       cd "${CHECKOUT_PATH}"
 
-      git config credential.helper '!bash -c "echo username=x-access-token && echo password=${GITHUB_TOKEN}"'
+      git config credential.helper '!sh -c "echo username=x-access-token && echo password=${GITHUB_TOKEN}"'
 
       QUERY="query { viewer { databaseId login } }"
 
