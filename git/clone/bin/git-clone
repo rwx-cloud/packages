@@ -1,8 +1,24 @@
 #!/bin/sh
 set -e
 
+orig_dir=$(pwd -P)
 mkdir -p "${CHECKOUT_PATH}"
-realpath -m --relative-to=. "${CHECKOUT_PATH}/.git" > "$RWX_VALUES/git-dir-path"
+checkout_abs=$(cd "${CHECKOUT_PATH}" && pwd -P)
+git_dir_path="${checkout_abs%/}/.git"
+
+case "$git_dir_path" in
+  "${orig_dir}")
+    rel_path="."
+    ;;
+  "${orig_dir}/"*)
+    rel_path="${git_dir_path#"${orig_dir}/"}"
+    ;;
+  *)
+    rel_path="$git_dir_path"
+    ;;
+esac
+
+printf '%s\n' "$rel_path" > "$RWX_VALUES/git-dir-path"
 cd "${CHECKOUT_PATH}"
 
 if [ "${PRESERVE_GIT_DIR}" = "true" ] || [ "${FETCH_FULL_DEPTH}" = "true" ]; then
