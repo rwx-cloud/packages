@@ -1,5 +1,5 @@
 name: rwx/update-packages-github
-version: 1.1.2
+version: 1.2.0
 description: Update RWX packages for GitHub repositories
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/update-packages-github
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -28,6 +28,9 @@ parameters:
     default: "298F21"
   rwx-file:
     description: "Scope updates to a specific file or single glob pattern of files"
+  enable-auto-merge:
+    description: "Enable auto-merge on the pull request (requires repository auto-merge support)"
+    default: false
 
 tasks:
   - key: rwx-cli
@@ -89,4 +92,16 @@ tasks:
       GITHUB_TOKEN: ${{ params.github-access-token }}
       GITHUB_LABEL: ${{ params.label }}
       GITHUB_LABEL_COLOR: ${{ params.label-color }}
+      GITHUB_PR_NUMBER: ${{ tasks.create-or-update-pr.values.pull-request-number }}
+
+  - key: auto-merge
+    use: [gh-cli, code]
+    after: labels
+    run: |
+      if [ "$ENABLE_AUTO_MERGE" = "true" ] && [ -n "$GITHUB_PR_NUMBER" ]; then
+        gh pr merge "$GITHUB_PR_NUMBER" --auto --squash || true
+      fi
+    env:
+      GITHUB_TOKEN: ${{ params.github-access-token }}
+      ENABLE_AUTO_MERGE: ${{ params.enable-auto-merge }}
       GITHUB_PR_NUMBER: ${{ tasks.create-or-update-pr.values.pull-request-number }}
