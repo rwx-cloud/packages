@@ -36,7 +36,7 @@ on:
 
 tasks:
   - key: code
-    call: git/clone 1.6.5
+    call: git/clone 1.8.1
     with:
       repository: https://github.com/example-org/example-repo.git
       github-access-token: ${{ github-apps.your-orgs-bot.token }}
@@ -44,7 +44,7 @@ tasks:
       preserve-git-dir: true
 
   - key: rwx-cli
-    call: rwx/install-cli 2.0.1
+    call: rwx/install-cli 2.0.2
 
   - key: update-packages
     use: [rwx-cli, code]
@@ -52,7 +52,7 @@ tasks:
     run: rwx packages update | tee $RWX_VALUES/update-output
 
   - key: create-pull-request
-    call: github/create-pull-request 1.0.1
+    call: github/create-pull-request 1.0.2
     use: [update-packages]
     with:
       github-token: ${{ github-apps.your-orgs-bot.token }}

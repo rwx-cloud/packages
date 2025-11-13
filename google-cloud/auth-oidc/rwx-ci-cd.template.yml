@@ -1,5 +1,5 @@
 - key: google-cloud--auth-oidc--install-cli
-  call: google-cloud/install-cli 1.0.4
+  call: google-cloud/install-cli 1.1.6
 
 - key: google-cloud--auth-oidc--test--direct-workload
   use: google-cloud--auth-oidc--install-cli

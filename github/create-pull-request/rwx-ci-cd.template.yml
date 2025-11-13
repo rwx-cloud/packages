@@ -1,8 +1,8 @@
 - key: gh-cli
-  call: github/install-cli 1.0.5
+  call: github/install-cli 1.0.8
 
 - key: code
-  call: git/clone 1.6.6
+  call: git/clone 1.8.1
   with:
     repository: https://github.com/rwx-research/mint-update-leaves-testing.git
     ref: main
@@ -51,7 +51,7 @@
     pull-request-body: "pull request body ${{ tasks.code-change.values.nonce }}"
 
 - key: clone-branch-after-create
-  call: git/clone 1.6.5
+  call: git/clone 1.8.1
   with:
     repository: https://github.com/rwx-research/mint-update-leaves-testing.git
     ref: ${{ tasks.create-pr.values.branch }}
@@ -59,7 +59,7 @@
     preserve-git-dir: true
 
 - key: clone-branch-after-update
-  call: git/clone 1.6.5
+  call: git/clone 1.8.1
   with:
     repository: https://github.com/rwx-research/mint-update-leaves-testing.git
     ref: ${{ tasks.update-pr.values.branch }}

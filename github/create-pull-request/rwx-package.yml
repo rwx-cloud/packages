@@ -1,5 +1,5 @@
 name: github/create-pull-request
-version: 1.0.1
+version: 1.0.2
 description: Creates a pull request
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/create-pull-request
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -23,7 +23,7 @@ outputs:
 
 tasks:
   - key: gh-cli
-    call: github/install-cli 1.0.6
+    call: github/install-cli 1.0.8
 
   - key: create-or-update-pull-request
     use: [gh-cli]
