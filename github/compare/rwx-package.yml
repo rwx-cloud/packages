@@ -1,97 +1,98 @@
+---
 name: github/compare
-version: 1.0.4
+version: 1.0.5
 description: Compare two git refs in GitHub and check if certain files changed
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/compare
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
-
 parameters:
   repository:
     description: The owner/repository-name of your GitHub repository (e.g. `my-organization/my-repository`)
     required: true
   base-ref:
-    description: "The git ref to compare `head-ref` against"
+    description: The git ref to compare `head-ref` against
     required: true
   head-ref:
-    description: "The git ref to compare against `base-ref`"
+    description: The git ref to compare against `base-ref`
     required: true
   github-token:
-    description: "A GitHub token with read access to the repository. Usually `${{ github.token }}`."
+    description: A GitHub token with read access to the repository. Usually `${{ github.token
+      }}`.
     required: false
   patterns:
-    description: "A newline-separated list of glob patterns to match against the changed files"
+    description: A newline-separated list of glob patterns to match against the changed
+      files
     required: false
-
 outputs:
-  values-from: [compare]
-
+  values-from:
+  - compare
 tasks:
-  - key: shas
-    run: |
-      echo "Base ref resolves to:"
-      if [[ "${BASE_REF}" =~ ^[0-9a-f]{40}$ ]]; then
-        echo "${BASE_REF}" | tee $RWX_VALUES/base-sha
+- key: shas
+  run: |
+    echo "Base ref resolves to:"
+    if [[ "${BASE_REF}" =~ ^[0-9a-f]{40}$ ]]; then
+      echo "${BASE_REF}" | tee $RWX_VALUES/base-sha
+    else
+      if [[ "${BASE_REF}" =~ ^refs/heads/ || "${BASE_REF}" =~ ^refs/heads/ ]]; then
+        ref=$(echo "${BASE_REF}" | sed 's|refs/||')
+        sha=$(gh api "/repos/${REPOSITORY}/git/ref/${ref}" | jq -e -r '.object.sha')
+        echo "${sha}" | tee $RWX_VALUES/base-sha
       else
-        if [[ "${BASE_REF}" =~ ^refs/heads/ || "${BASE_REF}" =~ ^refs/heads/ ]]; then
-          ref=$(echo "${BASE_REF}" | sed 's|refs/||')
-          sha=$(gh api "/repos/${REPOSITORY}/git/ref/${ref}" | jq -e -r '.object.sha')
-          echo "${sha}" | tee $RWX_VALUES/base-sha
-        else
-          sha=$(gh api "/repos/${REPOSITORY}/git/ref/heads/${BASE_REF}" | jq -e -r '.object.sha')
-          echo "${sha}" | tee $RWX_VALUES/base-sha
-        fi
+        sha=$(gh api "/repos/${REPOSITORY}/git/ref/heads/${BASE_REF}" | jq -e -r '.object.sha')
+        echo "${sha}" | tee $RWX_VALUES/base-sha
       fi
+    fi
 
-      echo
-      echo "Head ref resolves to:"
-      if [[ "${HEAD_REF}" =~ ^[0-9a-f]{40}$ ]]; then
-        echo "${HEAD_REF}" | tee $RWX_VALUES/head-sha
+    echo
+    echo "Head ref resolves to:"
+    if [[ "${HEAD_REF}" =~ ^[0-9a-f]{40}$ ]]; then
+      echo "${HEAD_REF}" | tee $RWX_VALUES/head-sha
+    else
+      if [[ "${HEAD_REF}" =~ ^refs/heads/ || "${HEAD_REF}" =~ ^refs/heads/ ]]; then
+        ref=$(echo "${HEAD_REF}" | sed 's|refs/||')
+        sha=$(gh api "/repos/${REPOSITORY}/git/ref/${ref}" | jq -e -r '.object.sha')
+        echo "${sha}" | tee $RWX_VALUES/head-sha
       else
-        if [[ "${HEAD_REF}" =~ ^refs/heads/ || "${HEAD_REF}" =~ ^refs/heads/ ]]; then
-          ref=$(echo "${HEAD_REF}" | sed 's|refs/||')
-          sha=$(gh api "/repos/${REPOSITORY}/git/ref/${ref}" | jq -e -r '.object.sha')
-          echo "${sha}" | tee $RWX_VALUES/head-sha
-        else
-          sha=$(gh api "/repos/${REPOSITORY}/git/ref/heads/${HEAD_REF}" | jq -e -r '.object.sha')
-          echo "${sha}" | tee $RWX_VALUES/head-sha
-        fi
+        sha=$(gh api "/repos/${REPOSITORY}/git/ref/heads/${HEAD_REF}" | jq -e -r '.object.sha')
+        echo "${sha}" | tee $RWX_VALUES/head-sha
       fi
-    env:
-      GITHUB_TOKEN:
-        value: ${{ params.github-token }}
-        cache-key: excluded
-      REPOSITORY: ${{ params.repository }}
-      BASE_REF: ${{ params.base-ref }}
-      HEAD_REF: ${{ params.head-ref }}
-    cache: ${{ params.base-ref =~ '^[0-9a-f]{40}$' && params.head-ref =~ '^[0-9a-f]{40}$' }}
+    fi
+  env:
+    GITHUB_TOKEN:
+      value: "${{ params.github-token }}"
+      cache-key: excluded
+    REPOSITORY: "${{ params.repository }}"
+    BASE_REF: "${{ params.base-ref }}"
+    HEAD_REF: "${{ params.head-ref }}"
+  cache: "${{ params.base-ref =~ '^[0-9a-f]{40}$' && params.head-ref =~ '^[0-9a-f]{40}$'
+    }}"
+- key: compare
+  run: |
+    gh api "/repos/${REPOSITORY}/compare/${BASE_SHA}...${HEAD_SHA}" > compare.json
 
-  - key: compare
-    run: |
-      gh api "/repos/${REPOSITORY}/compare/${BASE_SHA}...${HEAD_SHA}" > compare.json
+    jq -r '.files[].filename' < compare.json > files.txt
+    echo "All changed files:"
+    cat files.txt
 
-      jq -r '.files[].filename' < compare.json > files.txt
-      echo "All changed files:"
-      cat files.txt
+    cat files.txt | $RWX_PACKAGE_PATH/bin/glob_patterns "$PATTERNS" > matches.txt
+    echo
+    echo "All matched files:"
+    cat matches.txt
 
-      cat files.txt | $RWX_PACKAGE_PATH/bin/glob_patterns "$PATTERNS" > matches.txt
-      echo
-      echo "All matched files:"
-      cat matches.txt
+    matches=$(cat matches.txt)
+    echo "${matches}" > $RWX_VALUES/changes
 
-      matches=$(cat matches.txt)
-      echo "${matches}" > $RWX_VALUES/changes
-
-      if [ "${matches}" == "" ]; then
-        echo "false" > $RWX_VALUES/has-changes
-        echo "false" > $RWX_VALUES/have-changes
-      else
-        echo "true" > $RWX_VALUES/has-changes
-        echo "true" > $RWX_VALUES/have-changes
-      fi
-    env:
-      GITHUB_TOKEN:
-        value: ${{ params.github-token }}
-        cache-key: excluded
-      REPOSITORY: ${{ params.repository }}
-      BASE_SHA: ${{ tasks.shas.values.base-sha }}
-      HEAD_SHA: ${{ tasks.shas.values.head-sha }}
-      PATTERNS: ${{ params.patterns }}
+    if [ "${matches}" == "" ]; then
+      echo "false" > $RWX_VALUES/has-changes
+      echo "false" > $RWX_VALUES/have-changes
+    else
+      echo "true" > $RWX_VALUES/has-changes
+      echo "true" > $RWX_VALUES/have-changes
+    fi
+  env:
+    GITHUB_TOKEN:
+      value: "${{ params.github-token }}"
+      cache-key: excluded
+    REPOSITORY: "${{ params.repository }}"
+    BASE_SHA: "${{ tasks.shas.values.base-sha }}"
+    HEAD_SHA: "${{ tasks.shas.values.head-sha }}"
+    PATTERNS: "${{ params.patterns }}"

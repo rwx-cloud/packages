@@ -1,35 +1,34 @@
+---
 name: tailscale/install
-version: 1.0.4
+version: 1.0.5
 description: Install Tailscale
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/tailscale/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
-
 parameters:
   version:
-    description: "Version to install"
-    default: "latest"
-
+    description: Version to install
+    default: latest
 tasks:
-  - key: download
-    run: |
-      set -u
-      source "$RWX_PACKAGE_PATH/mint-utils.sh"
+- key: download
+  run: |
+    set -u
+    source "$RWX_PACKAGE_PATH/mint-utils.sh"
 
-      if [ "$VERSION" = "latest" ]; then
-        VERSION=$(curl -fs "https://pkgs.tailscale.com/stable/?mode=json" | jq -r .Version)
-      fi
-      ARCH=$(mint_arch_amd)
-      if [ "$ARCH" = "aarch64" ]; then
-        ARCH="arm64"
-      fi
-      TAILSCALE_DIR="tailscale_${VERSION}_${ARCH}"
+    if [ "$VERSION" = "latest" ]; then
+      VERSION=$(curl -fs "https://pkgs.tailscale.com/stable/?mode=json" | jq -r .Version)
+    fi
+    ARCH=$(mint_arch_amd)
+    if [ "$ARCH" = "aarch64" ]; then
+      ARCH="arm64"
+    fi
+    TAILSCALE_DIR="tailscale_${VERSION}_${ARCH}"
 
-      curl -L https://pkgs.tailscale.com/stable/${TAILSCALE_DIR}.tgz -O
-      tar -xf ${TAILSCALE_DIR}.tgz
+    curl -L https://pkgs.tailscale.com/stable/${TAILSCALE_DIR}.tgz -O
+    tar -xf ${TAILSCALE_DIR}.tgz
 
-      sudo install ${TAILSCALE_DIR}/tailscale ${TAILSCALE_DIR}/tailscaled /usr/bin
+    sudo install ${TAILSCALE_DIR}/tailscale ${TAILSCALE_DIR}/tailscaled /usr/bin
 
-      rm ${TAILSCALE_DIR}.tgz
-      rm -rf ${TAILSCALE_DIR}
-    env:
-      VERSION: ${{ params.version }}
+    rm ${TAILSCALE_DIR}.tgz
+    rm -rf ${TAILSCALE_DIR}
+  env:
+    VERSION: "${{ params.version }}"

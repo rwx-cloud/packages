@@ -1,66 +1,65 @@
+---
 name: namespace/login-hook
-version: 1.0.1
+version: 1.0.2
 description: RWX hook to log in to Namespace
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/namespace/login-hook
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
-
 parameters:
   workspace-id:
-    description: "The Namespace workspace identifier."
+    description: The Namespace workspace identifier.
     required: true
   oidc-token-env-name:
-    description: "The environment variable name that contains the Namespace OIDC token."
+    description: The environment variable name that contains the Namespace OIDC token.
     default: NAMESPACE_OIDC_TOKEN
-
 tasks:
-  - key: produce-login-hooks
-    run: |
-      set -u
+- key: produce-login-hooks
+  run: |
+    set -u
 
-      PROFILE_NAME="$(echo "$NAMESPACE_WORKSPACE_ID" | tr -cd '[:alnum:]')"
-      BEFORE_HOOK="${RWX_HOOKS_BEFORE_TASK}/namespace-login--${PROFILE_NAME}.sh"
-      AFTER_HOOK="${RWX_HOOKS_AFTER_TASK}/namespace-login--${PROFILE_NAME}.sh"
+    PROFILE_NAME="$(echo "$NAMESPACE_WORKSPACE_ID" | tr -cd '[:alnum:]')"
+    BEFORE_HOOK="${RWX_HOOKS_BEFORE_TASK}/namespace-login--${PROFILE_NAME}.sh"
+    AFTER_HOOK="${RWX_HOOKS_AFTER_TASK}/namespace-login--${PROFILE_NAME}.sh"
 
-      cat <<'EOF' > "$BEFORE_HOOK"
-      #!/usr/bin/env bash
-      set -ueo pipefail
+    cat <<'EOF' > "$BEFORE_HOOK"
+    #!/usr/bin/env bash
+    set -ueo pipefail
 
-      _NAMESPACE_OIDC_TOKEN_ENV_VAR="${{ params.oidc-token-env-name }}"
-      declare -n _NAMESPACE_OIDC_TOKEN="$_NAMESPACE_OIDC_TOKEN_ENV_VAR"
+    _NAMESPACE_OIDC_TOKEN_ENV_VAR="${{ params.oidc-token-env-name }}"
+    declare -n _NAMESPACE_OIDC_TOKEN="$_NAMESPACE_OIDC_TOKEN_ENV_VAR"
 
-      if [ -z "${_NAMESPACE_OIDC_TOKEN-}" ]; then
-        echo "Skipping Namespace login because \$${{ params.oidc-token-env-name }} was not provided."
-        exit 0
-      fi
+    if [ -z "${_NAMESPACE_OIDC_TOKEN-}" ]; then
+      echo "Skipping Namespace login because \$${{ params.oidc-token-env-name }} was not provided."
+      exit 0
+    fi
 
-      if ! command -v nsc &> /dev/null; then
-        log_error "The Namespace CLI must be installed"
-        exit 1
-      fi
+    if ! command -v nsc &> /dev/null; then
+      log_error "The Namespace CLI must be installed"
+      exit 1
+    fi
 
-      echo "Logging in to Namespace with Workspace: ${{ params.workspace-id }}"
-      nsc auth exchange-oidc-token \
-        --tenant_id "${{ params.workspace-id }}" \
-        --token $_NAMESPACE_OIDC_TOKEN
-      EOF
+    echo "Logging in to Namespace with Workspace: ${{ params.workspace-id }}"
+    nsc auth exchange-oidc-token \
+      --tenant_id "${{ params.workspace-id }}" \
+      --token $_NAMESPACE_OIDC_TOKEN
+    EOF
 
-      cat <<'EOF' > "$AFTER_HOOK"
-      #!/usr/bin/env bash
-      set -ueo pipefail
+    cat <<'EOF' > "$AFTER_HOOK"
+    #!/usr/bin/env bash
+    set -ueo pipefail
 
-      _NAMESPACE_OIDC_TOKEN_ENV_VAR="${{ params.oidc-token-env-name }}"
-      declare -n _NAMESPACE_OIDC_TOKEN="$_NAMESPACE_OIDC_TOKEN_ENV_VAR"
+    _NAMESPACE_OIDC_TOKEN_ENV_VAR="${{ params.oidc-token-env-name }}"
+    declare -n _NAMESPACE_OIDC_TOKEN="$_NAMESPACE_OIDC_TOKEN_ENV_VAR"
 
-      if [ -z "${_NAMESPACE_OIDC_TOKEN-}" ]; then
-        echo "Skipping Namespace logout \$${{ params.oidc-token-env-name }} was not provided."
-        exit 0
-      fi
+    if [ -z "${_NAMESPACE_OIDC_TOKEN-}" ]; then
+      echo "Skipping Namespace logout \$${{ params.oidc-token-env-name }} was not provided."
+      exit 0
+    fi
 
-      echo "Logging out of Namespace with Workspace: ${{ params.workspace-id }}"
-      nsc logout
-      EOF
+    echo "Logging out of Namespace with Workspace: ${{ params.workspace-id }}"
+    nsc logout
+    EOF
 
-      chmod +x "$BEFORE_HOOK"
-      chmod +x "$AFTER_HOOK"
-    env:
-      NAMESPACE_WORKSPACE_ID: "${{ params.workspace-id }}"
+    chmod +x "$BEFORE_HOOK"
+    chmod +x "$AFTER_HOOK"
+  env:
+    NAMESPACE_WORKSPACE_ID: "${{ params.workspace-id }}"
