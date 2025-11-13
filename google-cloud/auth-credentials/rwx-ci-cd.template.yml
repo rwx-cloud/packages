@@ -1,5 +1,5 @@
 - key: google-cloud--auth-credentials--install-cli
-  call: google-cloud/install-cli 1.0.4
+  call: google-cloud/install-cli 1.1.6
 
 - key: google-cloud--auth-credentials--test--defaults
   use: google-cloud--auth-credentials--install-cli

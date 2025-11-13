@@ -1,5 +1,5 @@
 - key: github-cli
-  call: github/install-cli 1.0.1
+  call: github/install-cli 1.0.8
 
 - key: test-one-pattern-has-changes
   use: github-cli

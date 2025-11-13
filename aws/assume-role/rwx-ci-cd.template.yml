@@ -1,5 +1,5 @@
 - key: install-cli
-  call: aws/install-cli 1.0.2
+  call: aws/install-cli 1.0.8
 
 - key: test--defaults
   call: $LEAF_DIGEST
@@ -87,12 +87,7 @@
     profile-name: my-other-profile
     role-chaining: true
 - key: test--specified-profile-name--role-chain--assert
-  use:
-    [
-      install-cli,
-      test--specified-profile-name,
-      test--specified-profile-name--role-chain,
-    ]
+  use: [install-cli, test--specified-profile-name, test--specified-profile-name--role-chain]
   run: aws sts get-caller-identity --profile my-other-profile &> /dev/null # avoid leaking account/role info
   env:
     AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}

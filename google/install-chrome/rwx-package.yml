@@ -1,5 +1,5 @@
 name: google/install-chrome
-version: 2.1.7
+version: 2.1.8
 description: Install Google Chrome, the official web browser from Google
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/google/install-chrome
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -81,7 +81,6 @@ tasks:
       CHROME_VERSION: ${{ params.chrome-version }}
     cache:
       ttl: 1 day
-
 
   - key: install
     run: |

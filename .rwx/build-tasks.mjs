@@ -170,7 +170,7 @@ const generateLeafRun = async (leaf) => {
       },
       {
         key: "code",
-        call: "git/clone 1.6.5",
+        call: "git/clone 1.8.1",
         with: {
           "preserve-git-dir": true,
           repository: "https://github.com/rwx-cloud/packages.git",

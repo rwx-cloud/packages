@@ -1,5 +1,5 @@
 - key: install-cli
-  call: azure/install-cli 1.0.1
+  call: azure/install-cli 1.0.8
 
 - key: test--authenticate
   use: install-cli

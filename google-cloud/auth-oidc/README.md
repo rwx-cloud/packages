@@ -8,7 +8,7 @@ To authenticate with Google Cloud using OIDC and direct Workload Identity Federa
 ```yaml
 tasks:
   - key: gcloud-login
-    call: google-cloud/auth-oidc 1.0.8
+    call: google-cloud/auth-oidc 1.0.9
     with:
       oidc-token: ${{ vaults.your-vault.oidc.gcp }}
       workload-identity-provider: ${{ vaults.your-vault.secrets.WORKLOAD_IDENTITY_PROVIDER }}
@@ -19,7 +19,7 @@ To authenticate with Google Cloud using OIDC and a Service Account:
 ```yaml
 tasks:
   - key: gcloud-login
-    call: google-cloud/auth-oidc 1.0.8
+    call: google-cloud/auth-oidc 1.0.9
     with:
       oidc-token: ${{ vaults.your-vault.oidc.gcp }}
       workload-identity-provider: ${{ vaults.your-vault.secrets.WORKLOAD_IDENTITY_PROVIDER }}
@@ -31,7 +31,7 @@ A `project-id` may optionally be provided to select an active project for `gclou
 ```yaml
 tasks:
   - key: gcloud-login
-    call: google-cloud/auth-oidc 1.0.8
+    call: google-cloud/auth-oidc 1.0.9
     with:
       oidc-token: ${{ vaults.your-vault.oidc.gcp }}
       workload-identity-provider: ${{ vaults.your-vault.secrets.WORKLOAD_IDENTITY_PROVIDER }}
