@@ -4,9 +4,9 @@
 - key: code
   call: git/clone 1.8.1
   with:
-    repository: https://github.com/rwx-research/mint-update-leaves-testing.git
+    repository: https://github.com/rwx-cloud/mint-update-leaves-testing.git
     ref: main
-    github-access-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    github-access-token: ${{ github-apps.rwx-cloud-bot.token }}
     preserve-git-dir: true
 
 - key: code-change
@@ -35,7 +35,7 @@
   call: $LEAF_DIGEST
   use: code-change
   with:
-    github-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    github-token: ${{ github-apps.rwx-cloud-bot.token }}
     branch-prefix: ${{ run.id }}
     pull-request-title: "pull request title ${{ tasks.code-change.values.nonce }}"
     pull-request-body: "pull request body ${{ tasks.code-change.values.nonce }}"
@@ -45,7 +45,7 @@
   call: $LEAF_DIGEST
   use: code-change2
   with:
-    github-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    github-token: ${{ github-apps.rwx-cloud-bot.token }}
     branch-prefix: ${{ run.id }}
     pull-request-title: "pull request title ${{ tasks.code-change.values.nonce }}"
     pull-request-body: "pull request body ${{ tasks.code-change.values.nonce }}"
@@ -53,17 +53,17 @@
 - key: clone-branch-after-create
   call: git/clone 1.8.1
   with:
-    repository: https://github.com/rwx-research/mint-update-leaves-testing.git
+    repository: https://github.com/rwx-cloud/mint-update-leaves-testing.git
     ref: ${{ tasks.create-pr.values.branch }}
-    github-access-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    github-access-token: ${{ github-apps.rwx-cloud-bot.token }}
     preserve-git-dir: true
 
 - key: clone-branch-after-update
   call: git/clone 1.8.1
   with:
-    repository: https://github.com/rwx-research/mint-update-leaves-testing.git
+    repository: https://github.com/rwx-cloud/mint-update-leaves-testing.git
     ref: ${{ tasks.update-pr.values.branch }}
-    github-access-token: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    github-access-token: ${{ github-apps.rwx-cloud-bot.token }}
     preserve-git-dir: true
 
 - key: assert--create-pr
@@ -73,7 +73,7 @@
     echo "Checking for added file"
     test -f ${{ tasks.code-change.values.file }}
 
-    pr_details=$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json body,title,commits)
+    pr_details=$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json body,title,commits)
     echo "$pr_details"
 
     pr_title=$(echo "$pr_details" | jq -r '.title')
@@ -88,7 +88,7 @@
       exit 1
     fi
   env:
-    GITHUB_TOKEN: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
     PR_NUMBER: ${{ tasks.create-pr.values.pull-request-number }}
 
 - key: assert--update-pr
@@ -101,7 +101,7 @@
     echo "Checking for file added in update"
     test -f ${{ tasks.code-change2.values.file }}
 
-    pr_details=$(gh --repo rwx-research/mint-update-leaves-testing pr view "$PR_NUMBER" --json body,title,commits)
+    pr_details=$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json body,title,commits)
     echo "$pr_details"
 
     pr_title=$(echo "$pr_details" | jq -r '.title')
@@ -119,13 +119,13 @@
     echo "Checking for updated PR"
     test "${{ tasks.create-pr.values.pull-request-number }}" = "${{ tasks.update-pr.values.pull-request-number }}"
   env:
-    GITHUB_TOKEN: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
     PR_NUMBER: ${{ tasks.create-pr.values.pull-request-number }}
 
 - key: close-pr
   after: assert--update-pr
   use: gh-cli
-  run: gh --repo rwx-research/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
+  run: gh --repo rwx-cloud/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
   env:
-    GITHUB_TOKEN: ${{ vaults.mint_leaves_development.github-apps.mint-mint-leaves-development.token }}
+    GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
     PR_NUMBER: ${{ tasks.create-pr.values.pull-request-number }}
