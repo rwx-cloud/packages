@@ -1,21 +1,23 @@
-#!/usr/bin/env bash
-if [[ "${CHECKOUT_REF}" == "HEAD" ]]; then
+#!/bin/sh
+set -e
+
+if [ "${CHECKOUT_REF}" = "HEAD" ]; then
   echo "Error: Cloning from HEAD is ambiguous. If you want to clone from the HEAD of a particular branch" >&2
   echo "pass in the name of that branch as the ref instead." >&2
   exit 1
 fi
 
 CREDENTIAL_ARG=""
-if [[ "${CREDENTIAL_HELPER}" != "" ]]; then
+if [ "${CREDENTIAL_HELPER}" != "" ]; then
   CREDENTIAL_ARG="-c credential.helper='${CREDENTIAL_HELPER}'"
 fi
 COMMAND="git $CREDENTIAL_ARG ls-remote \"${CHECKOUT_REPOSITORY}\" \"${CHECKOUT_REF}\""
-RESOLVED_SHA=$(eval $COMMAND | awk '{print $1}')
-if [[ $RESOLVED_SHA == "" ]]; then
+RESOLVED_SHA=$(eval "$COMMAND" | awk '{print $1}')
+if [ "$RESOLVED_SHA" = "" ]; then
   RESOLVED_SHA="${CHECKOUT_REF}"
 fi
 echo "Latest SHA for ${CHECKOUT_REF}: ${RESOLVED_SHA}"
-printf "${RESOLVED_SHA}" >> "$RWX_VALUES/sha"
+printf '%s' "${RESOLVED_SHA}" >> "$RWX_VALUES/sha"
 
 if [ ! -d "$PATCHES_DIR" ]; then
   echo ""
@@ -29,13 +31,13 @@ for file in "$PATCHES_DIR"/*; do
   if [ -d "$file" ]; then
     echo "Patch file $filename is a directory. Skipping..."
   elif [ -f "$file" ]; then
-    if [ "$filename" == "$RESOLVED_SHA" ]; then
+    if [ "$filename" = "$RESOLVED_SHA" ]; then
       echo "Patch file $filename matches the resolved sha."
       echo "Generating dynamic git-patch task..."
 
-      cat << EOF > $RWX_DYNAMIC_TASKS/patch.yml
+      cat << EOF > "$RWX_DYNAMIC_TASKS/patch.yml"
 - key: git-patch
-  use: git-clone 
+  use: git-clone
   run: |
     # Apply the patch
     echo "Applying patch file \${PATCH_FILE}..."
@@ -46,19 +48,16 @@ for file in "$PATCHES_DIR"/*; do
 
     # Export env vars
     PATCH_GIT_COMMIT_SHA="\${RWX_GIT_COMMIT_SHA}+patch"
-    printf "%s" "\${PATCH_GIT_COMMIT_SHA}" >> "\${RWX_CACHE_KEY_EXCLUDED_ENV}/MINT_GIT_COMMIT_SHA"
-    printf "%s" "\${PATCH_GIT_COMMIT_SHA}" >> "\${RWX_CACHE_KEY_EXCLUDED_ENV}/RWX_GIT_COMMIT_SHA"
+    printf '%s' "\${PATCH_GIT_COMMIT_SHA}" >> "\${RWX_CACHE_KEY_EXCLUDED_ENV}/MINT_GIT_COMMIT_SHA"
+    printf '%s' "\${PATCH_GIT_COMMIT_SHA}" >> "\${RWX_CACHE_KEY_EXCLUDED_ENV}/RWX_GIT_COMMIT_SHA"
 
     # Upload an artifact
-    cp \${PATCH_FILE} \$RWX_ARTIFACTS/\$(basename "\$PATCH_FILE").patch
-
+    cp "\${PATCH_FILE}" "\$RWX_ARTIFACTS/\$(basename "\$PATCH_FILE").patch"
   env:
     CHECKOUT_PATH: \${{ params.path }}
     PATCH_FILE: \${{ run.dir }}/.patches/$filename
-
   filter:
     \${{ run.dir }}: [.patches/$filename]
-
 EOF
     else
       echo "Patch file $filename does not match the resolved sha $RESOLVED_SHA. Skipping..."
