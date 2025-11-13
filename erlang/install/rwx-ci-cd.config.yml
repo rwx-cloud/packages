@@ -1,14 +1,24 @@
+---
 tests:
-  - key: ubuntu-22-04-x86-64-1-1
-    template: rwx-ci-cd.ubuntu-22-04.yml
-    base:
-      os: ubuntu 22.04
-      tag: 1.1
-      arch: x86_64
-
-  - key: ubuntu-24-04-x86-64-1-2
-    template: rwx-ci-cd.ubuntu-24-04.yml
-    base:
-      os: ubuntu 24.04
-      tag: 1.2
-      arch: x86_64
+- key: ubuntu-22-04-x86-64-1-1
+  template: rwx-ci-cd.ubuntu-22-04.yml
+  base:
+    os: ubuntu 22.04
+    tag: 1.1
+    arch: x86_64
+- key: ubuntu-24-04-x86-64-1-2
+  template: rwx-ci-cd.ubuntu-24-04.yml
+  base:
+    os: ubuntu 24.04
+    tag: 1.2
+    arch: x86_64
+- key: alpine-latest
+  template: rwx-ci-cd.template.yml
+  base:
+    image: alpine:latest
+    config: none
+- key: debian-trixie-slim
+  template: rwx-ci-cd.template.yml
+  base:
+    image: debian:trixie-slim
+    config: none

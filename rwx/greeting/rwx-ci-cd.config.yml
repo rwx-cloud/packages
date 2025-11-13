@@ -1,0 +1,12 @@
+---
+tests:
+- key: alpine-latest
+  template: rwx-ci-cd.template.yml
+  base:
+    image: alpine:latest
+    config: none
+- key: debian-trixie-slim
+  template: rwx-ci-cd.template.yml
+  base:
+    image: debian:trixie-slim
+    config: none
