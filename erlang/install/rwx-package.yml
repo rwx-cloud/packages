@@ -1,84 +1,84 @@
+---
 name: erlang/install
-version: 1.1.1
-description: Install Erlang, a programming language used to build massively scalable soft real-time systems with requirements on high availability
+version: 1.1.2
+description: Install Erlang, a programming language used to build massively scalable
+  soft real-time systems with requirements on high availability
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/erlang/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
-
 parameters:
   erlang-version:
-    description: "Version of Erlang to install"
+    description: Version of Erlang to install
     required: true
-
 tasks:
-  - key: install
-    run: |
-      source "$RWX_PACKAGE_PATH/mint-utils.sh"
-      if [ "$(mint_os_name)" != "ubuntu" ]; then
-        echo "Unsupported operating system \`$(mint_os_name)\`" | tee "$(mktemp "$RWX_ERRORS/error-XXXX")"
+- key: install
+  run: |
+    source "$RWX_PACKAGE_PATH/mint-utils.sh"
+    if [ "$(mint_os_name)" != "ubuntu" ]; then
+      echo "Unsupported operating system \`$(mint_os_name)\`" | tee "$(mktemp "$RWX_ERRORS/error-XXXX")"
+      exit 1
+    fi
+
+    if mint_os_version_gte 24.04; then
+      ncurses_package="libncurses6"
+    else
+      ncurses_package="libncurses5"
+    fi
+
+    sudo apt-get update
+    sudo apt-get install libsctp1 "$ncurses_package"
+    sudo apt-get clean
+
+    OTP_OS=$(mint_os_name)
+    OTP_OS_VERSION=$(mint_os_version)
+    OTP_ARCH=$(mint_arch_amd)
+    if [ "$OTP_ARCH" == "aarch64" ]; then
+      OTP_ARCH="arm64"
+    fi
+
+    base_url="https://builds.hex.pm/builds/otp/${OTP_ARCH}/${OTP_OS}-${OTP_OS_VERSION}"
+    builds_url="${base_url}/builds.txt"
+
+    tmpdir="$(mktemp -d)"
+    trap 'rm -rf "${tmpdir}"' EXIT
+
+    build_line="$(curl -fsSL "${builds_url}" | grep "^OTP-${ERLANG_VERSION} ")"
+    if [ -z "${build_line}" ]; then
+      echo "Unable to find OTP-${ERLANG_VERSION} in ${builds_url}" | tee "$(mktemp "$RWX_ERRORS/error-XXXX")"
+      exit 1
+    fi
+
+    read -r -a fields <<< "${build_line}"
+    expected_sha256="${fields[3]:-}"
+
+    archive_name="OTP-${ERLANG_VERSION}.tar.gz"
+    archive_url="${base_url}/${archive_name}"
+    archive_path="${tmpdir}/${archive_name}"
+
+    curl -fsSL "${archive_url}" -o "${archive_path}"
+
+    if [ -n "${expected_sha256}" ]; then
+      computed_sha="$(sha256sum "${archive_path}" | awk '{print $1}')"
+      if [ "${computed_sha}" != "${expected_sha256}" ]; then
+        echo "Checksum mismatch for ${archive_name}: expected ${expected_sha256}, got ${computed_sha}" >&2
         exit 1
       fi
+    else
+      echo "Skipping checksum verification for ${archive_name}; no SHA256 provided in builds listing" >&2
+    fi
 
-      if mint_os_version_gte 24.04; then
-        ncurses_package="libncurses6"
-      else
-        ncurses_package="libncurses5"
-      fi
+    ERL_ROOT="/usr/lib/erlang"
+    sudo mkdir -p "$ERL_ROOT"
+    sudo chown "$(id -u):$(id -g)" "$ERL_ROOT"
+    tar -xzf "${archive_path}" -C "${ERL_ROOT}" --strip-components=1
 
-      sudo apt-get update
-      sudo apt-get install libsctp1 "$ncurses_package"
-      sudo apt-get clean
+    "${ERL_ROOT}/Install" -minimal "${ERL_ROOT}"
+    echo "${ERL_ROOT}/bin" > $RWX_ENV/PATH
+    export PATH="${ERL_ROOT}/bin:${PATH}"
 
-      OTP_OS=$(mint_os_name)
-      OTP_OS_VERSION=$(mint_os_version)
-      OTP_ARCH=$(mint_arch_amd)
-      if [ "$OTP_ARCH" == "aarch64" ]; then
-        OTP_ARCH="arm64"
-      fi
+    major_version=$(echo "$ERLANG_VERSION" | cut -d. -f1)
+    cat "${ERL_ROOT}/releases/$major_version/OTP_VERSION" | tee /dev/stderr | grep "^${ERLANG_VERSION}$"
+    erl -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), "releases", erlang:system_info(otp_release), "OTP_VERSION"])), io:fwrite(Version), halt().' -noshell | tee /dev/stderr | grep "^${ERLANG_VERSION}$"
 
-      base_url="https://builds.hex.pm/builds/otp/${OTP_ARCH}/${OTP_OS}-${OTP_OS_VERSION}"
-      builds_url="${base_url}/builds.txt"
-
-      tmpdir="$(mktemp -d)"
-      trap 'rm -rf "${tmpdir}"' EXIT
-
-      build_line="$(curl -fsSL "${builds_url}" | grep "^OTP-${ERLANG_VERSION} ")"
-      if [ -z "${build_line}" ]; then
-        echo "Unable to find OTP-${ERLANG_VERSION} in ${builds_url}" | tee "$(mktemp "$RWX_ERRORS/error-XXXX")"
-        exit 1
-      fi
-
-      read -r -a fields <<< "${build_line}"
-      expected_sha256="${fields[3]:-}"
-
-      archive_name="OTP-${ERLANG_VERSION}.tar.gz"
-      archive_url="${base_url}/${archive_name}"
-      archive_path="${tmpdir}/${archive_name}"
-
-      curl -fsSL "${archive_url}" -o "${archive_path}"
-
-      if [ -n "${expected_sha256}" ]; then
-        computed_sha="$(sha256sum "${archive_path}" | awk '{print $1}')"
-        if [ "${computed_sha}" != "${expected_sha256}" ]; then
-          echo "Checksum mismatch for ${archive_name}: expected ${expected_sha256}, got ${computed_sha}" >&2
-          exit 1
-        fi
-      else
-        echo "Skipping checksum verification for ${archive_name}; no SHA256 provided in builds listing" >&2
-      fi
-
-      ERL_ROOT="/usr/lib/erlang"
-      sudo mkdir -p "$ERL_ROOT"
-      sudo chown "$(id -u):$(id -g)" "$ERL_ROOT"
-      tar -xzf "${archive_path}" -C "${ERL_ROOT}" --strip-components=1
-
-      "${ERL_ROOT}/Install" -minimal "${ERL_ROOT}"
-      echo "${ERL_ROOT}/bin" > $RWX_ENV/PATH
-      export PATH="${ERL_ROOT}/bin:${PATH}"
-
-      major_version=$(echo "$ERLANG_VERSION" | cut -d. -f1)
-      cat "${ERL_ROOT}/releases/$major_version/OTP_VERSION" | tee /dev/stderr | grep "^${ERLANG_VERSION}$"
-      erl -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), "releases", erlang:system_info(otp_release), "OTP_VERSION"])), io:fwrite(Version), halt().' -noshell | tee /dev/stderr | grep "^${ERLANG_VERSION}$"
-
-      echo "Installed OTP-${ERLANG_VERSION} to ${ERL_ROOT}"
-    env:
-      ERLANG_VERSION: ${{ params.erlang-version }}
+    echo "Installed OTP-${ERLANG_VERSION} to ${ERL_ROOT}"
+  env:
+    ERLANG_VERSION: "${{ params.erlang-version }}"

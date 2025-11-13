@@ -1,18 +1,27 @@
+---
 tests:
-  - key: ubuntu-20-04
-    template: rwx-ci-cd.template.yml
-    base:
-      image: ubuntu:20.04
-      config: none
-
-  - key: ubuntu-22-04
-    template: rwx-ci-cd.template.yml
-    base:
-      image: ubuntu:22.04
-      config: none
-
-  - key: ubuntu-24-04
-    template: rwx-ci-cd.template.yml
-    base:
-      image: ubuntu:24.04
-      config: none
+- key: ubuntu-20-04
+  template: rwx-ci-cd.template.yml
+  base:
+    image: ubuntu:20.04
+    config: none
+- key: ubuntu-22-04
+  template: rwx-ci-cd.template.yml
+  base:
+    image: ubuntu:22.04
+    config: none
+- key: ubuntu-24-04
+  template: rwx-ci-cd.template.yml
+  base:
+    image: ubuntu:24.04
+    config: none
+- key: alpine-latest
+  template: rwx-ci-cd.template.yml
+  base:
+    image: alpine:latest
+    config: none
+- key: debian-trixie-slim
+  template: rwx-ci-cd.template.yml
+  base:
+    image: debian:trixie-slim
+    config: none

@@ -1,84 +1,84 @@
+---
 name: elixir-lang/install
-version: 1.1.1
-description: Install Elixir, a dynamic, functional language for building scalable and maintainable applications.
+version: 1.1.2
+description: Install Elixir, a dynamic, functional language for building scalable
+  and maintainable applications.
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/elixir-lang/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
-
 parameters:
   elixir-version:
-    description: "Version of Elixir to install"
+    description: Version of Elixir to install
     required: true
-
 tasks:
-  - key: install
-    run: |
-      set +e
-      erlang_major_version=$(erl -eval 'erlang:display(list_to_integer(erlang:system_info(otp_release))), halt().' -noshell | tr -d '\r\n')
-      erlang_exit=$?
-      set -e
+- key: install
+  run: |
+    set +e
+    erlang_major_version=$(erl -eval 'erlang:display(list_to_integer(erlang:system_info(otp_release))), halt().' -noshell | tr -d '\r\n')
+    erlang_exit=$?
+    set -e
 
-      if [[ $erlang_exit -ne 0 ]]; then
-        echo "failed to determine version of erlang"
-        cat << EOF > "$(mktemp "$RWX_ERRORS/error-XXXX")"
-      Failed to detect the installed version of Erlang.
+    if [[ $erlang_exit -ne 0 ]]; then
+      echo "failed to determine version of erlang"
+      cat << EOF > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+    Failed to detect the installed version of Erlang.
 
-      Use the [\`erlang/install\` package](https://www.rwx.com/docs/mint/packages/erlang/install) to install Erlang and ensure that this task is configured to \`use\` your Erlang install.
-      EOF
+    Use the [\`erlang/install\` package](https://www.rwx.com/docs/mint/packages/erlang/install) to install Erlang and ensure that this task is configured to \`use\` your Erlang install.
+    EOF
 
+      exit 1
+    fi
+
+    base_url="https://builds.hex.pm/builds/elixir"
+    builds_url="${base_url}/builds.txt"
+
+    tmpdir="$(mktemp -d)"
+    trap 'rm -rf "${tmpdir}"' EXIT
+
+    target_package="v${ELIXIR_VERSION}-otp-${erlang_major_version}"
+    builds_file="${tmpdir}/builds.txt"
+    curl -fsSL "${builds_url}" -o "${builds_file}"
+
+    build_line="$(grep "^${target_package} " "${builds_file}" || true)"
+    if [ -z "${build_line}" ]; then
+      fallback_package="v${ELIXIR_VERSION}"
+      build_line="$(grep "^${fallback_package} " "${builds_file}" || true)"
+
+      if [ -z "${build_line}" ]; then
+        echo "Unable to find v${ELIXIR_VERSION} (with or without OTP-specific builds) in ${builds_url}" | tee "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
+      target_package="${fallback_package}"
+    fi
 
-      base_url="https://builds.hex.pm/builds/elixir"
-      builds_url="${base_url}/builds.txt"
+    archive_name="${target_package}.zip"
+    archive_url="${base_url}/${archive_name}"
+    archive_path="${tmpdir}/${archive_name}"
 
-      tmpdir="$(mktemp -d)"
-      trap 'rm -rf "${tmpdir}"' EXIT
+    read -r -a fields <<< "${build_line}"
+    expected_sha256="${fields[3]:-}"
 
-      target_package="v${ELIXIR_VERSION}-otp-${erlang_major_version}"
-      builds_file="${tmpdir}/builds.txt"
-      curl -fsSL "${builds_url}" -o "${builds_file}"
+    echo "Downloading Elixir ${target_package} from ${archive_url} to ${archive_path}"
+    curl -fsSL "${archive_url}" -o "${archive_path}"
 
-      build_line="$(grep "^${target_package} " "${builds_file}" || true)"
-      if [ -z "${build_line}" ]; then
-        fallback_package="v${ELIXIR_VERSION}"
-        build_line="$(grep "^${fallback_package} " "${builds_file}" || true)"
-
-        if [ -z "${build_line}" ]; then
-          echo "Unable to find v${ELIXIR_VERSION} (with or without OTP-specific builds) in ${builds_url}" | tee "$(mktemp "$RWX_ERRORS/error-XXXX")"
-          exit 1
-        fi
-        target_package="${fallback_package}"
+    if [ -n "${expected_sha256}" ]; then
+      computed_sha="$(sha256sum "${archive_path}" | awk '{print $1}')"
+      if [ "${computed_sha}" != "${expected_sha256}" ]; then
+        echo "Checksum mismatch for ${archive_name}: expected ${expected_sha256}, got ${computed_sha}" >&2
+        exit 1
       fi
+    else
+      echo "Skipping checksum verification for ${archive_name}; no SHA256 provided in builds listing" >&2
+    fi
 
-      archive_name="${target_package}.zip"
-      archive_url="${base_url}/${archive_name}"
-      archive_path="${tmpdir}/${archive_name}"
+    ELIXIR_ROOT="/opt/elixir/${ELIXIR_VERSION}"
+    sudo mkdir -p "$ELIXIR_ROOT"
+    sudo unzip -q "${archive_path}" -d "${ELIXIR_ROOT}"
 
-      read -r -a fields <<< "${build_line}"
-      expected_sha256="${fields[3]:-}"
+    echo "${ELIXIR_ROOT}/bin" > "$RWX_ENV/PATH"
+    export PATH="${ELIXIR_ROOT}/bin:${PATH}"
 
-      echo "Downloading Elixir ${target_package} from ${archive_url} to ${archive_path}"
-      curl -fsSL "${archive_url}" -o "${archive_path}"
+    elixir --version | tee /dev/stderr | grep "^Elixir ${ELIXIR_VERSION}"
 
-      if [ -n "${expected_sha256}" ]; then
-        computed_sha="$(sha256sum "${archive_path}" | awk '{print $1}')"
-        if [ "${computed_sha}" != "${expected_sha256}" ]; then
-          echo "Checksum mismatch for ${archive_name}: expected ${expected_sha256}, got ${computed_sha}" >&2
-          exit 1
-        fi
-      else
-        echo "Skipping checksum verification for ${archive_name}; no SHA256 provided in builds listing" >&2
-      fi
-
-      ELIXIR_ROOT="/opt/elixir/${ELIXIR_VERSION}"
-      sudo mkdir -p "$ELIXIR_ROOT"
-      sudo unzip -q "${archive_path}" -d "${ELIXIR_ROOT}"
-
-      echo "${ELIXIR_ROOT}/bin" > "$RWX_ENV/PATH"
-      export PATH="${ELIXIR_ROOT}/bin:${PATH}"
-
-      elixir --version | tee /dev/stderr | grep "^Elixir ${ELIXIR_VERSION}"
-
-      echo "Installed Elixir v${ELIXIR_VERSION} to ${ELIXIR_ROOT}"
-    env:
-      ELIXIR_VERSION: ${{ params.elixir-version }}
+    echo "Installed Elixir v${ELIXIR_VERSION} to ${ELIXIR_ROOT}"
+  env:
+    ELIXIR_VERSION: "${{ params.elixir-version }}"

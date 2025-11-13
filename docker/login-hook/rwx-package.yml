@@ -1,65 +1,65 @@
+---
 name: docker/login-hook
-version: 1.0.4
+version: 1.0.5
 description: Mint hook to log in to a Docker registry
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/docker/login-hook
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
-
 parameters:
   username:
-    description: "The username to log in with."
+    description: The username to log in with.
     required: true
   password-env-name:
-    description: "The environment variable name that contains the Docker registry token or password."
+    description: The environment variable name that contains the Docker registry token
+      or password.
     default: DOCKER_PASSWORD
   registry:
-    description: "The Docker registry to log in to."
+    description: The Docker registry to log in to.
     default: docker.io
-
 tasks:
-  - key: produce-login-hooks
-    run: |
-      set -u
+- key: produce-login-hooks
+  run: |
+    set -u
 
-      PROFILE_NAME="$(echo "$REGISTRY" | tr -cd '[:alnum:]')"
-      BEFORE_HOOK="${RWX_HOOKS_BEFORE_TASK}/docker-login--${PROFILE_NAME}.sh"
-      AFTER_HOOK="${RWX_HOOKS_AFTER_TASK}/docker-login--${PROFILE_NAME}.sh"
+    PROFILE_NAME="$(echo "$REGISTRY" | tr -cd '[:alnum:]')"
+    BEFORE_HOOK="${RWX_HOOKS_BEFORE_TASK}/docker-login--${PROFILE_NAME}.sh"
+    AFTER_HOOK="${RWX_HOOKS_AFTER_TASK}/docker-login--${PROFILE_NAME}.sh"
 
-      cat <<'EOF' > "$BEFORE_HOOK"
-      #!/usr/bin/env bash
-      set -ueo pipefail
+    cat <<'EOF' > "$BEFORE_HOOK"
+    #!/usr/bin/env bash
+    set -ueo pipefail
 
-      _DOCKER_PASSWORD_ENV_VAR="${{ params.password-env-name }}"
-      declare -n _DOCKER_PASSWORD="$_DOCKER_PASSWORD_ENV_VAR"
+    _DOCKER_PASSWORD_ENV_VAR="${{ params.password-env-name }}"
+    declare -n _DOCKER_PASSWORD="$_DOCKER_PASSWORD_ENV_VAR"
 
-      if [ -z "${_DOCKER_PASSWORD-}" ]; then
-        echo "Skipping Docker login because \$${{ params.password-env-name }} was not provided."
-        exit 0
-      fi
+    if [ -z "${_DOCKER_PASSWORD-}" ]; then
+      echo "Skipping Docker login because \$${{ params.password-env-name }} was not provided."
+      exit 0
+    fi
 
-      echo "Logging in to ${{ params.registry }} as ${{ params.username }}"
-      echo "$_DOCKER_PASSWORD" | docker login -u "${{ params.username }}" --password-stdin "${{ params.registry }}"
-      EOF
+    echo "Logging in to ${{ params.registry }} as ${{ params.username }}"
+    echo "$_DOCKER_PASSWORD" | docker login -u "${{ params.username }}" --password-stdin "${{ params.registry }}"
+    EOF
 
-      cat <<'EOF' > "$AFTER_HOOK"
-      #!/usr/bin/env bash
-      set -ueo pipefail
+    cat <<'EOF' > "$AFTER_HOOK"
+    #!/usr/bin/env bash
+    set -ueo pipefail
 
-      _DOCKER_PASSWORD_ENV_VAR="${{ params.password-env-name }}"
-      declare -n _DOCKER_PASSWORD="$_DOCKER_PASSWORD_ENV_VAR"
+    _DOCKER_PASSWORD_ENV_VAR="${{ params.password-env-name }}"
+    declare -n _DOCKER_PASSWORD="$_DOCKER_PASSWORD_ENV_VAR"
 
-      if [ -z "${_DOCKER_PASSWORD-}" ]; then
-        echo "Skipping Docker logout because \$${{ params.password-env-name }} was not provided."
-        exit 0
-      fi
+    if [ -z "${_DOCKER_PASSWORD-}" ]; then
+      echo "Skipping Docker logout because \$${{ params.password-env-name }} was not provided."
+      exit 0
+    fi
 
-      docker logout "${{ params.registry }}"
-      EOF
+    docker logout "${{ params.registry }}"
+    EOF
 
-      [ "${REGISTRY}" == "docker.io" ] && cat <<'EOF' >> "$AFTER_HOOK"
-      docker logout "https://index.docker.io/v1/"
-      EOF
+    [ "${REGISTRY}" == "docker.io" ] && cat <<'EOF' >> "$AFTER_HOOK"
+    docker logout "https://index.docker.io/v1/"
+    EOF
 
-      chmod +x "$BEFORE_HOOK"
-      chmod +x "$AFTER_HOOK"
-    env:
-      REGISTRY: "${{ params.registry }}"
+    chmod +x "$BEFORE_HOOK"
+    chmod +x "$AFTER_HOOK"
+  env:
+    REGISTRY: "${{ params.registry }}"

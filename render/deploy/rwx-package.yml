@@ -1,92 +1,89 @@
+---
 name: render/deploy
-version: 1.0.5
+version: 1.0.6
 description: Deploy to Render.com
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/render/deploy
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
-
 parameters:
   ref:
-    description: "The git ref to deploy."
+    description: The git ref to deploy.
     required: true
   render-api-key:
-    description: "API key for the Render API."
+    description: API key for the Render API.
     required: true
   service-name:
-    description: "Name of the Render service to deploy."
+    description: Name of the Render service to deploy.
     required: true
-
 tasks:
-  - key: locate-service
-    cache: false
-    run: |
-      services=$(curl -s -X GET --fail \
-        -H "Accept: application/json" \
-        -H "Content-Type: application/json" \
-        -H  "Authorization: Bearer ${RENDER_API_KEY}" \
-        --data-urlencode "name=${SERVICE_NAME}" \
-        "https://api.render.com/v1/services")
+- key: locate-service
+  cache: false
+  run: |
+    services=$(curl -s -X GET --fail \
+      -H "Accept: application/json" \
+      -H "Content-Type: application/json" \
+      -H  "Authorization: Bearer ${RENDER_API_KEY}" \
+      --data-urlencode "name=${SERVICE_NAME}" \
+      "https://api.render.com/v1/services")
 
-      service_id=$(echo "$services" | jq -r ".[] | select(.service.name == \"${SERVICE_NAME}\") | .service.id")
+    service_id=$(echo "$services" | jq -r ".[] | select(.service.name == \"${SERVICE_NAME}\") | .service.id")
 
-      if [ -z "$service_id" ]; then
-        >&2 echo "Service not found: ${SERVICE_NAME}"
-        >&2 echo "Response:\n${services}"
-        exit 1
-      fi
+    if [ -z "$service_id" ]; then
+      >&2 echo "Service not found: ${SERVICE_NAME}"
+      >&2 echo "Response:\n${services}"
+      exit 1
+    fi
 
-      echo "$service_id" > "${RWX_VALUES}/service-id"
-      echo "Service ID: ${service_id}"
-    env:
-      RENDER_API_KEY: "${{ params.render-api-key }}"
-      SERVICE_NAME: "${{ params.service-name }}"
+    echo "$service_id" > "${RWX_VALUES}/service-id"
+    echo "Service ID: ${service_id}"
+  env:
+    RENDER_API_KEY: "${{ params.render-api-key }}"
+    SERVICE_NAME: "${{ params.service-name }}"
+- key: deploy
+  cache: false
+  run: |
+    deploy=$(curl -s --fail \
+      -H "Accept: application/json" \
+      -H "Content-Type: application/json" \
+      -H  "Authorization: Bearer ${RENDER_API_KEY}" \
+      --data '{"commitId": "'"${GIT_REF}"'"}' \
+      "https://api.render.com/v1/services/${SERVICE_ID}/deploys")
 
-  - key: deploy
-    cache: false
-    run: |
+    deploy_id=$(echo "$deploy" | jq -r '.id')
+
+    if [ -z "$deploy_id" ]; then
+      >&2 echo "Deploy ID not found"
+      >&2 echo "Response:\n${deploy}"
+      exit 1
+    fi
+
+    echo "$deploy_id" > "${RWX_VALUES}/deploy-id"
+    echo "Deploy ID: ${deploy_id}"
+  env:
+    GIT_REF: "${{ params.ref }}"
+    RENDER_API_KEY: "${{ params.render-api-key }}"
+    SERVICE_ID: "${{ tasks.locate-service.values.service-id }}"
+- key: wait-for-completion
+  timeout: 15m
+  run: |
+    echo "Polling for deploy completion..."
+    status=""
+
+    while true; do
       deploy=$(curl -s --fail \
         -H "Accept: application/json" \
-        -H "Content-Type: application/json" \
         -H  "Authorization: Bearer ${RENDER_API_KEY}" \
-        --data '{"commitId": "'"${GIT_REF}"'"}' \
-        "https://api.render.com/v1/services/${SERVICE_ID}/deploys")
+        "https://api.render.com/v1/services/${SERVICE_ID}/deploys/${DEPLOY_ID}")
 
-      deploy_id=$(echo "$deploy" | jq -r '.id')
+      status=$(echo "$deploy" | jq -r '.status')
+      finished_at=$(echo "$deploy" | jq -r '.finishedAt')
+      echo "Status: ${status}"
 
-      if [ -z "$deploy_id" ]; then
-        >&2 echo "Deploy ID not found"
-        >&2 echo "Response:\n${deploy}"
-        exit 1
-      fi
+      [ "$finished_at" != "null" ] && break || sleep 2
+    done
 
-      echo "$deploy_id" > "${RWX_VALUES}/deploy-id"
-      echo "Deploy ID: ${deploy_id}"
-    env:
-      GIT_REF: "${{ params.ref }}"
-      RENDER_API_KEY: "${{ params.render-api-key }}"
-      SERVICE_ID: "${{ tasks.locate-service.values.service-id }}"
-
-  - key: wait-for-completion
-    timeout: 15m
-    run: |
-      echo "Polling for deploy completion..."
-      status=""
-
-      while true; do
-        deploy=$(curl -s --fail \
-          -H "Accept: application/json" \
-          -H  "Authorization: Bearer ${RENDER_API_KEY}" \
-          "https://api.render.com/v1/services/${SERVICE_ID}/deploys/${DEPLOY_ID}")
-
-        status=$(echo "$deploy" | jq -r '.status')
-        finished_at=$(echo "$deploy" | jq -r '.finishedAt')
-        echo "Status: ${status}"
-
-        [ "$finished_at" != "null" ] && break || sleep 2
-      done
-
-      echo "Deploy finished at ${finished_at}"
-      [ "${status}" == "live" ] || exit 1
-    env:
-      RENDER_API_KEY: "${{ params.render-api-key }}"
-      SERVICE_ID: "${{ tasks.locate-service.values.service-id }}"
-      DEPLOY_ID: "${{ tasks.deploy.values.deploy-id }}"
+    echo "Deploy finished at ${finished_at}"
+    [ "${status}" == "live" ] || exit 1
+  env:
+    RENDER_API_KEY: "${{ params.render-api-key }}"
+    SERVICE_ID: "${{ tasks.locate-service.values.service-id }}"
+    DEPLOY_ID: "${{ tasks.deploy.values.deploy-id }}"
