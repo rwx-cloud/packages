@@ -20,7 +20,7 @@ To update minor versions (recommended):
 ```yaml
 tasks:
   - key: update-rwx-packages
-    call: rwx/update-packages-github 1.1.2
+    call: rwx/update-packages-github 1.2.0
     with:
       repository: https://github.com/YOUR-ORG/YOUR-REPO.git
       ref: ${{ init.commit-sha }}
@@ -32,11 +32,29 @@ Customize the label:
 ```yaml
 tasks:
   - key: update-rwx-packages
-    call: rwx/update-packages-github 1.1.2
+    call: rwx/update-packages-github 1.2.0
     with:
       repository: https://github.com/YOUR-ORG/YOUR-REPO.git
       ref: ${{ init.commit-sha }}
       github-access-token: ${{ vaults.your-vault.github-apps.your-github-app.token }}
       label: rwx-updates
       label-color: "298F21"
+```
+
+Enable auto-merge:
+
+Enables [auto-merge](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request)
+on the pull request. The PR will automatically merge once all requirements are met:
+status checks pass, approvals are received, and branch protection rules are satisfied.
+Requires repository auto-merge support.
+
+```yaml
+tasks:
+  - key: update-rwx-packages
+    call: rwx/update-packages-github 1.2.0
+    with:
+      repository: https://github.com/YOUR-ORG/YOUR-REPO.git
+      ref: ${{ init.commit-sha }}
+      github-access-token: ${{ vaults.your-vault.github-apps.your-github-app.token }}
+      enable-auto-merge: true
 ```

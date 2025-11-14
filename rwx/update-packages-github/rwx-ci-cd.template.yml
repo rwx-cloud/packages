@@ -115,3 +115,54 @@
   env:
     GITHUB_LABEL: mint-leaves-test-${{ run.id }}
     GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
+
+- key: test-auto-merge
+  after: test-update--assert
+  call: $LEAF_DIGEST
+  with:
+    repository: https://github.com/rwx-cloud/mint-update-leaves-testing.git
+    ref: main
+    github-access-token: ${{ github-apps.rwx-cloud-bot.token }}
+    label: "test-auto-merge-${{ run.id }}"
+    branch-prefix: "test-auto-merge/${{ run.id }}/"
+    rwx-file: tasks.yml
+    enable-auto-merge: true
+
+- key: test-auto-merge--assert
+  after: test-auto-merge
+  use: [gh-cli]
+  run: |
+    PR_NUMBER="$(gh --repo rwx-cloud/mint-update-leaves-testing pr list --author '@me' --label "$GITHUB_LABEL" --json number --jq 'max_by(.number) | .number')"
+    if [ -z "$PR_NUMBER" ]; then
+      >&2 echo "Pull request not found"
+      exit 4
+    fi
+    printf "$PR_NUMBER" > "$RWX_VALUES/pr-number"
+
+    # Check that auto-merge is enabled
+    auto_merge_enabled="$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json autoMergeRequest --jq '.autoMergeRequest != null')"
+    if [ "$auto_merge_enabled" != "true" ]; then
+      >&2 echo "Auto-merge is not enabled on PR #${PR_NUMBER}"
+      exit 4
+    fi
+  outputs:
+    values: [pr-number]
+  env:
+    GITHUB_LABEL: test-auto-merge-${{ run.id }}
+    GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
+
+- key: test-auto-merge--cleanup
+  use: gh-cli
+  after: ${{ test-auto-merge--assert.finished }}
+  run: |
+    PR_NUMBER="$(gh --repo rwx-cloud/mint-update-leaves-testing pr list --author '@me' --label "$GITHUB_LABEL" --json number --jq 'max_by(.number) | .number')"
+    if [ -n "$PR_NUMBER" ]; then
+      gh --repo rwx-research/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
+    fi
+
+    if gh --repo rwx-research/mint-update-leaves-testing label list --search "$GITHUB_LABEL" | grep -qv "no labels"; then
+      gh --repo rwx-research/mint-update-leaves-testing label delete "$GITHUB_LABEL" --yes
+    fi
+  env:
+    GITHUB_LABEL: test-auto-merge-${{ run.id }}
+    GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
