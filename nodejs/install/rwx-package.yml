@@ -1,5 +1,5 @@
 name: nodejs/install
-version: 1.1.10
+version: 1.1.11
 description: Install Node.js, the cross-platform JavaScript runtime environment
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/nodejs/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -15,9 +15,9 @@ parameters:
 tasks:
   - key: install
     run: |
-      source "$RWX_PACKAGE_PATH/mint-utils.sh"
-      if ! mint_os_package_manager_in apt; then
-        echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+      source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+      if ! rwx_os_package_manager_in apt; then
+        echo "Unsupported operating system or package manager \`$(rwx_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 

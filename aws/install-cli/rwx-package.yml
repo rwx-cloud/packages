@@ -1,5 +1,5 @@
 name: aws/install-cli
-version: 1.0.8
+version: 1.0.9
 description: Install the AWS CLI
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/aws/install-cli
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -13,9 +13,9 @@ tasks:
   - key: install-unzip-if-necessary
     run: |
       if ! command -v unzip &> /dev/null; then
-        source "$RWX_PACKAGE_PATH/mint-utils.sh"
-        if ! mint_os_package_manager_in apt; then
-          echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+        source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+        if ! rwx_os_package_manager_in apt; then
+          echo "Unsupported operating system or package manager \`$(rwx_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
           exit 1
         fi
 
@@ -27,9 +27,9 @@ tasks:
   - key: install-gpg-if-necessary
     run: |
       if ! command -v gpg &> /dev/null; then
-        source "$RWX_PACKAGE_PATH/mint-utils.sh"
-        if ! mint_os_package_manager_in apt; then
-          echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+        source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+        if ! rwx_os_package_manager_in apt; then
+          echo "Unsupported operating system or package manager \`$(rwx_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
           exit 1
         fi
 

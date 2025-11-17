@@ -1,5 +1,5 @@
 #!/bin/sh
-# rwx-utils version 2.0.0
+# rwx-utils version 2.0.1
 
 detected_os=""
 detected_os_version=""
@@ -84,7 +84,7 @@ rwx_os_version_gte() {
 
 rwx_os_version_lte() {
   compare_version="$1"
-  printf '%s\n' "$compare_version" "$(rwx_os_version)" | sed 's/\([0-9.]*\).*/\1/' | sort -c -t. -k1,1n -k2,2n -k3,3n -r >/dev/null 2>&1
+  printf '%s\n' "$(rwx_os_version)" "$compare_version" | sed 's/\([0-9.]*\).*/\1/' | sort -c -t. -k1,1n -k2,2n -k3,3n >/dev/null 2>&1
 }
 
 # Convert a string something usable as a RWX key.
