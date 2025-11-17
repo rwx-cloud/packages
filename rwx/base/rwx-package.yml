@@ -1,5 +1,5 @@
 name: rwx/base
-version: 1.0.0
+version: 1.0.1
 description: The default base image configuration
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/base
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -7,10 +7,10 @@ issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 tasks:
   - key: configure
     run: |
-      source "$RWX_PACKAGE_PATH/scripts/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/scripts/rwx-utils.sh"
 
       supported_os_version=("ubuntu 20.04" "ubuntu 22.04" "ubuntu 24.04")
-      current_os_version="$(mint_os_name_version)"
+      current_os_version="$(rwx_os_name_version)"
 
       supported=false
       for os_v in "${supported_os_version[@]}"; do
