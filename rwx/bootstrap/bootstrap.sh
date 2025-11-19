@@ -13,12 +13,15 @@ docker pull ${IMAGE}
 containerId=$(docker create ${IMAGE})
 docker export "$containerId" | sudo tar -x -C image -f - -p
 
-echo root | tee ${RWX_IMAGE}/user
+printf '%s\n' root | tee ${RWX_IMAGE}/user
+
+. image/etc/os-release
+printf '%s\n' "${ID} ${VERSION_ID}" | tee ${RWX_IMAGE}/os
 
 if [ -f image/bin/bash ]; then
-  echo "/bin/bash -l -e -o pipefail" | tee ${RWX_IMAGE}/shell
+  printf '%s\n' "/bin/bash -l -e -o pipefail" | tee ${RWX_IMAGE}/shell
 else
-  echo "/bin/sh -l -e" | tee ${RWX_IMAGE}/shell
+  printf '%s\n' "/bin/sh -l -e" | tee ${RWX_IMAGE}/shell
 fi
 
 ${SCRIPT_DIR}/extract-env.sh "$containerId" ${RWX_ENV}
