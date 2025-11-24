@@ -26,5 +26,8 @@ fi
 
 ${SCRIPT_DIR}/extract-env.sh "$containerId" ${RWX_ENV}
 
+docker image inspect --format '{{json .Config.Entrypoint}}' "$IMAGE" | tee "$RWX_IMAGE/entrypoint.json"
+docker image inspect --format '{{json .Config.Cmd}}' "$IMAGE" | tee "$RWX_IMAGE/command.json"
+
 docker container inspect "$containerId" | jq -r ".[0].Image" | tee ${RWX_VALUES}/image-sha
 docker container inspect "$containerId" | jq -r ".[0].Config.Image" | tee ${RWX_VALUES}/image-name
