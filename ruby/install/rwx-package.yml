@@ -20,9 +20,9 @@ tasks:
       #
       # Check OS support
       #
-      source "$RWX_PACKAGE_PATH/mint-utils.sh"
-      if ! mint_os_package_manager_in apt; then
-        echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+      source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+      if ! rwx_os_package_manager_in apt; then
+        echo "Unsupported operating system or package manager \`$(rwx_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
@@ -79,10 +79,10 @@ tasks:
       #
       # Find the prebuilt Ruby
       echo "Looking for Ruby $RUBY_VERSION..."
-      source "$RWX_PACKAGE_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/rwx-utils.sh"
       escaped_version=$(echo "$RUBY_VERSION" | sed "s/\./\\\\./g") # 3.2.2 => 3\.2\.2
-      escaped_os=$(mint_os_name_version | sed "s/\./\\\\./g")
-      escaped_arch=$(mint_arch)
+      escaped_os=$(rwx_os_name_version | sed "s/\./\\\\./g")
+      escaped_arch=$(rwx_arch)
       if [ "$escaped_arch" = "aarch64" ]; then
         escaped_arch="arm64"
       fi

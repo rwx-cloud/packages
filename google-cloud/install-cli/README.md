@@ -5,7 +5,7 @@ To install the latest version of the Google Cloud CLI:
 ```yaml
 tasks:
   - key: gcloud-cli
-    call: google-cloud/install-cli 1.1.6
+    call: google-cloud/install-cli 1.1.7
 ```
 
 To install a specific version of the Google Cloud CLI:
@@ -13,7 +13,7 @@ To install a specific version of the Google Cloud CLI:
 ```yaml
 tasks:
   - key: gcloud-cli
-    call: google-cloud/install-cli 1.1.6
+    call: google-cloud/install-cli 1.1.7
     with:
       cli-version: "465.0.0"
 ```

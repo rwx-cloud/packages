@@ -2,11 +2,11 @@
 
 set -euo pipefail
 
-source "${RWX_PACKAGE_PATH}/scripts/mint-utils.sh"
+source "${RWX_PACKAGE_PATH}/scripts/rwx-utils.sh"
 
-echo "Installing Docker on $(mint_os_name_version)"
+echo "Installing Docker on $(rwx_os_name_version)"
 
-case "$(mint_os_name_version)" in
+case "$(rwx_os_name_version)" in
   "ubuntu 24.04")
     DOCKER_VERSION=5:28.0.4-1~ubuntu.24.04~noble
     DOCKER_BUILDX_VERSION=0.22.0-1~ubuntu.24.04~noble

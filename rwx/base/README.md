@@ -8,6 +8,5 @@ This package applies recommended base image configuration. It currently works wi
 ```yaml
 base:
   image: ubuntu:24.04
-  config: rwx/base 1.0.0
+  config: rwx/base 1.0.1
 ```
-
