@@ -13,6 +13,9 @@ on:
         branch: ${{ event.git.branch }}
         publish-leaves: true
         sha: ${{ event.git.sha }}
+  cli:
+    init:
+      sha: ${{ event.git.sha }}
 
 concurrency-pools:
   - id: rwx-cloud/packages:branch-${{ init.branch }}
@@ -21,8 +24,8 @@ concurrency-pools:
     on-overflow: cancel-running
 
 base:
-  os: ubuntu 24.04
-  tag: 1.0
+  image: ubuntu:24.04
+  config: rwx/base 1.0.0
 
 tasks:
   - key: system-packages
