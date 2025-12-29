@@ -84,8 +84,8 @@
 
     GIT_EMAIL=$(git config user.email)
     GIT_USERNAME=$(git config user.name)
-    test $GIT_EMAIL = "141855219+rwx-mint[bot]@users.noreply.github.com"
-    test $GIT_USERNAME = "rwx-mint[bot]"
+    test $GIT_EMAIL = "141855219+rwx-integration[bot]@users.noreply.github.com"
+    test $GIT_USERNAME = "rwx-integration[bot]"
   env:
     GITHUB_TOKEN: ${{ github['rwx-cloud'].token }}
 
@@ -109,8 +109,8 @@
     GIT_USERNAME=$(git config user.name)
     SHA=$(git rev-parse HEAD)
     REF=$(git symbolic-ref --short HEAD)
-    test $GIT_EMAIL = "141855219+rwx-mint[bot]@users.noreply.github.com"
-    test $GIT_USERNAME = "rwx-mint[bot]"
+    test $GIT_EMAIL = "141855219+rwx-integration[bot]@users.noreply.github.com"
+    test $GIT_USERNAME = "rwx-integration[bot]"
     test $SHA = "4704503c51f6b5dd6346e219888488ed693dc54c"
     test $REF = "do-not-delete-this-branch"
   env:
@@ -379,8 +379,8 @@
 
     GIT_EMAIL=$(git config user.email)
     GIT_USERNAME=$(git config user.name)
-    test $GIT_EMAIL = "141855219+rwx-mint[bot]@users.noreply.github.com"
-    test $GIT_USERNAME = "rwx-mint[bot]"
+    test $GIT_EMAIL = "141855219+rwx-integration[bot]@users.noreply.github.com"
+    test $GIT_USERNAME = "rwx-integration[bot]"
   env:
     GITHUB_TOKEN: ${{ github['rwx-cloud'].token }}
 
