@@ -34,7 +34,7 @@ sudo apt-get update
 sudo apt-get install gnupg xz-utils
 sudo apt-get clean
 
-curl -fsSLo "/tmp/nodejs-keyring.kbx" "https://github.com/nodejs/release-keys/raw/901fc09b83c686693be51b3c9a13578929cbc1ab/gpg/pubring.kbx"
+curl -fsSLo "/tmp/nodejs-keyring.kbx" "https://github.com/nodejs/release-keys/raw/501819767eb4fdde7b7b0206ad1015e6dab00c34/gpg/pubring.kbx"
 
 ### Install node
 
