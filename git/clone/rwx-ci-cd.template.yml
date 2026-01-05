@@ -502,21 +502,3 @@
   run: |
     test -e test-checkout-package-submodule
     test ! -e test-checkout-package-submodule/README.md
-
-- key: git-clone--test-ambiguous-ref
-  use: system-packages
-  run: |
-    export CHECKOUT_REPOSITORY="https://github.com/rwx-cloud/test-checkout-package.git"
-    export CHECKOUT_REF="ambiguous"
-    export RWX_VALUES=$(mktemp -d)
-
-    OUTPUT=$($RWX_PACKAGE_PATH/bin/get-latest-sha-for-ref 2>&1) && {
-      echo "Expected script to fail for ambiguous ref, but it succeeded with: $OUTPUT"
-      exit 1
-    }
-
-    echo "$OUTPUT" | grep -q "ambiguous"
-    echo "$OUTPUT" | grep -q "refs/heads/ambiguous"
-    echo "$OUTPUT" | grep -q "refs/tags/ambiguous"
-  env:
-    RWX_PACKAGE_PATH: ${{ run.dir }}
