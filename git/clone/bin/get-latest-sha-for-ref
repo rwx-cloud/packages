@@ -12,7 +12,19 @@ if [ "${CREDENTIAL_HELPER}" != "" ]; then
   CREDENTIAL_ARG="-c credential.helper='${CREDENTIAL_HELPER}'"
 fi
 COMMAND="git $CREDENTIAL_ARG ls-remote \"${CHECKOUT_REPOSITORY}\" \"${CHECKOUT_REF}\""
-RESOLVED_SHA=$(eval "$COMMAND" | awk '{print $1}')
+LS_REMOTE_OUTPUT=$(eval "$COMMAND")
+LS_REMOTE_LINE_COUNT=$(echo "$LS_REMOTE_OUTPUT" | wc -l)
+
+if [ "$LS_REMOTE_LINE_COUNT" -gt 1 ]; then
+  echo "Error: ref '${CHECKOUT_REF}' is ambiguous. git ls-remote returned multiple matches:" >&2
+  echo "$LS_REMOTE_OUTPUT" >&2
+  echo "" >&2
+  echo "Please specify a more specific ref (e.g., 'refs/heads/${CHECKOUT_REF}' for a branch" >&2
+  echo "or 'refs/tags/${CHECKOUT_REF}' for a tag)." >&2
+  exit 1
+fi
+
+RESOLVED_SHA=$(echo "$LS_REMOTE_OUTPUT" | awk '{print $1}')
 if [ "$RESOLVED_SHA" = "" ]; then
   RESOLVED_SHA="${CHECKOUT_REF}"
 fi
