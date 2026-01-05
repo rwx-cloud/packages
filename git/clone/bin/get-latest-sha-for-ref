@@ -2,8 +2,7 @@
 set -e
 
 if [ "${CHECKOUT_REF}" = "HEAD" ]; then
-  echo "Error: Cloning from HEAD is ambiguous. If you want to clone from the HEAD of a particular branch" >&2
-  echo "pass in the name of that branch as the ref instead." >&2
+  echo "Cloning from HEAD is ambiguous. If you want to clone from the HEAD of a particular branch, pass in the name of that branch as the ref instead." | tee "$RWX_ERRORS/error-head" >&2
   exit 1
 fi
 
@@ -16,11 +15,12 @@ LS_REMOTE_OUTPUT=$(eval "$COMMAND")
 LS_REMOTE_LINE_COUNT=$(echo "$LS_REMOTE_OUTPUT" | wc -l)
 
 if [ "$LS_REMOTE_LINE_COUNT" -gt 1 ]; then
-  echo "Error: ref '${CHECKOUT_REF}' is ambiguous. git ls-remote returned multiple matches:" >&2
-  echo "$LS_REMOTE_OUTPUT" >&2
-  echo "" >&2
-  echo "Please specify a more specific ref (e.g., 'refs/heads/${CHECKOUT_REF}' for a branch" >&2
-  echo "or 'refs/tags/${CHECKOUT_REF}' for a tag)." >&2
+  {
+    echo "ref '${CHECKOUT_REF}' is ambiguous. git ls-remote returned multiple matches:"
+    echo "$LS_REMOTE_OUTPUT"
+    echo ""
+    echo "Please specify a more specific ref (e.g., 'refs/heads/${CHECKOUT_REF}' for a branch or 'refs/tags/${CHECKOUT_REF}' for a tag)."
+  } | tee "$RWX_ERRORS/error-ambiguous-ref" >&2
   exit 1
 fi
 
