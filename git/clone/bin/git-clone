@@ -22,13 +22,17 @@ printf '%s\n' "$rel_path" > "$RWX_VALUES/git-dir-path"
 cd "${CHECKOUT_PATH}"
 
 if [ "${PRESERVE_GIT_DIR}" = "true" ] || [ "${FETCH_FULL_DEPTH}" = "true" ]; then
-  CREDENTIAL_ARG=""
   if [ "${CREDENTIAL_HELPER}" != "" ]; then
-    CREDENTIAL_ARG="-c credential.helper='${CREDENTIAL_HELPER}'"
+    git init .
+    git config --local credential.helper "${CREDENTIAL_HELPER}"
+    git remote add origin "${CHECKOUT_REPOSITORY}"
+    git fetch origin "${CHECKOUT_REF}"
+    git checkout "${CHECKOUT_REF}"
+  else
+    git clone "${CHECKOUT_REPOSITORY}" .
+    git fetch origin "${CHECKOUT_REF}"
+    git checkout "${CHECKOUT_REF}"
   fi
-  eval "git clone $CREDENTIAL_ARG \"${CHECKOUT_REPOSITORY}\" ."
-  git fetch origin "${CHECKOUT_REF}"
-  git checkout "${CHECKOUT_REF}"
   git reset --hard "${RESOLVED_SHA}"
 else
   git init -b main
