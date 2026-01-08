@@ -22,13 +22,17 @@ printf '%s\n' "$rel_path" > "$RWX_VALUES/git-dir-path"
 cd "${CHECKOUT_PATH}"
 
 if [ "${PRESERVE_GIT_DIR}" = "true" ] || [ "${FETCH_FULL_DEPTH}" = "true" ]; then
-  CREDENTIAL_ARG=""
   if [ "${CREDENTIAL_HELPER}" != "" ]; then
-    CREDENTIAL_ARG="-c credential.helper='${CREDENTIAL_HELPER}'"
+    git init .
+    git config --local credential.helper "${CREDENTIAL_HELPER}"
+    git remote add origin "${CHECKOUT_REPOSITORY}"
+    git fetch origin "${CHECKOUT_REF}"
+    git checkout "${CHECKOUT_REF}"
+  else
+    git clone "${CHECKOUT_REPOSITORY}" .
+    git fetch origin "${CHECKOUT_REF}"
+    git checkout "${CHECKOUT_REF}"
   fi
-  eval "git clone $CREDENTIAL_ARG \"${CHECKOUT_REPOSITORY}\" ."
-  git fetch origin "${CHECKOUT_REF}"
-  git checkout "${CHECKOUT_REF}"
   git reset --hard "${RESOLVED_SHA}"
 else
   git init -b main
@@ -172,24 +176,60 @@ printf '%s' "${committer_email}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMITT
 
 unresolved_ref=""
 if [ -n "${META_REF}" ]; then
-  refs_matching_provided_ref=$(git ls-remote --heads --tags origin | grep "refs/heads/${META_REF}\|refs/tags/${META_REF}\|${META_REF}" | awk '{ print $2; }')
+  if ! ls_remote_output=$(git ls-remote --heads --tags origin 2>&1); then
+    error_file=$(mktemp "$RWX_ERRORS/error-XXXXXX")
+    cat << EOF > "$error_file"
+Failed to query git remote for ref resolution. The git remote operation failed.
+EOF
+    exit 1
+  fi
+  if ! refs_matching_provided_ref=$(printf '%s\n' "$ls_remote_output" | grep "refs/heads/${META_REF}\|refs/tags/${META_REF}\|${META_REF}" | awk '{ print $2; }'); then
+    refs_matching_provided_ref=""
+  fi
   unresolved_ref=$(printf '%s\n' "$refs_matching_provided_ref" | head -n 1 | tr -d '\n')
+
+  if [ -z "${unresolved_ref}" ]; then
+    error_file=$(mktemp "$RWX_ERRORS/error-XXXXXX")
+    cat << EOF > "$error_file"
+The \`meta-ref\` provided (${META_REF}) was not found in the remote repository.
+EOF
+    exit 1
+  fi
 
   # also, ensure the meta-ref contains the resolved commit sha
   # first fetch the ref so it will appear in git for-each-ref under refs/heads or refs/tags
   git fetch origin "${unresolved_ref}:${unresolved_ref}"
   result=$(git for-each-ref "${unresolved_ref}" --format="%(refname)" --contains "${commit_sha}")
   if [ -z "${result}" ]; then
-    cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXXXX")
+    error_file=$(mktemp "$RWX_ERRORS/error-XXXXXX")
+    cat << EOF > "$error_file"
 The \`meta-ref\` provided does not contain the resolved commit sha.
 EOF
     exit 1
   fi
 elif [ "${CHECKOUT_REF}" = "${commit_sha}" ]; then
-  refs_with_sha_at_head=$(git ls-remote --heads --tags origin | awk "\$1 ~ /^${commit_sha}/" | awk '{ print $2; }')
+  if ! ls_remote_output=$(git ls-remote --heads --tags origin 2>&1); then
+    error_file=$(mktemp "$RWX_ERRORS/error-XXXXXX")
+    cat << EOF > "$error_file"
+Failed to query git remote for ref resolution. The git remote operation failed.
+EOF
+    exit 1
+  fi
+  if ! refs_with_sha_at_head=$(printf '%s\n' "$ls_remote_output" | awk "\$1 ~ /^${commit_sha}/" | awk '{ print $2; }'); then
+    refs_with_sha_at_head=""
+  fi
   unresolved_ref=$(printf '%s\n' "$refs_with_sha_at_head" | head -n 1 | tr -d '\n')
 else
-  refs_matching_provided_ref=$(git ls-remote  --heads --tags origin | grep "refs/heads/${CHECKOUT_REF}\|refs/tags/${CHECKOUT_REF}\|${CHECKOUT_REF}" | awk '{ print $2; }' || true)
+  if ! ls_remote_output=$(git ls-remote --heads --tags origin 2>&1); then
+    error_file=$(mktemp "$RWX_ERRORS/error-XXXXXX")
+    cat << EOF > "$error_file"
+Failed to query git remote for ref resolution. The git remote operation failed.
+EOF
+    exit 1
+  fi
+  if ! refs_matching_provided_ref=$(printf '%s\n' "$ls_remote_output" | grep "refs/heads/${CHECKOUT_REF}\|refs/tags/${CHECKOUT_REF}\|${CHECKOUT_REF}" | awk '{ print $2; }'); then
+    refs_matching_provided_ref=""
+  fi
   unresolved_ref=$(printf '%s\n' "$refs_matching_provided_ref" | head -n 1 | tr -d '\n')
 fi
 
