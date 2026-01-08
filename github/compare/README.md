@@ -19,7 +19,7 @@ tasks:
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.0.5
+    call: github/compare 1.0.6
     with:
       repository: my-organization/my-repository
       base-ref: abc123
@@ -28,7 +28,7 @@ tasks:
       patterns: "**/*.go"
 
   - key: build-go
-    if: ${{ tasks.go-files.values.have-changes }
+    if: ${{ tasks.go-files.values.have-changes }}
     run: go build
 ```
 
@@ -41,7 +41,7 @@ tasks:
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.0.5
+    call: github/compare 1.0.6
     with:
       repository: my-organization/my-repository
       base-ref: abc123
@@ -53,7 +53,7 @@ tasks:
         go.sum
 
   - key: build-go
-    if: ${{ tasks.go-files.values.have-changes }
+    if: ${{ tasks.go-files.values.have-changes }}
     run: go build
 ```
 
@@ -79,7 +79,7 @@ tasks:
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.0.5
+    call: github/compare 1.0.6
     with:
       repository: my-organization/my-repository
       base-ref: ${{ init.base-ref }}
@@ -91,7 +91,7 @@ tasks:
         go.sum
 
   - key: build-go
-    if: ${{ tasks.go-files.values.have-changes }
+    if: ${{ tasks.go-files.values.have-changes }}
     run: go build
 ```
 
@@ -111,7 +111,7 @@ tasks:
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.0.5
+    call: github/compare 1.0.6
     with:
       repository: my-organization/my-repository
       base-ref: ${{ init.base-ref }}
@@ -123,6 +123,6 @@ tasks:
         go.sum
 
   - key: build-go
-    if: ${{ tasks.go-files.values.have-changes }
+    if: ${{ tasks.go-files.values.have-changes }}
     run: go build
 ```
