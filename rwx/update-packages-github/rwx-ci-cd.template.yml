@@ -96,18 +96,8 @@
       echo "PR #${PR_NUMBER} has $commit_count commits, expected 1"
       exit 4
     fi
-  env:
-    GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
-    PR_NUMBER: ${{ tasks.test-create--assert.values.pr-number }}
 
-- key: update-leaves-github--test--cleanup
-  use: gh-cli
-  after: ${{ test-update--assert.finished }}
-  run: |
-    PR_NUMBER="$(gh --repo rwx-cloud/mint-update-leaves-testing pr list --author '@me' --label "$GITHUB_LABEL" --json number --jq 'max_by(.number) | .number')"
-    if [ -n "$PR_NUMBER" ]; then
-      gh --repo rwx-cloud/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
-    fi
+    gh --repo rwx-cloud/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
 
     if gh --repo rwx-cloud/mint-update-leaves-testing label list --search "$GITHUB_LABEL" | grep -qv "no labels"; then
       gh --repo rwx-cloud/mint-update-leaves-testing label delete "$GITHUB_LABEL" --yes
@@ -115,6 +105,7 @@
   env:
     GITHUB_LABEL: mint-leaves-test-${{ run.id }}
     GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
+    PR_NUMBER: ${{ tasks.test-create--assert.values.pr-number }}
 
 - key: test-auto-merge
   after: test-update--assert
@@ -145,20 +136,8 @@
       >&2 echo "Auto-merge is not enabled on PR #${PR_NUMBER}"
       exit 4
     fi
-  outputs:
-    values: [pr-number]
-  env:
-    GITHUB_LABEL: test-auto-merge-${{ run.id }}
-    GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
 
-- key: test-auto-merge--cleanup
-  use: gh-cli
-  after: ${{ test-auto-merge--assert.finished }}
-  run: |
-    PR_NUMBER="$(gh --repo rwx-cloud/mint-update-leaves-testing pr list --author '@me' --label "$GITHUB_LABEL" --json number --jq 'max_by(.number) | .number')"
-    if [ -n "$PR_NUMBER" ]; then
-      gh --repo rwx-research/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
-    fi
+    gh --repo rwx-research/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
 
     if gh --repo rwx-research/mint-update-leaves-testing label list --search "$GITHUB_LABEL" | grep -qv "no labels"; then
       gh --repo rwx-research/mint-update-leaves-testing label delete "$GITHUB_LABEL" --yes
