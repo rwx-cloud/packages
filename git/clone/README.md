@@ -1,11 +1,44 @@
 # git/clone
 
+Use this package to clone a git repository.
+
+## Dependencies
+
+The `git/clone` package requires `jq` and `curl` to be installed.
+
+If you're using the RWX base configuration, then they will already be installed.
+
+```yaml
+base:
+  image: ubuntu:24.04
+  config: rwx/base 1.0.0
+```
+
+However, if you are running without the RWX base configuration, then you will need to install them and specify a `use` dependency on the `git/clone` task.
+
+```yaml
+base:
+  image: debian:trixie
+  config: none
+
+tasks:
+  - key: system-packages
+    run: |
+      sudo apt-get update
+      sudo apt-get install curl jq
+      sudo apt-get clean
+
+  - key: code
+    use: system-packages
+    call: git/clone 1.9.4
+```
+
 ## Clone Public Repositories
 
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.9.3
+    call: git/clone 1.9.4
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -31,7 +64,7 @@ If you're using GitHub, RWX will automatically provide a token that you can use 
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.9.3
+    call: git/clone 1.9.4
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -43,7 +76,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.9.3
+    call: git/clone 1.9.4
     with:
       repository: git@github.com:YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -61,7 +94,7 @@ If you need to reference one of these to alter behavior of a task, be sure to in
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.9.3
+    call: git/clone 1.9.4
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
