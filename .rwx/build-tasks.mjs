@@ -55,6 +55,7 @@ for (const file of (await glob("*/*/rwx-package.yml")).sort()) {
 }
 
 let buildAll = false;
+const filesNotToTriggerBuildAll = ["cspell.yaml"];
 
 for (const line of (await fs.readFile(GIT_DIFF_FILE, "utf8")).split("\n")) {
   if (line === "") {
@@ -75,8 +76,12 @@ for (const line of (await fs.readFile(GIT_DIFF_FILE, "utf8")).split("\n")) {
       break;
     }
   } else {
-    foundNonLeafFile();
-    break;
+    if (filesNotToTriggerBuildAll.includes(line)) {
+      continue;
+    } else {
+      foundNonLeafFile();
+      break;
+    }
   }
 }
 

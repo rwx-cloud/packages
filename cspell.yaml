@@ -3,15 +3,16 @@ useGitignore: true
 
 words:
   - OIDC
-  - gcloud
-  - setuptools
   - chromedriver
-  - xvfb
-  - sonarsource
+  - dockerhub
+  - gcloud
   - rustup
-  - twingate
-  - tailscale
+  - setuptools
+  - sonarsource
   - tailnet
   - tailnets
+  - tailscale
   - tailscaled
-  - dockerhub
+  - trixie
+  - twingate
+  - xvfb
