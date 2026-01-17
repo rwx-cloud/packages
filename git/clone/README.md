@@ -15,6 +15,7 @@ base:
 ```
 
 However, if you are running without the RWX base configuration, then you will need to install them and specify a `use` dependency on the `git/clone` task.
+For example using debian:
 
 ```yaml
 base:
@@ -31,6 +32,8 @@ tasks:
   - key: code
     use: system-packages
     call: git/clone 1.9.4
+    with:
+      repository: ...
 ```
 
 ## Clone Public Repositories
