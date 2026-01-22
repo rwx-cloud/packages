@@ -162,21 +162,7 @@ Version 2.0.0 introduces tool caching for faster incremental clones. The `.git` 
 - **Tool-cached `.git` directory**: The `.git` directory persists between task executions via RWX tool caches
 - **Faster subsequent runs**: After the first clone, subsequent runs only fetch new commits
 - **Simplified clone logic**: The clone process now uses a consistent incremental fetch pattern
-- **New `tool-cache-key` parameter**: Optionally override the cache key to share caches between configurations or disable caching
-
-### Tool Cache Key
-
-By default, the tool cache key is derived from the repository URL and checkout path. You can override this with the `tool-cache-key` parameter:
-
-```yaml
-tasks:
-  - key: code
-    call: git/clone 2.0.0
-    with:
-      repository: https://github.com/YOUR_ORG/YOUR_REPO.git
-      ref: ${{ init.ref }}
-      tool-cache-key: my-custom-cache-key
-```
+- **New `tool-cache-key-prefix` parameter**: Optionally override the tool cache key prefix to make it easier to find your entry in the vaults UI
 
 ### Migration from v1.x
 
