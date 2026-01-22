@@ -54,6 +54,9 @@ else
   git checkout FETCH_HEAD
 fi
 
+# Remove untracked files that may remain from incremental cache
+git clean -fd
+
 commit_sha=$(git rev-parse HEAD | tr -d '\n')
 echo "Checked out git repository at ${commit_sha}"
 
