@@ -31,6 +31,13 @@ fi
 echo "Latest SHA for ${CHECKOUT_REF}: ${RESOLVED_SHA}"
 printf '%s' "${RESOLVED_SHA}" >> "$RWX_VALUES/sha"
 
+mkdir -p "${CHECKOUT_PATH}"
+cd "${CHECKOUT_PATH}"
+CHECKOUT_PATH="$(pwd -P)"
+params="${CHECKOUT_REPOSITORY}-${CHECKOUT_PATH}-${LFS}-${PRESERVE_GIT_DIR}-${FETCH_FULL_DEPTH}-${SUBMODULES}"
+params_hash="$(echo "${params}" | sha256sum | cut -d ' ' -f 1)"
+printf '%s' "${TOOL_CACHE_KEY_PREFIX}-${params_hash}" > "$RWX_VALUES/tool-cache-key"
+
 if [ ! -d "$PATCHES_DIR" ]; then
   echo ""
   echo "No patches to apply"

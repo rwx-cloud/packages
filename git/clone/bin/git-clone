@@ -21,26 +21,36 @@ esac
 printf '%s\n' "$rel_path" > "$RWX_VALUES/git-dir-path"
 cd "${CHECKOUT_PATH}"
 
-if [ "${PRESERVE_GIT_DIR}" = "true" ] || [ "${FETCH_FULL_DEPTH}" = "true" ]; then
-  if [ "${CREDENTIAL_HELPER}" != "" ]; then
-    git init .
-    git config --local credential.helper "${CREDENTIAL_HELPER}"
-    git remote add origin "${CHECKOUT_REPOSITORY}"
-    git fetch origin "${CHECKOUT_REF}"
-    git checkout "${CHECKOUT_REF}"
-  else
-    git clone "${CHECKOUT_REPOSITORY}" .
-    git fetch origin "${CHECKOUT_REF}"
-    git checkout "${CHECKOUT_REF}"
-  fi
-  git reset --hard "${RESOLVED_SHA}"
-else
+if [ ! -d .git ]; then
   git init -b main
   git remote add origin "${CHECKOUT_REPOSITORY}"
-  if [ "${CREDENTIAL_HELPER}" != "" ]; then
-    git config --local credential.helper "${CREDENTIAL_HELPER}"
+else
+  # Fix ownership if needed (tool cache may restore with different owner)
+  current_owner=$(stat -c '%u' .git)
+  current_user=$(id -u)
+  if [ "$current_owner" != "$current_user" ]; then
+    if command -v sudo >/dev/null 2>&1; then
+      sudo chown -R "$current_user:$(id -g)" "${checkout_abs}"
+    else
+      chown -R "$current_user:$(id -g)" "${checkout_abs}"
+    fi
   fi
+fi
+
+if [ -n "${CREDENTIAL_HELPER}" ]; then
+  git config --local credential.helper "${CREDENTIAL_HELPER}"
+fi
+
+if [ "${FETCH_FULL_DEPTH}" = "true" ] || [ "${PRESERVE_GIT_DIR}" = "true" ]; then
+  git fetch origin "${CHECKOUT_REF}"
+else
   git fetch --depth=1 origin "${RESOLVED_SHA}"
+fi
+
+if [ "${FETCH_FULL_DEPTH}" = "true" ] || [ "${PRESERVE_GIT_DIR}" = "true" ]; then
+  git checkout "${CHECKOUT_REF}"
+  git reset --hard "${RESOLVED_SHA}"
+else
   git checkout FETCH_HEAD
 fi
 
@@ -197,8 +207,10 @@ EOF
   fi
 
   # also, ensure the meta-ref contains the resolved commit sha
-  # first fetch the ref so it will appear in git for-each-ref under refs/heads or refs/tags
-  git fetch origin "${unresolved_ref}:${unresolved_ref}"
+  # fetch the meta-ref with enough history to include the commit for validation
+  # use --shallow-since with the commit date to get just enough history
+  commit_date=$(git log -1 --format=%cI "${commit_sha}")
+  git fetch --shallow-since="${commit_date}" origin "${unresolved_ref}:${unresolved_ref}"
   result=$(git for-each-ref "${unresolved_ref}" --format="%(refname)" --contains "${commit_sha}")
   if [ -z "${result}" ]; then
     error_file=$(mktemp "$RWX_ERRORS/error-XXXXXX")
@@ -243,11 +255,3 @@ printf '%s' "${unresolved_ref}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REF"
 printf '%s' "${unresolved_ref}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REF"
 printf '%s' "${unresolved_ref}" | sed -E 's|refs/[^/]+/||' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REF_NAME"
 printf '%s' "${unresolved_ref}" | sed -E 's|refs/[^/]+/||' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REF_NAME"
-
-if [ "${PRESERVE_GIT_DIR}" = "false" ]; then
-  rm -rf .git
-
-  if [ "${SUBMODULES}" = "true" ] && [ -f .gitmodules ]; then
-    git config --file .gitmodules --get-regexp path | awk '{ print $2 }' | xargs -I {} rm -rf {}/.git
-  fi
-fi
