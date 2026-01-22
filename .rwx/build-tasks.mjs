@@ -119,6 +119,13 @@ const generateTestsTask = async (leaf) => {
     if (testConfig.base) {
       commands.push(yaml.stringify({ base: testConfig.base }, null, 2));
     }
+    commands.push(
+      yaml.stringify({
+        "tool-cache": {
+          vault: "rwx-packages-main",
+        },
+      }),
+    );
     commands.push(`tasks:`);
     commands.push(`EOF`);
     commands.push(
