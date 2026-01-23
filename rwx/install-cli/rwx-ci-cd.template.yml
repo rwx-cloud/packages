@@ -3,7 +3,7 @@
 
 - key: test-default--assert
   use: test-default
-  run: rwx --version | grep 'rwx version v2\.'
+  run: rwx --version | grep 'rwx version v3\.'
 
 - key: test-specified
   call: $LEAF_DIGEST
