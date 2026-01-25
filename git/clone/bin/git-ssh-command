@@ -8,7 +8,7 @@ if [ "$GIT_SSH_KEY" = "" ]; then
   exit 1
 fi
 
-TMP_DIR="$(mktemp -d)/git-ssh-command"
+TMP_DIR="$(mktemp -d)"
 mkdir -p "${TMP_DIR}"
 REPOSITORY_KEY_FILE="${TMP_DIR}/id_rsa"
 touch "${REPOSITORY_KEY_FILE}"
