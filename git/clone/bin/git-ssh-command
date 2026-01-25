@@ -9,7 +9,6 @@ if [ "$GIT_SSH_KEY" = "" ]; then
 fi
 
 TMP_DIR="$(mktemp -d)"
-mkdir -p "${TMP_DIR}"
 REPOSITORY_KEY_FILE="${TMP_DIR}/id_rsa"
 touch "${REPOSITORY_KEY_FILE}"
 chmod 600 "$REPOSITORY_KEY_FILE"
