@@ -8,8 +8,7 @@ if [ "$GIT_SSH_KEY" = "" ]; then
   exit 1
 fi
 
-TMP_DIR="$(mktemp -d)/git-ssh-command"
-mkdir -p "${TMP_DIR}"
+TMP_DIR="$(mktemp -d)"
 REPOSITORY_KEY_FILE="${TMP_DIR}/id_rsa"
 touch "${REPOSITORY_KEY_FILE}"
 chmod 600 "$REPOSITORY_KEY_FILE"
