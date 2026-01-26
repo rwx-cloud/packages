@@ -140,7 +140,7 @@ if [ "${LFS}" = "true" ]; then
       value: \${{ params.ssh-key }}
       cache-key: excluded
     GITHUB_TOKEN:
-      value: \${{ params.github-access-token }}
+      value: \${{ params.github-token }}
       cache-key: excluded
     LFS_FILES: \${{ tasks.git-clone.values.lfs-files }}
     CHECKOUT_PATH: \${{ params.path }}

@@ -58,7 +58,7 @@ For more examples see the documentation on [getting started with GitHub](https:/
 
 ## Clone Private Repositories
 
-To clone private repositories, you'll either need to pass an `ssh-key` to clone over ssh, or a `github-access-token` to clone GitHub repositories over https.
+To clone private repositories, you'll either need to pass an `ssh-key` to clone over ssh, or a `github-token` to clone GitHub repositories over https.
 
 ### Cloning GitHub Repositories over HTTPS
 
@@ -71,7 +71,7 @@ tasks:
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
-      github-access-token: ${{ github.token }}
+      github-token: ${{ github.token }}
 ```
 
 ### Cloning over SSH
@@ -163,4 +163,19 @@ Version 2.0.0 introduces tool caching for faster incremental clones. The `.git` 
 
 ### Migration from v1.x
 
-The v2 API is backward compatible, but the `MINT_` environment variables have been removed in favor of their `RWX_` equivalents.
+- `github-access-token` has been renamed to `github-token`
+- The `MINT_` environment variables have been removed in favor of their `RWX_` equivalents
+
+For most usage, it's as easy as:
+
+```diff
+tasks:
+  - key: code
+-    call: git/clone 1.9.5
++    call: git/clone 2.0.0
+    with:
+      repository: https://github.com/YOUR_ORG/PROJECT.git
+      ref: ${{ init.ref }}
+-      github-access-token: ${{ github.token }}
++      github-token: ${{ github.token }}
+```

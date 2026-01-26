@@ -5,7 +5,7 @@ source_code_url: https://github.com/rwx-cloud/packages/tree/main/git/clone
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 
 parameters:
-  github-access-token:
+  github-token:
     description: "Token to clone from GitHub over HTTPS"
     required: false
   lfs:
@@ -152,7 +152,7 @@ tasks:
             ;;
         esac
 
-        echo "Setting credential.helper to clone using github-access-token"
+        echo "Setting credential.helper to clone using github-token"
         printf '%s' '!sh -c "echo username=x-access-token && echo password=${GITHUB_TOKEN}"' > "$RWX_VALUES/credential-helper"
       fi
     env:
@@ -168,7 +168,7 @@ tasks:
         value: ${{ params.ssh-key }}
         cache-key: excluded
       GITHUB_TOKEN:
-        value: ${{ params.github-access-token }}
+        value: ${{ params.github-token }}
         cache-key: excluded
       CHECKOUT_REF: ${{ params.ref }}
       CHECKOUT_REPOSITORY: ${{ params.repository }}
@@ -221,7 +221,7 @@ tasks:
         value: ${{ params.ssh-key }}
         cache-key: excluded
       GITHUB_TOKEN:
-        value: ${{ params.github-access-token }}
+        value: ${{ params.github-token }}
         cache-key: excluded
       CHECKOUT_PATH: ${{ params.path }}
       CHECKOUT_REF: ${{ params.ref }}
