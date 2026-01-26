@@ -1,0 +1,45 @@
+name: pagerduty/verify-signature
+version: 1.0.0
+description: Verify webhook signatures from PagerDuty
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/pagerduty/verify-signature
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+
+parameters:
+  body:
+    description: "The body of the incoming webook"
+    required: true
+  headers:
+    description: "The headers of the incoming webhook"
+    required: true
+  shared-secret:
+    description: "The shared secret provided to you by PagerDuty upon creating the webhook"
+    required: true
+
+tasks:
+  - key: verify
+    run: |
+      needed=""
+
+      if ! command -v jq >/dev/null 2>&1; then
+        needed="$needed jq"
+      fi
+
+      if ! command -v openssl >/dev/null 2>&1; then
+        needed="$needed openssl"
+      fi
+
+      if [ -n "$needed" ]; then
+        cat << EOF > "${RWX_ERRORS}/missing-packages"
+      The \`pagerduty/verify-signature\` package requires system packages that were missing:$needed
+
+      Define a task which installs those packages, and specify it as a \`use\` dependency of the \`pagerduty/verify-signature\` task
+      EOF
+        exit 1
+      fi
+
+      SIGNATURE=$(printf '%s' "$HEADERS" | jq -r '.["x-pagerduty-signature"]')
+      printf '%s' "$BODY" | $RWX_PACKAGE_PATH/verify.sh "$SHARED_SECRET" "$SIGNATURE" "v1"
+    env:
+      BODY: ${{ params.body }}
+      HEADERS: ${{ params.headers }}
+      SHARED_SECRET: ${{ params.shared-secret }}
