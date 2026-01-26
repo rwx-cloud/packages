@@ -163,4 +163,19 @@ Version 2.0.0 introduces tool caching for faster incremental clones. The `.git` 
 
 ### Migration from v1.x
 
-The v2 API is backward compatible, but the `MINT_` environment variables have been removed in favor of their `RWX_` equivalents.
+- `github-access-token` has been renamed to `github-token`
+- The `MINT_` environment variables have been removed in favor of their `RWX_` equivalents
+
+For most usage, it's as easy as:
+
+```diff
+tasks:
+  - key: code
+-    call: git/clone 1.9.5
++    call: git/clone 2.0.0
+    with:
+      repository: https://github.com/YOUR_ORG/PROJECT.git
+      ref: ${{ init.ref }}
+-      github-access-token: ${{ github.token }}
++      github-token: ${{ github.token }}
+```
