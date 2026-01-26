@@ -31,6 +31,13 @@ fi
 echo "Latest SHA for ${CHECKOUT_REF}: ${RESOLVED_SHA}"
 printf '%s' "${RESOLVED_SHA}" >> "$RWX_VALUES/sha"
 
+mkdir -p "${CHECKOUT_PATH}"
+cd "${CHECKOUT_PATH}"
+CHECKOUT_PATH="$(pwd -P)"
+params="${CHECKOUT_REPOSITORY}-${CHECKOUT_PATH}-${LFS}-${PRESERVE_GIT_DIR}-${FETCH_FULL_DEPTH}-${SUBMODULES}-$(id -u)"
+params_hash="$(echo "${params}" | sha256sum | cut -d ' ' -f 1)"
+printf '%s' "${TOOL_CACHE_KEY_PREFIX}-${params_hash}" > "$RWX_VALUES/tool-cache-key"
+
 if [ ! -d "$PATCHES_DIR" ]; then
   echo ""
   echo "No patches to apply"
@@ -49,7 +56,7 @@ for file in "$PATCHES_DIR"/*; do
 
       cat << EOF > "$RWX_DYNAMIC_TASKS/patch.yml"
 - key: git-patch
-  use: git-clone
+  use: cleanup-git-dir
   run: |
     # Apply the patch
     echo "Applying patch file \${PATCH_FILE}..."
@@ -60,7 +67,6 @@ for file in "$PATCHES_DIR"/*; do
 
     # Export env vars
     PATCH_GIT_COMMIT_SHA="\${RWX_GIT_COMMIT_SHA}+patch"
-    printf '%s' "\${PATCH_GIT_COMMIT_SHA}" >> "\${RWX_CACHE_KEY_EXCLUDED_ENV}/MINT_GIT_COMMIT_SHA"
     printf '%s' "\${PATCH_GIT_COMMIT_SHA}" >> "\${RWX_CACHE_KEY_EXCLUDED_ENV}/RWX_GIT_COMMIT_SHA"
 
     # Upload an artifact

@@ -31,7 +31,7 @@ tasks:
 
   - key: code
     use: system-packages
-    call: git/clone 1.9.5
+    call: git/clone 2.0.0
     with:
       repository: ...
 ```
@@ -41,7 +41,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.9.5
+    call: git/clone 2.0.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -58,7 +58,7 @@ For more examples see the documentation on [getting started with GitHub](https:/
 
 ## Clone Private Repositories
 
-To clone private repositories, you'll either need to pass an `ssh-key` to clone over ssh, or a `github-access-token` to clone GitHub repositories over https.
+To clone private repositories, you'll either need to pass an `ssh-key` to clone over ssh, or a `github-token` to clone GitHub repositories over https.
 
 ### Cloning GitHub Repositories over HTTPS
 
@@ -67,11 +67,11 @@ If you're using GitHub, RWX will automatically provide a token that you can use 
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.9.5
+    call: git/clone 2.0.0
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
-      github-access-token: ${{ github.token }}
+      github-token: ${{ github.token }}
 ```
 
 ### Cloning over SSH
@@ -79,7 +79,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.9.5
+    call: git/clone 2.0.0
     with:
       repository: git@github.com:YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -97,7 +97,7 @@ If you need to reference one of these to alter behavior of a task, be sure to in
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.9.5
+    call: git/clone 2.0.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -109,8 +109,6 @@ tasks:
       RWX_GIT_COMMIT_SHA:
         cache-key: included
 ```
-
-Note: the following environment variables are also available with the `MINT_` prefix instead of `RWX_` for backwards compatibility.
 
 ### `RWX_GIT_REPOSITORY_URL`
 
@@ -152,3 +150,32 @@ The unresolved ref associated with the commit. `git/clone` attempts to determine
 ### `RWX_GIT_REF_NAME`
 
 The name of the unresolved ref associated with the commit. For example, given a `RWX_GIT_REF` of `refs/heads/main`, `RWX_GIT_REF_NAME` would be set to `main`.
+
+## v2.0.0 Changes
+
+Version 2.0.0 introduces tool caching for faster incremental clones. The `.git` directory is now preserved in a tool cache between runs, meaning subsequent clones of the same repository become fast incremental fetches.
+
+### What's New
+
+- **Tool-cached `.git` directory**: The `.git` directory persists between task executions via RWX tool caches
+- **Faster subsequent runs**: After the first clone, subsequent runs only fetch new commits
+- **New `tool-cache-key-prefix` parameter**: Optionally override the tool cache key prefix to make it easier to find your entry in the vaults UI
+
+### Migration from v1.x
+
+- `github-access-token` has been renamed to `github-token`
+- The `MINT_` environment variables have been removed in favor of their `RWX_` equivalents
+
+For most usage, it's as easy as:
+
+```diff
+tasks:
+  - key: code
+-    call: git/clone 1.9.5
++    call: git/clone 2.0.0
+    with:
+      repository: https://github.com/YOUR_ORG/PROJECT.git
+      ref: ${{ init.ref }}
+-      github-access-token: ${{ github.token }}
++      github-token: ${{ github.token }}
+```
