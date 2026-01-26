@@ -9,7 +9,7 @@ tasks:
     with:
       body: ${{ init.body }}
       headers: ${{ init.headers }}
-      secret: ${{ vaults.your-vault.secrets.PAGERDUTY_WEBHOOK_SECRET }}
+      secret: ${{ vaults.your-vault.secrets.pagerduty-webhook-secret }}
 
   - key: automate-the-thing
     after: verify-signature

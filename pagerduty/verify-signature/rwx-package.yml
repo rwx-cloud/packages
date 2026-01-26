@@ -16,14 +16,30 @@ parameters:
     required: true
 
 tasks:
-  - key: python
-    call: python/install 1.3.11
-    with:
-      python-version: 3.14.2
-
   - key: verify
-    cache: false
-    use: python
     run: |
-      SIGNATURE=$(printf '%s' '${{ params.headers }}' | jq -r '.["x-pagerduty-signature"]')
-      printf '%s' '${{ params.body }}' | python3 $RWX_PACKAGE_PATH/verify.py "${{ params.shared-secret }}" "$SIGNATURE" "v1"
+      needed=""
+
+      if ! command -v jq >/dev/null 2>&1; then
+        needed="$needed jq"
+      fi
+
+      if ! command -v openssl >/dev/null 2>&1; then
+        needed="$needed openssl"
+      fi
+
+      if [ -n "$needed" ]; then
+        cat << EOF > "${RWX_ERRORS}/missing-packages"
+      The \`pagerduty/verify-signature\` package requires system packages that were missing:$needed
+
+      Define a task which installs those packages, and specify it as a \`use\` dependency of the \`pagerduty/verify-signature\` task
+      EOF
+        exit 1
+      fi
+
+      SIGNATURE=$(printf '%s' "$HEADERS" | jq -r '.["x-pagerduty-signature"]')
+      printf '%s' "$BODY" | $RWX_PACKAGE_PATH/verify.sh "$SHARED_SECRET" "$SIGNATURE" "v1"
+    env:
+      BODY: ${{ params.body }}
+      HEADERS: ${{ params.headers }}
+      SHARED_SECRET: ${{ params.shared-secret }}
