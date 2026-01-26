@@ -56,7 +56,7 @@ for file in "$PATCHES_DIR"/*; do
 
       cat << EOF > "$RWX_DYNAMIC_TASKS/patch.yml"
 - key: git-patch
-  use: git-clone
+  use: cleanup-git-dir
   run: |
     # Apply the patch
     echo "Applying patch file \${PATCH_FILE}..."

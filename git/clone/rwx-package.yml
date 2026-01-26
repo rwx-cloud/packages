@@ -234,47 +234,8 @@ tasks:
       SUBMODULES: ${{ params.submodules }}
       PRESERVE_GIT_DIR: ${{ params.preserve-git-dir }}
 
-  - key: configure-git
-    use: [git-clone]
-    run: |
-      if [ "${PRESERVE_GIT_DIR}" = "false" ]; then
-        exit 0
-      fi
-      if [ -z "$GITHUB_TOKEN" ]; then
-        exit 0
-      fi
-      cd "${CHECKOUT_PATH}"
-
-      git config credential.helper '!sh -c "echo username=x-access-token && echo password=${GITHUB_TOKEN}"'
-
-      QUERY="query { viewer { databaseId login } }"
-
-      ACCESS_TOKEN_DATA=$(curl \
-        -fsSL \
-        -H "Content-Type: application/json" \
-        -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-        -X POST \
-        -d "{ \"query\": \"${QUERY}\"}" \
-        https://api.github.com/graphql \
-      )
-
-      GIT_USERNAME=$(printf '%s\n' "$ACCESS_TOKEN_DATA" | jq -r '.data.viewer.login')
-      ACCESS_TOKEN_ID=$(printf '%s\n' "$ACCESS_TOKEN_DATA" | jq -r '.data.viewer.databaseId')
-      GIT_EMAIL="${ACCESS_TOKEN_ID}+${GIT_USERNAME}@users.noreply.github.com"
-
-      git config user.email "$GIT_EMAIL"
-      git config user.name "$GIT_USERNAME"
-    env:
-      CHECKOUT_PATH: ${{ params.path }}
-      GITHUB_TOKEN:
-        value: ${{ params.github-access-token }}
-        cache-key: excluded
-      PRESERVE_GIT_DIR: ${{ params.preserve-git-dir }}
-    filter:
-      - ${{ tasks.git-clone.values.git-dir-path }}
-
   - key: cleanup-git-dir
-    use: [configure-git]
+    use: [git-clone]
     run: |
       if [ "${PRESERVE_GIT_DIR}" = "true" ]; then
         exit 0

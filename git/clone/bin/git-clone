@@ -84,7 +84,7 @@ if [ "${LFS}" = "true" ]; then
     LFS_ENDPOINT=$(git-lfs env | grep "Endpoint=" | awk -F'[ =]' '{print $2}')
     cat << EOF > "$RWX_DYNAMIC_TASKS/lfs.yml"
 - key: lfs-files
-  use: configure-git
+  use: cleanup-git-dir
   run: |
     cd "\${CHECKOUT_PATH}"
 
@@ -258,3 +258,24 @@ printf '%s' "${unresolved_ref}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REF"
 printf '%s' "${unresolved_ref}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REF"
 printf '%s' "${unresolved_ref}" | sed -E 's|refs/[^/]+/||' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/MINT_GIT_REF_NAME"
 printf '%s' "${unresolved_ref}" | sed -E 's|refs/[^/]+/||' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REF_NAME"
+
+if [ "${PRESERVE_GIT_DIR}" = "true" ] && [ -n "$GITHUB_TOKEN" ]; then
+  git config credential.helper '!sh -c "echo username=x-access-token && echo password=${GITHUB_TOKEN}"'
+
+  QUERY="query { viewer { databaseId login } }"
+  ACCESS_TOKEN_DATA=$(curl \
+    -fsSL \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+    -X POST \
+    -d "{ \"query\": \"${QUERY}\"}" \
+    https://api.github.com/graphql \
+  )
+
+  GIT_USERNAME=$(printf '%s\n' "$ACCESS_TOKEN_DATA" | jq -r '.data.viewer.login')
+  ACCESS_TOKEN_ID=$(printf '%s\n' "$ACCESS_TOKEN_DATA" | jq -r '.data.viewer.databaseId')
+  GIT_EMAIL="${ACCESS_TOKEN_ID}+${GIT_USERNAME}@users.noreply.github.com"
+
+  git config user.email "$GIT_EMAIL"
+  git config user.name "$GIT_USERNAME"
+fi
