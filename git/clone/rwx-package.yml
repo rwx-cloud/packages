@@ -1,5 +1,5 @@
 name: git/clone
-version: 1.9.5
+version: 2.0.0
 description: Clone git repositories over ssh or http, with support for Git Large File Storage (LFS)
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/git/clone
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -35,6 +35,9 @@ parameters:
   submodules:
     description: Whether to clone submodules
     default: true
+  tool-cache-key-prefix:
+    description: Optional prefix for the tool cache key
+    default: git-clone
 
 tasks:
   - key: setup
@@ -155,6 +158,7 @@ tasks:
     env:
       GIT_SSH_KEY: ${{ params.ssh-key }}
       CHECKOUT_REPOSITORY: ${{ params.repository }}
+      CHECKOUT_PATH: ${{ params.path }}
 
   - key: get-latest-sha-for-ref
     use: setup
@@ -170,6 +174,12 @@ tasks:
       CHECKOUT_REPOSITORY: ${{ params.repository }}
       CREDENTIAL_HELPER: ${{ tasks.setup.values.credential-helper }}
       PATCHES_DIR: ${{ run.dir }}/.patches
+      CHECKOUT_PATH: ${{ params.path }}
+      LFS: ${{ params.lfs }}
+      PRESERVE_GIT_DIR: ${{ params.preserve-git-dir }}
+      FETCH_FULL_DEPTH: ${{ params.fetch-full-depth }}
+      SUBMODULES: ${{ params.submodules }}
+      TOOL_CACHE_KEY_PREFIX: ${{ params.tool-cache-key-prefix }}
     filter:
       ${{ run.dir }}: [.patches]
     cache: ${{ params.ref =~ '^[0-9a-f]{40}$' }}
@@ -204,6 +214,7 @@ tasks:
   - key: git-clone
     use: [setup, install-lfs]
     run: $RWX_PACKAGE_PATH/bin/git-clone
+    tool-cache: ${{ tasks.get-latest-sha-for-ref.values.tool-cache-key }}
     env:
       GIT_LFS_SKIP_SMUDGE: 1
       GIT_SSH_KEY:
@@ -218,46 +229,24 @@ tasks:
       CHECKOUT_REPOSITORY: ${{ params.repository }}
       META_REF: ${{ params.meta-ref }}
       LFS: ${{ params.lfs }}
-      PRESERVE_GIT_DIR: ${{ params.preserve-git-dir }}
       CREDENTIAL_HELPER: ${{ tasks.setup.values.credential-helper }}
       FETCH_FULL_DEPTH: ${{ params.fetch-full-depth }}
       SUBMODULES: ${{ params.submodules }}
+      PRESERVE_GIT_DIR: ${{ params.preserve-git-dir }}
 
-  - key: configure-git
+  - key: cleanup-git-dir
     use: [git-clone]
     run: |
-      if [ "${PRESERVE_GIT_DIR}" = "false" ]; then
+      if [ "${PRESERVE_GIT_DIR}" = "true" ]; then
         exit 0
       fi
-      if [ -z "$GITHUB_TOKEN" ]; then
-        exit 0
+      cd "${CHECKOUT_PATH:-.}"
+      rm -rf .git
+
+      if [ "${SUBMODULES}" = "true" ] && [ -f .gitmodules ]; then
+        git config --file .gitmodules --get-regexp path | awk '{ print $2 }' | xargs -I {} rm -rf {}/.git
       fi
-      cd "${CHECKOUT_PATH}"
-
-      git config credential.helper '!sh -c "echo username=x-access-token && echo password=${GITHUB_TOKEN}"'
-
-      QUERY="query { viewer { databaseId login } }"
-
-      ACCESS_TOKEN_DATA=$(curl \
-        -fsSL \
-        -H "Content-Type: application/json" \
-        -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-        -X POST \
-        -d "{ \"query\": \"${QUERY}\"}" \
-        https://api.github.com/graphql \
-      )
-
-      GIT_USERNAME=$(printf '%s\n' "$ACCESS_TOKEN_DATA" | jq -r '.data.viewer.login')
-      ACCESS_TOKEN_ID=$(printf '%s\n' "$ACCESS_TOKEN_DATA" | jq -r '.data.viewer.databaseId')
-      GIT_EMAIL="${ACCESS_TOKEN_ID}+${GIT_USERNAME}@users.noreply.github.com"
-
-      git config user.email "$GIT_EMAIL"
-      git config user.name "$GIT_USERNAME"
     env:
       CHECKOUT_PATH: ${{ params.path }}
-      GITHUB_TOKEN:
-        value: ${{ params.github-access-token }}
-        cache-key: excluded
       PRESERVE_GIT_DIR: ${{ params.preserve-git-dir }}
-    filter:
-      - ${{ tasks.git-clone.values.git-dir-path }}
+      SUBMODULES: ${{ params.submodules }}
