@@ -128,18 +128,11 @@
 - key: git-clone--test-commit-sha-ref-meta--assert
   use: git-clone--test-commit-sha-ref-meta
   run: |
-    if [ "$MINT_GIT_REF" != "refs/heads/main" ]; then
-      echo "Expected MINT_GIT_REF to be refs/heads/main, got $MINT_GIT_REF"
-      exit 1
-    fi
-
     if [ "$RWX_GIT_REF" != "refs/heads/main" ]; then
       echo "Expected RWX_GIT_REF to be refs/heads/main, got $RWX_GIT_REF"
       exit 1
     fi
   env:
-    MINT_GIT_REF:
-      cache-key: included
     RWX_GIT_REF:
       cache-key: included
 
@@ -155,18 +148,11 @@
 - key: git-clone--test-commit-sha-non-main-ref-meta--assert
   use: git-clone--test-commit-sha-non-main-ref-meta
   run: |
-    if [ "$MINT_GIT_REF" != "refs/heads/do-not-delete-this-branch" ]; then
-      echo "Expected MINT_GIT_REF to be refs/heads/do-not-delete-this-branch, got $MINT_GIT_REF"
-      exit 1
-    fi
-
     if [ "$RWX_GIT_REF" != "refs/heads/do-not-delete-this-branch" ]; then
       echo "Expected RWX_GIT_REF to be refs/heads/do-not-delete-this-branch, got $RWX_GIT_REF"
       exit 1
     fi
   env:
-    MINT_GIT_REF:
-      cache-key: included
     RWX_GIT_REF:
       cache-key: included
 
@@ -182,18 +168,11 @@
 - key: git-clone--test-explicit-branch-ref-meta--assert
   use: git-clone--test-explicit-branch-ref-meta
   run: |
-    if [ "$MINT_GIT_REF" != "refs/heads/main" ]; then
-      echo "Expected MINT_GIT_REF to be refs/heads/main, got $MINT_GIT_REF"
-      exit 1
-    fi
-
     if [ "$RWX_GIT_REF" != "refs/heads/main" ]; then
       echo "Expected RWX_GIT_REF to be refs/heads/main, got $RWX_GIT_REF"
       exit 1
     fi
   env:
-    MINT_GIT_REF:
-      cache-key: included
     RWX_GIT_REF:
       cache-key: included
 
@@ -209,18 +188,11 @@
 - key: git-clone--test-implicit-branch-ref-meta--assert
   use: git-clone--test-implicit-branch-ref-meta
   run: |
-    if [ "$MINT_GIT_REF" != "refs/heads/main" ]; then
-      echo "Expected MINT_GIT_REF to be refs/heads/main, got $MINT_GIT_REF"
-      exit 1
-    fi
-
     if [ "$RWX_GIT_REF" != "refs/heads/main" ]; then
       echo "Expected RWX_GIT_REF to be refs/heads/main, got $RWX_GIT_REF"
       exit 1
     fi
   env:
-    MINT_GIT_REF:
-      cache-key: included
     RWX_GIT_REF:
       cache-key: included
 
@@ -236,18 +208,11 @@
 - key: git-clone--test-explicit-tag-ref-meta--assert
   use: git-clone--test-explicit-tag-ref-meta
   run: |
-    if [ "$MINT_GIT_REF" != "refs/tags/v1" ]; then
-      echo "Expected MINT_GIT_REF to be refs/tags/v1, got $MINT_GIT_REF"
-      exit 1
-    fi
-
     if [ "$RWX_GIT_REF" != "refs/tags/v1" ]; then
       echo "Expected RWX_GIT_REF to be refs/tags/v1, got $RWX_GIT_REF"
       exit 1
     fi
   env:
-    MINT_GIT_REF:
-      cache-key: included
     RWX_GIT_REF:
       cache-key: included
 
@@ -263,18 +228,11 @@
 - key: git-clone--test-implicit-tag-ref-meta--assert
   use: git-clone--test-implicit-tag-ref-meta
   run: |
-    if [ "$MINT_GIT_REF" != "refs/tags/v1" ]; then
-      echo "Expected MINT_GIT_REF to be refs/tags/v1, got $MINT_GIT_REF"
-      exit 1
-    fi
-
     if [ "$RWX_GIT_REF" != "refs/tags/v1" ]; then
       echo "Expected RWX_GIT_REF to be refs/tags/v1, got $RWX_GIT_REF"
       exit 1
     fi
   env:
-    MINT_GIT_REF:
-      cache-key: included
     RWX_GIT_REF:
       cache-key: included
 
@@ -291,18 +249,11 @@
 - key: git-clone--test-meta-ref-override--assert
   use: git-clone--test-meta-ref-override
   run: |
-    if [ "$MINT_GIT_REF" != "refs/heads/main" ]; then
-      echo "Expected MINT_GIT_REF to be refs/heads/main, got $MINT_GIT_REF"
-      exit 1
-    fi
-
     if [ "$RWX_GIT_REF" != "refs/heads/main" ]; then
       echo "Expected RWX_GIT_REF to be refs/heads/main, got $RWX_GIT_REF"
       exit 1
     fi
   env:
-    MINT_GIT_REF:
-      cache-key: included
     RWX_GIT_REF:
       cache-key: included
 
@@ -318,18 +269,11 @@
 - key: git-clone--test-ssh-repo-name--assert
   use: git-clone--test-ssh-repo-name
   run: |
-    if [ "$MINT_GIT_REPOSITORY_NAME" != "rwx-cloud/test-checkout-package" ]; then
-      echo "Expected MINT_GIT_REPOSITORY_NAME to be rwx-cloud/test-checkout-package, got $MINT_GIT_REPOSITORY_NAME"
-      exit 1
-    fi
-
     if [ "$RWX_GIT_REPOSITORY_NAME" != "rwx-cloud/test-checkout-package" ]; then
       echo "Expected RWX_GIT_REPOSITORY_NAME to be rwx-cloud/test-checkout-package, got $RWX_GIT_REPOSITORY_NAME"
       exit 1
     fi
   env:
-    MINT_GIT_REPOSITORY_NAME:
-      cache-key: included
     RWX_GIT_REPOSITORY_NAME:
       cache-key: included
 
@@ -344,18 +288,11 @@
 - key: git-clone--test-https-repo-name--assert
   use: git-clone--test-https-repo-name
   run: |
-    if [ "$MINT_GIT_REPOSITORY_NAME" != "rwx-cloud/test-checkout-package" ]; then
-      echo "Expected MINT_GIT_REPOSITORY_NAME to be rwx-cloud/test-checkout-package, got $MINT_GIT_REPOSITORY_NAME"
-      exit 1
-    fi
-
     if [ "$RWX_GIT_REPOSITORY_NAME" != "rwx-cloud/test-checkout-package" ]; then
       echo "Expected RWX_GIT_REPOSITORY_NAME to be rwx-cloud/test-checkout-package, got $RWX_GIT_REPOSITORY_NAME"
       exit 1
     fi
   env:
-    MINT_GIT_REPOSITORY_NAME:
-      cache-key: included
     RWX_GIT_REPOSITORY_NAME:
       cache-key: included
 
