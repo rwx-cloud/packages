@@ -110,8 +110,6 @@ tasks:
         cache-key: included
 ```
 
-Note: the following environment variables are also available with the `MINT_` prefix instead of `RWX_` for backwards compatibility.
-
 ### `RWX_GIT_REPOSITORY_URL`
 
 The `repository` parameter you provided to `git/clone`.
@@ -155,15 +153,14 @@ The name of the unresolved ref associated with the commit. For example, given a 
 
 ## v2.0.0 Changes
 
-Version 2.0.0 introduces tool caching for faster incremental clones. The `.git` directory is now preserved in a tool cache between runs, meaning subsequent clones of the same repository become fast incremental fetches instead of full clones.
+Version 2.0.0 introduces tool caching for faster incremental clones. The `.git` directory is now preserved in a tool cache between runs, meaning subsequent clones of the same repository become fast incremental fetches.
 
 ### What's New
 
 - **Tool-cached `.git` directory**: The `.git` directory persists between task executions via RWX tool caches
 - **Faster subsequent runs**: After the first clone, subsequent runs only fetch new commits
-- **Simplified clone logic**: The clone process now uses a consistent incremental fetch pattern
 - **New `tool-cache-key-prefix` parameter**: Optionally override the tool cache key prefix to make it easier to find your entry in the vaults UI
 
 ### Migration from v1.x
 
-The v2 API is backward compatible. Existing configurations will work without changes. The main difference is improved performance on subsequent runs.
+The v2 API is backward compatible, but the `MINT_` environment variables have been removed in favor of their `RWX_` equivalents.
