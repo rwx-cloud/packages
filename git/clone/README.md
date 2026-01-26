@@ -58,7 +58,7 @@ For more examples see the documentation on [getting started with GitHub](https:/
 
 ## Clone Private Repositories
 
-To clone private repositories, you'll either need to pass an `ssh-key` to clone over ssh, or a `github-access-token` to clone GitHub repositories over https.
+To clone private repositories, you'll either need to pass an `ssh-key` to clone over ssh, or a `github-token` to clone GitHub repositories over https.
 
 ### Cloning GitHub Repositories over HTTPS
 
@@ -71,7 +71,7 @@ tasks:
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
-      github-access-token: ${{ github.token }}
+      github-token: ${{ github.token }}
 ```
 
 ### Cloning over SSH

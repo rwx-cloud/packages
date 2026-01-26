@@ -27,16 +27,16 @@
   use: git-clone--test-ssh-key
   run: test -e file-in-repo.txt
 
-- key: git-clone--test-github-access-token
+- key: git-clone--test-github-token
   call: $LEAF_DIGEST
   use: system-packages
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
-    github-access-token: ${{ github['rwx-cloud'].token }}
+    github-token: ${{ github['rwx-cloud'].token }}
 
-- key: git-clone--test-github-access-token--assert
-  use: git-clone--test-github-access-token
+- key: git-clone--test-github-token--assert
+  use: git-clone--test-github-token
   run: test -e file-in-repo.txt
 
 - key: git-clone--test-public-https
@@ -72,7 +72,7 @@
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
-    github-access-token: ${{ github['rwx-cloud'].token }}
+    github-token: ${{ github['rwx-cloud'].token }}
     preserve-git-dir: true
 
 - key: git-clone--test-preserve-git-dir--assert
@@ -95,7 +95,7 @@
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: do-not-delete-this-branch
-    github-access-token: ${{ github['rwx-cloud'].token }}
+    github-token: ${{ github['rwx-cloud'].token }}
     preserve-git-dir: true
 
 - key: git-clone--test-preserve-git-dir-from-ref--assert
@@ -283,7 +283,7 @@
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: main
-    github-access-token: ${{ github['rwx-cloud'].token }}
+    github-token: ${{ github['rwx-cloud'].token }}
 
 - key: git-clone--test-https-repo-name--assert
   use: git-clone--test-https-repo-name
@@ -302,7 +302,7 @@
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
-    github-access-token: ${{ github['rwx-cloud'].token }}
+    github-token: ${{ github['rwx-cloud'].token }}
     preserve-git-dir: true
     path: mint-leaves
 
@@ -327,7 +327,7 @@
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
-    github-access-token: ${{ github['rwx-cloud'].token }}
+    github-token: ${{ github['rwx-cloud'].token }}
     lfs: true
 
 - key: git-clone--test-lfs-with-github-token--assert
@@ -356,7 +356,7 @@
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
-    github-access-token: ${{ github['rwx-cloud'].token }}
+    github-token: ${{ github['rwx-cloud'].token }}
     lfs: true
     preserve-git-dir: true
 
@@ -372,7 +372,7 @@
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
-    github-access-token: ${{ github['rwx-cloud'].token }}
+    github-token: ${{ github['rwx-cloud'].token }}
     lfs: true
     path: mint-leaves
 
@@ -387,7 +387,7 @@
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
-    github-access-token: ${{ github['rwx-cloud'].token }}
+    github-token: ${{ github['rwx-cloud'].token }}
     fetch-full-depth: true
 
 - key: git-clone--test-fetch-full-depth--assert
@@ -400,7 +400,7 @@
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
-    github-access-token: ${{ github['rwx-cloud'].token }}
+    github-token: ${{ github['rwx-cloud'].token }}
 
 - key: git-clone--test-submodules--assert
   use: git-clone--test-submodules
@@ -415,7 +415,7 @@
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
-    github-access-token: ${{ github['rwx-cloud'].token }}
+    github-token: ${{ github['rwx-cloud'].token }}
     preserve-git-dir: true
 
 - key: git-clone--test-submodules-preserve-git-dir--assert
@@ -431,7 +431,7 @@
   with:
     repository: https://github.com/rwx-cloud/test-checkout-package.git
     ref: e38d490f8b854325402c95bb56e5003a52e10df3
-    github-access-token: ${{ github['rwx-cloud'].token }}
+    github-token: ${{ github['rwx-cloud'].token }}
     submodules: false
 
 - key: git-clone--test-submodules-false--assert
