@@ -15,7 +15,7 @@ parameters:
     description: "The relative path within the workspace into which the repository will be cloned"
     default: "./"
   preserve-git-dir:
-    description: "Whether or not to preserve the .git directory. Set to true if you want to perform git operations like committing after cloning. Preserving the .git directory will decreaes the likelihood of cache hits when a file filter is not specified."
+    description: "Whether or not to preserve the .git directory. Set to true if you want to perform git operations like committing after cloning. Preserving the .git directory will decrease the likelihood of cache hits when a file filter is not specified."
     default: false
   ref:
     description: "The ref to check out of the git repository"
