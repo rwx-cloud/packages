@@ -24,17 +24,6 @@ cd "${CHECKOUT_PATH}"
 if [ ! -d .git ]; then
   git init -b main
   git remote add origin "${CHECKOUT_REPOSITORY}"
-else
-  # Fix ownership if needed (tool cache may restore with different owner)
-  current_owner=$(stat -c '%u' .git)
-  current_user=$(id -u)
-  if [ "$current_owner" != "$current_user" ]; then
-    if command -v sudo >/dev/null 2>&1; then
-      sudo chown -R "$current_user:$(id -g)" "${checkout_abs}"
-    else
-      chown -R "$current_user:$(id -g)" "${checkout_abs}"
-    fi
-  fi
 fi
 
 if [ -n "${CREDENTIAL_HELPER}" ]; then
