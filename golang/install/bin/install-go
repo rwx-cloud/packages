@@ -60,11 +60,17 @@ sudo mkdir -p "$install_dir"
 sudo tar -C "$install_dir" --strip-components=1 -xzf "${source_dir}/${filename}"
 
 echo "Adding ${install_dir}/bin to PATH"
-echo "${install_dir}/bin" >> "$RWX_ENV/PATH"
-export PATH="${install_dir}/bin:$PATH"
+install_dir_bin="${install_dir}/bin"
+export PATH="${install_dir_bin}:$PATH"
 
 echo "Setting GOROOT to ${install_dir}"
 export GOROOT="${install_dir}"
 echo "${GOROOT}" >> "$RWX_ENV/GOROOT"
+
+echo "Adding GOPATH/bin to PATH"
+go_path_bin="$(go env GOPATH)/bin"
+export PATH="${go_path_bin}:$PATH"
+
+echo "${install_dir_bin}:${go_path_bin}" >> "$RWX_ENV/PATH"
 
 go version
