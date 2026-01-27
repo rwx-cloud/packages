@@ -34,12 +34,15 @@ on:
     - key: update-rwx-packages
       schedule: "0 7 * * 1 America/New_York" # 7am on Mondays
 
+tool-cache:
+  vault: your-tool-cache-vault
+
 tasks:
   - key: code
-    call: git/clone 1.8.1
+    call: git/clone 2.0.0
     with:
       repository: https://github.com/example-org/example-repo.git
-      github-access-token: ${{ github-apps.your-orgs-bot.token }}
+      github-token: ${{ github-apps.your-orgs-bot.token }}
       ref: main
       preserve-git-dir: true
 
@@ -52,7 +55,7 @@ tasks:
     run: rwx packages update | tee $RWX_VALUES/update-output
 
   - key: create-pull-request
-    call: github/create-pull-request 1.0.2
+    call: github/create-pull-request 1.0.3
     use: [update-packages]
     with:
       github-token: ${{ github-apps.your-orgs-bot.token }}

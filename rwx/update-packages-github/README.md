@@ -3,7 +3,7 @@
 Update the versions of RWX packages used in a GitHub repository.
 When updates are available, create or update a pull request.
 
-The provided `github-access-token` should be for a
+The provided `github-token` should be for a
 [private GitHub App](https://www.rwx.com/docs/mint/guides/github-automation)
 with repository permissions for:
 
@@ -20,11 +20,11 @@ To update minor versions (recommended):
 ```yaml
 tasks:
   - key: update-rwx-packages
-    call: rwx/update-packages-github 1.2.1
+    call: rwx/update-packages-github 2.0.0
     with:
       repository: https://github.com/YOUR-ORG/YOUR-REPO.git
       ref: ${{ init.commit-sha }}
-      github-access-token: ${{ vaults.your-vault.github-apps.your-github-app.token }}
+      github-token: ${{ vaults.your-vault.github-apps.your-github-app.token }}
 ```
 
 Customize the label:
@@ -32,11 +32,11 @@ Customize the label:
 ```yaml
 tasks:
   - key: update-rwx-packages
-    call: rwx/update-packages-github 1.2.1
+    call: rwx/update-packages-github 2.0.0
     with:
       repository: https://github.com/YOUR-ORG/YOUR-REPO.git
       ref: ${{ init.commit-sha }}
-      github-access-token: ${{ vaults.your-vault.github-apps.your-github-app.token }}
+      github-token: ${{ vaults.your-vault.github-apps.your-github-app.token }}
       label: rwx-updates
       label-color: "298F21"
 ```
@@ -51,10 +51,10 @@ Requires repository auto-merge support.
 ```yaml
 tasks:
   - key: update-rwx-packages
-    call: rwx/update-packages-github 1.2.1
+    call: rwx/update-packages-github 2.0.0
     with:
       repository: https://github.com/YOUR-ORG/YOUR-REPO.git
       ref: ${{ init.commit-sha }}
-      github-access-token: ${{ vaults.your-vault.github-apps.your-github-app.token }}
+      github-token: ${{ vaults.your-vault.github-apps.your-github-app.token }}
       enable-auto-merge: true
 ```

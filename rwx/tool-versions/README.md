@@ -20,14 +20,15 @@ Capture the versions to pass to other tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 1.8.1
+    call: git/clone 2.0.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: ${{ init.ref }
+      github-token: ${{ github.token }}
 
   - key: tool-versions
     use: code
-    call: rwx/tool-versions 1.0.5
+    call: rwx/tool-versions 1.0.6
     filter: [.tool-versions]
 
   - key: nodejs

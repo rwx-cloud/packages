@@ -2,14 +2,16 @@ on:
   github:
     pull_request:
       init:
-        base-ref: origin/${{ event.github.pull_request.pull_request.base.ref }}
+        qualified-base-ref: origin/${{ event.github.pull_request.pull_request.base.ref }}
+        unqualified-base-ref: ${{ event.github.pull_request.pull_request.base.ref }}
         branch: ${{ event.git.branch }}
         publish-leaves: false
         sha: ${{ event.git.sha }}
     push:
       if: ${{ event.git.branch == 'main' }}
       init:
-        base-ref: ${{ event.github.push.before }}
+        qualified-base-ref: ${{ event.github.push.before }}
+        unqualified-base-ref: ${{ event.github.push.before }}
         branch: ${{ event.git.branch }}
         publish-leaves: true
         sha: ${{ event.git.sha }}
@@ -32,15 +34,16 @@ tasks:
       sudo apt-get clean
 
   - key: checkout
-    call: git/clone 1.9.0
+    call: git/clone 2.0.0
     with:
       preserve-git-dir: true
       repository: https://github.com/rwx-cloud/packages.git
       ref: ${{ init.sha }}
+      github-token: ${{ github['rwx-cloud'].token }}
 
   - key: node
     use: checkout
-    call: nodejs/install 1.1.10
+    call: nodejs/install 1.1.11
     with:
       node-version-file: .node-version
     filter:
@@ -84,10 +87,12 @@ tasks:
     use: npm-install
     run: |
       mkdir build
-      git diff --name-only $BASE_REF $SHA > $GIT_DIFF_FILE
+      git fetch origin $UNQUALIFIED_BASE_REF
+      git diff --name-only $QUALIFIED_BASE_REF $SHA > $GIT_DIFF_FILE
       node .rwx/build-tasks.mjs
     env:
-      BASE_REF: ${{ init.base-ref }}
+      QUALIFIED_BASE_REF: ${{ init.qualified-base-ref }}
+      UNQUALIFIED_BASE_REF: ${{ init.unqualified-base-ref }}
       BUILD_DIR: build
       GIT_DIFF_FILE: build/git-diff.txt
       SHA: ${{ init.sha }}
