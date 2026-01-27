@@ -1,0 +1,21 @@
+name: golang/mod-download
+version: 1.0.0
+description: Downloads and caches all of your Go modules without requiring your source code
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/golang/mod-download
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+
+parameters:
+  path:
+    description: "The relative path within the workspace to the directory containing the go.mod and go.sum files"
+    default: "./"
+  tool-cache:
+    description: The tool cache key of the module download
+
+tasks:
+  - key: mod-download
+    tool-cache: ${{ params.tool-cache }}
+    agent:
+      tmpfs: true
+    run: $RWX_PACKAGE_PATH/bin/mod-download
+    env:
+      MOD_DOWNLOAD_PATH: ${{ params.path }}

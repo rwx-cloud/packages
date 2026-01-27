@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -ueo pipefail
+
+if [ "$MOD_DOWNLOAD_PATH" = "" ]; then
+  >&2 echo "MOD_DOWNLOAD_PATH was not found."
+  exit 2
+fi
+
+cd "${MOD_DOWNLOAD_PATH}"
+
+GOMODCACHE="$(go env GOMODCACHE)"
+CACHE_FILE="${GOMODCACHE}/.rwx-mod-download.json"
+
+echo "Determining modules to download in ${MOD_DOWNLOAD_PATH}"
+
+# Get all modules (excluding main module)
+mod_json=$(go list -m -json all | jq -s '[.[] | select(.Main | not)]')
+
+# For logging
+mod_count=$(echo "${mod_json}" | jq 'length')
+
+# For download: module@version format
+mod_versions=$(echo "${mod_json}" | jq -r '.[] | "\(.Path)@\(.Version)"')
+
+echo "Found ${mod_count} modules to download"
+
+# Build reuse flag if cache file exists from previous run
+reuse_flag=""
+if [ -f "$CACHE_FILE" ]; then
+  echo "Found previous download state, using -reuse for incremental download"
+  reuse_flag="-reuse=$CACHE_FILE"
+fi
+
+# Download modules from outside module directory (-reuse requires this)
+# Save JSON output for next run
+echo "Downloading modules"
+cd "${GOMODCACHE}"
+echo "${mod_versions}" | xargs go mod download -json $reuse_flag > "$CACHE_FILE.tmp"
+mv "$CACHE_FILE.tmp" "$CACHE_FILE"
+
+echo "Downloaded ${mod_count} modules"
