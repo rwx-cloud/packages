@@ -6,7 +6,7 @@
   with:
     repository: https://github.com/rwx-cloud/mint-update-leaves-testing.git
     ref: main
-    github-access-token: ${{ github-apps.rwx-cloud-bot.token }}
+    github-token: ${{ github-apps.rwx-cloud-bot.token }}
     label: "mint-leaves-test-${{ run.id }}"
     branch-prefix: "mint-leaves-test/${{ run.id }}/"
     rwx-file: tasks.yml
@@ -62,7 +62,7 @@
   with:
     repository: https://github.com/rwx-cloud/mint-update-leaves-testing.git
     ref: main
-    github-access-token: ${{ github-apps.rwx-cloud-bot.token }}
+    github-token: ${{ github-apps.rwx-cloud-bot.token }}
     label: "mint-leaves-test-${{ run.id }}"
     branch-prefix: "mint-leaves-test/${{ run.id }}/"
     rwx-file: tasks.yml
@@ -115,7 +115,7 @@
   with:
     repository: https://github.com/rwx-cloud/mint-update-leaves-testing.git
     ref: main
-    github-access-token: ${{ github-apps.rwx-cloud-bot.token }}
+    github-token: ${{ github-apps.rwx-cloud-bot.token }}
     label: "test-auto-merge-${{ run.id }}"
     branch-prefix: "test-auto-merge/${{ run.id }}/"
     rwx-file: tasks.yml

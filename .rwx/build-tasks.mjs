@@ -35,12 +35,20 @@ for (const file of (await glob("*/*/rwx-package.yml")).sort()) {
   const key = name.replace("/", "-");
   let buildDependencies = [];
   if (await exists(path.join(name, "build/dependencies.yml"))) {
-    buildDependencies = yaml.parse(await fs.readFile(path.join(name, "build/dependencies.yml"), { encoding: "utf8" }));
+    buildDependencies = yaml.parse(
+      await fs.readFile(path.join(name, "build/dependencies.yml"), {
+        encoding: "utf8",
+      }),
+    );
   }
 
   let config;
   if (await exists(path.join(name, "rwx-ci-cd.config.yml"))) {
-    config = yaml.parse(await fs.readFile(path.join(name, "rwx-ci-cd.config.yml"), { encoding: "utf8" }));
+    config = yaml.parse(
+      await fs.readFile(path.join(name, "rwx-ci-cd.config.yml"), {
+        encoding: "utf8",
+      }),
+    );
   }
 
   packages.push({
@@ -94,7 +102,8 @@ if (buildAll) {
   packages = packages.filter((leaf) => leavesToBuild.has(leaf.name));
 }
 
-const stringifyBase = (base) => `${base.os}-${base.arch}-${base.tag}`.replaceAll(/[^a-zA-Z0-9-]/g, "-");
+const stringifyBase = (base) =>
+  `${base.os}-${base.arch}-${base.tag}`.replaceAll(/[^a-zA-Z0-9-]/g, "-");
 
 const generateTestsTask = async (leaf) => {
   const artifacts = [];
@@ -103,7 +112,10 @@ const generateTestsTask = async (leaf) => {
   let leafTestTasks = [];
   const commands = [];
   const testConfigs = leaf.config?.tests ?? [];
-  if (testConfigs.length === 0 && (await exists(path.join(leaf.dir, "rwx-ci-cd.template.yml")))) {
+  if (
+    testConfigs.length === 0 &&
+    (await exists(path.join(leaf.dir, "rwx-ci-cd.template.yml")))
+  ) {
     testConfigs.push({
       key: stringifyBase(DEFAULT_BASE_LAYER),
       template: "rwx-ci-cd.template.yml",
@@ -140,7 +152,9 @@ const generateTestsTask = async (leaf) => {
     // Add the embedded run to the package's test tasks.
     commands.push(`cat <<'EOF' >> "$RWX_DYNAMIC_TASKS/${leaf.key}.yml"`);
     commands.push(`- key: test-${testConfig.key}`);
-    commands.push(`  call: \\\${{ tasks.generate-tests.artifacts.${testConfig.key} }}`);
+    commands.push(
+      `  call: \\\${{ tasks.generate-tests.artifacts.${testConfig.key} }}`,
+    );
     commands.push("");
     commands.push(`EOF`);
 
@@ -182,11 +196,12 @@ const generateLeafRun = async (leaf) => {
       },
       {
         key: "code",
-        call: "git/clone 1.8.1",
+        call: "git/clone 2.0.0",
         with: {
           "preserve-git-dir": true,
           repository: "https://github.com/rwx-cloud/packages.git",
           ref: "${{ init.sha }}",
+          "github-token": "${{ github['rwx-cloud'].token }}",
         },
       },
       {
@@ -200,7 +215,11 @@ const generateLeafRun = async (leaf) => {
       ...leaf.buildDependencies,
       {
         key: "build",
-        use: ["packages", "code", ...leaf.buildDependencies.map((dep) => dep.key)],
+        use: [
+          "packages",
+          "code",
+          ...leaf.buildDependencies.map((dep) => dep.key),
+        ],
         filter: [leaf.dir],
         run: `
           cd ${leaf.dir}
@@ -230,7 +249,8 @@ const generateLeafRun = async (leaf) => {
         env: {
           RWX_ACCESS_TOKEN: {
             "cache-key": "excluded",
-            value: "${{ vaults.mint_leaves_development.secrets.RWX_ACCESS_TOKEN }}",
+            value:
+              "${{ vaults.mint_leaves_development.secrets.RWX_ACCESS_TOKEN }}",
           },
         },
         run: `
@@ -286,4 +306,7 @@ const generateTask = {
   outputs: { artifacts },
 };
 
-await fs.writeFile(`${RWX_DYNAMIC_TASKS}/generate-task.yaml`, yaml.stringify([generateTask]));
+await fs.writeFile(
+  `${RWX_DYNAMIC_TASKS}/generate-task.yaml`,
+  yaml.stringify([generateTask]),
+);

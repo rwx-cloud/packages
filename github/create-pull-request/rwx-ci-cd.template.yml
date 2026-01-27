@@ -2,11 +2,11 @@
   call: github/install-cli 1.0.8
 
 - key: code
-  call: git/clone 1.8.1
+  call: git/clone 2.0.0
   with:
     repository: https://github.com/rwx-cloud/mint-update-leaves-testing.git
     ref: main
-    github-access-token: ${{ github-apps.rwx-cloud-bot.token }}
+    github-token: ${{ github-apps.rwx-cloud-bot.token }}
     preserve-git-dir: true
 
 - key: code-change
@@ -51,19 +51,19 @@
     pull-request-body: "pull request body ${{ tasks.code-change.values.nonce }}"
 
 - key: clone-branch-after-create
-  call: git/clone 1.8.1
+  call: git/clone 2.0.0
   with:
     repository: https://github.com/rwx-cloud/mint-update-leaves-testing.git
     ref: ${{ tasks.create-pr.values.branch }}
-    github-access-token: ${{ github-apps.rwx-cloud-bot.token }}
+    github-token: ${{ github-apps.rwx-cloud-bot.token }}
     preserve-git-dir: true
 
 - key: clone-branch-after-update
-  call: git/clone 1.8.1
+  call: git/clone 2.0.0
   with:
     repository: https://github.com/rwx-cloud/mint-update-leaves-testing.git
     ref: ${{ tasks.update-pr.values.branch }}
-    github-access-token: ${{ github-apps.rwx-cloud-bot.token }}
+    github-token: ${{ github-apps.rwx-cloud-bot.token }}
     preserve-git-dir: true
 
 - key: assert--create-pr
