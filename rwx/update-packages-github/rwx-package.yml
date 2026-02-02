@@ -1,5 +1,5 @@
 name: rwx/update-packages-github
-version: 2.0.0
+version: 2.0.1
 description: Update RWX packages for GitHub repositories
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/update-packages-github
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -34,7 +34,7 @@ parameters:
 
 tasks:
   - key: rwx-cli
-    call: rwx/install-cli 3.0.0
+    call: rwx/install-cli 4.0.1
 
   - key: gh-cli
     call: github/install-cli 1.0.8
@@ -67,7 +67,7 @@ tasks:
       RWX_FILE: ${{ params.rwx-file}}
 
   - key: create-or-update-pr
-    call: github/create-pull-request 1.0.2
+    call: github/create-pull-request 1.0.3
     use: update-packages
     with:
       github-token: ${{ params.github-token }}
