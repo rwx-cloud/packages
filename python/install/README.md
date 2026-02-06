@@ -1,13 +1,13 @@
 # python/install
 
-RWX currently supports Python versions 3.7.0 through 3.14.2. You'll need to specify `python-version`.
+RWX currently supports Python versions 3.7.0 through 3.14.3. You'll need to specify `python-version`.
 
 ```yaml
 tasks:
   - key: python
-    call: python/install 1.3.11
+    call: python/install 1.3.12
     with:
-      python-version: 3.14.2
+      python-version: 3.14.3
 ```
 
 You can optionally specify the version of `pip` to install:
@@ -15,9 +15,9 @@ You can optionally specify the version of `pip` to install:
 ```yaml
 tasks:
   - key: python
-    call: python/install 1.3.11
+    call: python/install 1.3.12
     with:
-      python-version: 3.14.2
+      python-version: 3.14.3
       pip-version: 25.0.1
 ```
 
@@ -26,9 +26,9 @@ And the version of `setuptools`:
 ```yaml
 tasks:
   - key: python
-    call: python/install 1.3.11
+    call: python/install 1.3.12
     with:
-      python-version: 3.14.2
+      python-version: 3.14.3
       pip-version: 25.0.1
       setuptools-version: 78.1.0
 ```
