@@ -21,7 +21,7 @@ parameters:
     description: "The ref to check out of the git repository"
     required: true
   meta-ref:
-    description: "The unresolved name of the ref being checked out (used to set RWX_GIT_REF_NAME). e.g. refs/heads/main or refs/tags/v1.0.0"
+    description: "Optional override for RWX_GIT_REF. This value is used as-is (for example refs/heads/main, refs/tags/v1.0.0, or main)."
     required: false
   repository:
     description: "The url of a git repository."

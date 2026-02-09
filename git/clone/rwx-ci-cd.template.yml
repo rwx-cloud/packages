@@ -249,6 +249,27 @@
 - key: git-clone--test-meta-ref-override--assert
   use: git-clone--test-meta-ref-override
   run: |
+    if [ "$RWX_GIT_REF" != "main" ]; then
+      echo "Expected RWX_GIT_REF to be main, got $RWX_GIT_REF"
+      exit 1
+    fi
+  env:
+    RWX_GIT_REF:
+      cache-key: included
+
+- key: git-clone--test-meta-ref-fully-qualified-override
+  call: $LEAF_DIGEST
+  use: system-packages
+  with:
+    repository: git@github.com:rwx-cloud/test-checkout-package.git
+    ref: v1
+    meta-ref: refs/heads/main
+    ssh-key: ${{ vaults.mint_leaves_development.secrets.CHECKOUT_LEAF_TEST_SSH_KEY }}
+    submodules: false
+
+- key: git-clone--test-meta-ref-fully-qualified-override--assert
+  use: git-clone--test-meta-ref-fully-qualified-override
+  run: |
     if [ "$RWX_GIT_REF" != "refs/heads/main" ]; then
       echo "Expected RWX_GIT_REF to be refs/heads/main, got $RWX_GIT_REF"
       exit 1
