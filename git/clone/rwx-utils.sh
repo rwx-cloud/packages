@@ -1,5 +1,5 @@
 #!/bin/sh
-# rwx-utils version 2.0.0
+# rwx-utils version 2.0.1
 
 detected_os=""
 detected_os_version=""
