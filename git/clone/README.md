@@ -151,9 +151,9 @@ The unresolved ref associated with the commit. `git/clone` attempts to determine
 
 The name of the unresolved ref associated with the commit. For example, given a `RWX_GIT_REF` of `refs/heads/main`, `RWX_GIT_REF_NAME` would be set to `main`.
 
-## v2.0.1 Changes
+## v2 Changes
 
-Version 2.0.1 introduces tool caching for faster incremental clones. The `.git` directory is now preserved in a tool cache between runs, meaning subsequent clones of the same repository become fast incremental fetches.
+v2 of `git/clone` introduces tool caching for faster incremental clones. The `.git` directory is now preserved in a tool cache between runs, meaning subsequent clones of the same repository become fast incremental fetches.
 
 ### What's New
 
