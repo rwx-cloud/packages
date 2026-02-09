@@ -81,6 +81,8 @@
     test -d .git
     test -e file-in-repo.txt
     git fetch
+    test "$(git config --local --get maintenance.auto)" = "false"
+    test "$(git config --local --get gc.auto)" = "0"
 
     GIT_EMAIL=$(git config user.email)
     GIT_USERNAME=$(git config user.name)
@@ -334,6 +336,8 @@
     test -e mint-leaves/file-in-repo.txt
     cd mint-leaves
     git fetch
+    test "$(git config --local --get maintenance.auto)" = "false"
+    test "$(git config --local --get gc.auto)" = "0"
 
     GIT_EMAIL=$(git config user.email)
     GIT_USERNAME=$(git config user.name)
