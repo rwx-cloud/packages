@@ -30,10 +30,14 @@ if [ -n "${CREDENTIAL_HELPER}" ]; then
   git config --local credential.helper "${CREDENTIAL_HELPER}"
 fi
 
+# Avoid background maintenance rewriting packfiles in incremental tool-cache runs.
+git config --local maintenance.auto false
+git config --local gc.auto 0
+
 if [ "${FETCH_FULL_DEPTH}" = "true" ] || [ "${PRESERVE_GIT_DIR}" = "true" ]; then
-  git fetch origin "${CHECKOUT_REF}"
+  git fetch --no-auto-gc origin "${CHECKOUT_REF}"
 else
-  git fetch --depth=1 origin "${RESOLVED_SHA}"
+  git fetch --no-auto-gc --depth=1 origin "${RESOLVED_SHA}"
 fi
 
 if [ "${FETCH_FULL_DEPTH}" = "true" ] || [ "${PRESERVE_GIT_DIR}" = "true" ]; then
