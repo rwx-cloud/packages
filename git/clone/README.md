@@ -31,7 +31,7 @@ tasks:
 
   - key: code
     use: system-packages
-    call: git/clone 2.0.0
+    call: git/clone 2.0.1
     with:
       repository: ...
 ```
@@ -41,7 +41,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.0.0
+    call: git/clone 2.0.1
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -67,7 +67,7 @@ If you're using GitHub, RWX will automatically provide a token that you can use 
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.0.0
+    call: git/clone 2.0.1
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -79,7 +79,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.0.0
+    call: git/clone 2.0.1
     with:
       repository: git@github.com:YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -97,7 +97,7 @@ If you need to reference one of these to alter behavior of a task, be sure to in
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.0.0
+    call: git/clone 2.0.1
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -142,7 +142,7 @@ The committer email associated with the resolved commit.
 
 The unresolved ref associated with the commit. `git/clone` attempts to determine this for you, but in some scenarios you may want to specify. The logic is as follows:
 
-- If you have provided the `meta-ref` parameter, we'll use that (note: you can specify the fully qualified ref including its `refs/heads/` or `refs/tags/` prefix, or you can specify only the short name)
+- If you have provided the `meta-ref` parameter, we'll use that exact value as-is for `RWX_GIT_REF` (you can specify a fully qualified ref like `refs/heads/main` or `refs/tags/v1`, or a short name like `main` or `v1`)
 - If you provide a commit sha to the `ref` parameter, we'll try to find a branch or tag with that commit at HEAD
 - If you provide a branch or tag to the `ref` parameter, we'll use that (again, you can provide a fully qualified ref or short ref name)
 - If no other case catches your ref, we'll use the resolved commit sha
@@ -151,9 +151,9 @@ The unresolved ref associated with the commit. `git/clone` attempts to determine
 
 The name of the unresolved ref associated with the commit. For example, given a `RWX_GIT_REF` of `refs/heads/main`, `RWX_GIT_REF_NAME` would be set to `main`.
 
-## v2.0.0 Changes
+## v2 Changes
 
-Version 2.0.0 introduces tool caching for faster incremental clones. The `.git` directory is now preserved in a tool cache between runs, meaning subsequent clones of the same repository become fast incremental fetches.
+v2 of `git/clone` introduces tool caching for faster incremental clones. The `.git` directory is now preserved in a tool cache between runs, meaning subsequent clones of the same repository become fast incremental fetches.
 
 ### What's New
 
@@ -172,7 +172,7 @@ For most usage, it's as easy as:
 tasks:
   - key: code
 -    call: git/clone 1.9.5
-+    call: git/clone 2.0.0
++    call: git/clone 2.0.1
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
