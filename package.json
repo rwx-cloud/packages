@@ -5,7 +5,7 @@
     "spellcheck": "cspell **/*.md"
   },
   "dependencies": {
-    "cspell": "^8.1.3",
+    "cspell": "^9.0.0",
     "glob": "^11.0.0",
     "yaml": "^2.6.1"
   }
