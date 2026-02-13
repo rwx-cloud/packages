@@ -31,7 +31,7 @@ tasks:
 
   - key: code
     use: system-packages
-    call: git/clone 2.0.2
+    call: git/clone 2.0.3
     with:
       repository: ...
 ```
@@ -41,7 +41,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.0.2
+    call: git/clone 2.0.3
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -67,7 +67,7 @@ If you're using GitHub, RWX will automatically provide a token that you can use 
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.0.2
+    call: git/clone 2.0.3
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -79,7 +79,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.0.2
+    call: git/clone 2.0.3
     with:
       repository: git@github.com:YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -97,7 +97,7 @@ If you need to reference one of these to alter behavior of a task, be sure to in
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.0.2
+    call: git/clone 2.0.3
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -172,7 +172,7 @@ For most usage, it's as easy as:
 tasks:
   - key: code
 -    call: git/clone 1.9.5
-+    call: git/clone 2.0.2
++    call: git/clone 2.0.3
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
