@@ -166,8 +166,8 @@ printf '%s' "${CHECKOUT_REPOSITORY}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REP
 printf '%s' "${CHECKOUT_REPOSITORY}" | tr ':' '/' | rev | cut -d '/' -f1,2 | rev | sed 's/\.git$//' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REPOSITORY_NAME"
 
 commit_message=$(git log -n 1 --pretty=format:%B)
-printf '%s' "${commit_message}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMIT_MESSAGE"
-printf '%s' "${commit_message}" | head -n 1 | tr -d '\n' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMIT_SUMMARY"
+printf '%s' "${commit_message}" | head -c 1024 >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMIT_MESSAGE"
+printf '%s' "${commit_message}" | head -n 1 | tr -d '\n' | head -c 1024 >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMIT_SUMMARY"
 
 committer_name=$(git log -n 1 --pretty=format:%an)
 printf '%s' "${committer_name}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_COMMITTER_NAME"
