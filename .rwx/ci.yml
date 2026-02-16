@@ -34,7 +34,7 @@ tasks:
       sudo apt-get clean
 
   - key: checkout
-    call: git/clone 2.0.0
+    call: git/clone 2.0.3
     with:
       preserve-git-dir: true
       repository: https://github.com/rwx-cloud/packages.git
