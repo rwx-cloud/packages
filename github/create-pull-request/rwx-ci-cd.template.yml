@@ -1,6 +1,19 @@
 - key: gh-cli
   call: github/install-cli 1.0.8
 
+- key: cleanup-previous-run
+  use: gh-cli
+  run: |
+    branch="${RUN_ID}-${RUN_ID}"
+    existing_pr=$(gh --repo rwx-cloud/mint-update-leaves-testing pr list --head "$branch" --json number --jq '.[0].number')
+    if [ -n "$existing_pr" ]; then
+      echo "Closing leftover PR #$existing_pr from previous failed attempt"
+      gh --repo rwx-cloud/mint-update-leaves-testing pr close "$existing_pr" --delete-branch || true
+    fi
+  env:
+    GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
+    RUN_ID: ${{ run.id }}
+
 - key: code
   call: git/clone 2.0.0
   with:
@@ -32,6 +45,7 @@
     touch "$file"
 
 - key: create-pr
+  after: cleanup-previous-run
   call: $LEAF_DIGEST
   use: code-change
   with:
