@@ -11,6 +11,10 @@ with repository permissions for:
 - Contents: read and write
 - Pull Requests: read and write
 
+To use the `labels` parameter, the app also needs:
+
+- Issues: read and write (required to add labels)
+
 ## Instructions
 
 - Clone a git repository using the [git/clone](https://www.rwx.com/docs/mint/leaves/git/clone) package. Remember to pass `preserve-git-dir: true`.
@@ -55,11 +59,12 @@ tasks:
     run: rwx packages update | tee $RWX_VALUES/update-output
 
   - key: create-pull-request
-    call: github/create-pull-request 1.0.3
+    call: github/create-pull-request 1.1.0
     use: [update-packages]
     with:
       github-token: ${{ github-apps.your-orgs-bot.token }}
       branch-prefix: rwx-packages-update
       pull-request-title: Update RWX packages
       pull-request-body: "```\n${{ tasks.update-packages.values.update-output }}\n```"
+      labels: dependencies,automated
 ```

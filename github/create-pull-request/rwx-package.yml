@@ -1,5 +1,5 @@
 name: github/create-pull-request
-version: 1.0.3
+version: 1.1.0
 description: Creates a pull request
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/create-pull-request
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -17,6 +17,9 @@ parameters:
   pull-request-body:
     description: "The body to use for the pull request"
     required: true
+  labels:
+    description: "Comma-separated list of labels to add to the pull request"
+    required: false
 
 outputs:
   values-from: [create-or-update-pull-request]
@@ -59,10 +62,26 @@ tasks:
       git checkout -b "$branch"
       git push -f origin "$branch"
 
+      # Create labels if they don't exist
+      if [ -n "$LABELS" ]; then
+        echo "$LABELS" | tr ',' '\n' | while read -r label; do
+          label=$(echo "$label" | xargs)  # trim whitespace
+          gh label create "$label" || true
+        done
+      fi
+
       if [ "$need_to_create_pr" = "true" ]; then
-        gh pr create --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY"
+        label_args=""
+        if [ -n "$LABELS" ]; then
+          label_args="--label $LABELS"
+        fi
+        gh pr create --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY" $label_args
       else
-        gh pr edit --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY"
+        label_args=""
+        if [ -n "$LABELS" ]; then
+          label_args="--add-label $LABELS"
+        fi
+        gh pr edit --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY" $label_args
       fi
 
       pr_details=$(gh pr view "$branch" --json number,url)
@@ -71,5 +90,6 @@ tasks:
     env:
       BRANCH_PREFIX: ${{ params.branch-prefix }}
       GITHUB_TOKEN: ${{ params.github-token }}
+      LABELS: ${{ params.labels }}
       PULL_REQUEST_TITLE: ${{ params.pull-request-title }}
       PULL_REQUEST_BODY: ${{ params.pull-request-body }}
