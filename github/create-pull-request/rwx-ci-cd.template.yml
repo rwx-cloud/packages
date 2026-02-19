@@ -1,6 +1,19 @@
 - key: gh-cli
   call: github/install-cli 1.0.8
 
+- key: cleanup-previous-run
+  use: gh-cli
+  run: |
+    branch="${RUN_ID}-${RUN_ID}"
+    existing_pr=$(gh --repo rwx-cloud/mint-update-leaves-testing pr list --head "$branch" --json number --jq '.[0].number')
+    if [ -n "$existing_pr" ]; then
+      echo "Closing leftover PR #$existing_pr from previous failed attempt"
+      gh --repo rwx-cloud/mint-update-leaves-testing pr close "$existing_pr" --delete-branch || true
+    fi
+  env:
+    GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
+    RUN_ID: ${{ run.id }}
+
 - key: code
   call: git/clone 2.0.0
   with:
@@ -32,6 +45,7 @@
     touch "$file"
 
 - key: create-pr
+  after: cleanup-previous-run
   call: $LEAF_DIGEST
   use: code-change
   with:
@@ -39,6 +53,7 @@
     branch-prefix: ${{ run.id }}
     pull-request-title: "pull request title ${{ tasks.code-change.values.nonce }}"
     pull-request-body: "pull request body ${{ tasks.code-change.values.nonce }}"
+    labels: test-label
 
 - key: update-pr
   after: assert--create-pr
@@ -49,6 +64,7 @@
     branch-prefix: ${{ run.id }}
     pull-request-title: "pull request title ${{ tasks.code-change.values.nonce }}"
     pull-request-body: "pull request body ${{ tasks.code-change.values.nonce }}"
+    labels: test-label-2
 
 - key: clone-branch-after-create
   call: git/clone 2.0.0
@@ -73,7 +89,7 @@
     echo "Checking for added file"
     test -f ${{ tasks.code-change.values.file }}
 
-    pr_details=$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json body,title,commits)
+    pr_details=$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json body,title,commits,labels)
     echo "$pr_details"
 
     pr_title=$(echo "$pr_details" | jq -r '.title')
@@ -85,6 +101,13 @@
     commit_count="$(echo "$pr_details" | jq '.commits | length')"
     if [ "$commit_count" != 1 ]; then
       echo "PR #${PR_NUMBER} has $commit_count commits, expected 1"
+      exit 1
+    fi
+
+    echo "Checking for labels"
+    has_test_label=$(echo "$pr_details" | jq '[.labels[].name] | contains(["test-label"])')
+    if [ "$has_test_label" != "true" ]; then
+      echo "PR #${PR_NUMBER} does not have expected label 'test-label'"
       exit 1
     fi
   env:
@@ -101,7 +124,7 @@
     echo "Checking for file added in update"
     test -f ${{ tasks.code-change2.values.file }}
 
-    pr_details=$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json body,title,commits)
+    pr_details=$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json body,title,commits,labels)
     echo "$pr_details"
 
     pr_title=$(echo "$pr_details" | jq -r '.title')
@@ -118,6 +141,14 @@
 
     echo "Checking for updated PR"
     test "${{ tasks.create-pr.values.pull-request-number }}" = "${{ tasks.update-pr.values.pull-request-number }}"
+
+    echo "Checking for labels after update"
+    has_labels=$(echo "$pr_details" | jq '[.labels[].name] | contains(["test-label", "test-label-2"])')
+    if [ "$has_labels" != "true" ]; then
+      echo "PR #${PR_NUMBER} does not have expected labels 'test-label' and 'test-label-2'"
+      echo "Labels found: $(echo "$pr_details" | jq '[.labels[].name]')"
+      exit 1
+    fi
   env:
     GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
     PR_NUMBER: ${{ tasks.create-pr.values.pull-request-number }}
