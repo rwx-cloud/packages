@@ -107,6 +107,10 @@
 - key: verify--headed-chrome-works
   use: [test--headed-and-headless-chrome-works--install-chrome, test--headed-and-headless-chrome-works--install-ruby]
   run: |
+    # Workaround: ruby/install 1.2.13 overwrites $HOME ownership (fixed in 1.2.18+)
+    sudo chown "$(id -u):$(id -g)" "$HOME"
+    sudo chown -R "$(id -u):$(id -g)" "$HOME/.rubies"
+
     cat << EOF > Gemfile
     source "https://rubygems.org"
 
@@ -139,6 +143,10 @@
 - key: verify--headless-chrome-works
   use: [test--headed-and-headless-chrome-works--install-chrome, test--headed-and-headless-chrome-works--install-ruby]
   run: |
+    # Workaround: ruby/install 1.2.13 overwrites $HOME ownership (fixed in 1.2.18+)
+    sudo chown "$(id -u):$(id -g)" "$HOME"
+    sudo chown -R "$(id -u):$(id -g)" "$HOME/.rubies"
+
     cat << EOF > Gemfile
     source "https://rubygems.org"
 

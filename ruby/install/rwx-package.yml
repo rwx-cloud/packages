@@ -1,5 +1,5 @@
 name: ruby/install
-version: 1.2.17
+version: 1.2.18
 description: Install Ruby, a dynamic programming language with a focus on simplicity and productivity
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/ruby/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -118,6 +118,8 @@ tasks:
       echo "run/docker.sock" >> exclude.txt
       echo "usr/sbin/docker-init" >> exclude.txt
       sudo tar -C / -xf layer.tar -X exclude.txt
+      sudo chown "$(id -u):$(id -g)" "$HOME"
+      sudo chown -R "$(id -u):$(id -g)" "$HOME/.rubies"
 
       echo "Extracted Ruby $RUBY_VERSION!"
 

@@ -1,5 +1,5 @@
 name: rwx/install-cli
-version: 4.0.1
+version: 4.0.2
 description: Install the RWX CLI
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/install-cli
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
