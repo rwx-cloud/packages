@@ -118,6 +118,8 @@ tasks:
       echo "run/docker.sock" >> exclude.txt
       echo "usr/sbin/docker-init" >> exclude.txt
       sudo tar -C / -xf layer.tar -X exclude.txt
+      sudo chown "$(id -u):$(id -g)" "$HOME"
+      sudo chown -R "$(id -u):$(id -g)" "$HOME/.rubies"
 
       echo "Extracted Ruby $RUBY_VERSION!"
 
