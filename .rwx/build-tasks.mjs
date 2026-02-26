@@ -16,8 +16,8 @@ let packages = [];
 const leafDirs = new Set();
 const leavesToBuild = new Set();
 const DEFAULT_BASE_LAYER = {
-  os: "ubuntu 24.04",
-  tag: "1.1",
+  image: "ubuntu:24.04",
+  config: "rwx/base 1.0.0",
   arch: "x86_64",
 };
 
@@ -103,7 +103,7 @@ if (buildAll) {
 }
 
 const stringifyBase = (base) =>
-  `${base.os}-${base.arch}-${base.tag}`.replaceAll(/[^a-zA-Z0-9-]/g, "-");
+  `${base.image}-${base.arch}`.replaceAll(/[^a-zA-Z0-9-]/g, "-");
 
 const generateTestsTask = async (leaf) => {
   const artifacts = [];
