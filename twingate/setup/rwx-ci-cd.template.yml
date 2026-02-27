@@ -7,8 +7,6 @@
   use: twingate--setup--test-default
   background-processes:
     - key: twingate
-      run: |
-        sudo mkdir -p /run/twingate /var/lib/twingate
-        sudo /usr/sbin/twingated
+      run: sudo twingate start
       ready-check: twingate status | grep online
   run: twingate status | grep online
