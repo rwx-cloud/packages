@@ -34,7 +34,7 @@ tasks:
       sudo apt-get clean
 
   - key: checkout
-    call: git/clone 2.0.3
+    call: git/clone 2.0.4
     with:
       preserve-git-dir: true
       repository: https://github.com/rwx-cloud/packages.git
@@ -49,7 +49,7 @@ tasks:
 
   - key: node
     use: [checkout, tool-versions]
-    call: nodejs/install 1.1.11
+    call: nodejs/install 1.1.12
     with:
       node-version: ${{ tasks.tool-versions.values.nodejs }}
     filter:
