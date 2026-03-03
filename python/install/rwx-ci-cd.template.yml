@@ -7,7 +7,7 @@
   use: install-3-14-3
   run: |
     python --version | grep 'Python 3\.14\.3'
-    pip --version | grep 'pip 25\.2 '
+    pip --version | grep 'pip 25\.3 '
 
 - key: install-3-14-3--test-pip-install
   use: install-3-14-3
@@ -25,7 +25,7 @@
   use: install-3-12-12
   run: |
     python --version | grep 'Python 3\.12\.12'
-    pip --version | grep 'pip 24\.3\.1'
+    pip --version | grep 'pip 25\.0\.1'
 
 - key: install-3-12-12--test-pip-install
   use: install-3-12-12
