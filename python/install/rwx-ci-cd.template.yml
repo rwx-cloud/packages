@@ -16,19 +16,19 @@
     which virtualenv
     virtualenv --version
 
-- key: install-3-12-12
+- key: install-3-12-13
   call: $LEAF_DIGEST
   with:
-    python-version: 3.12.12
+    python-version: 3.12.13
 
-- key: install-3-12-12--assert
-  use: install-3-12-12
+- key: install-3-12-13--assert
+  use: install-3-12-13
   run: |
-    python --version | grep 'Python 3\.12\.12'
+    python --version | grep 'Python 3\.12\.13'
     pip --version | grep 'pip 25\.0\.1'
 
-- key: install-3-12-12--test-pip-install
-  use: install-3-12-12
+- key: install-3-12-13--test-pip-install
+  use: install-3-12-13
   run: |
     pip install virtualenv
     which virtualenv
