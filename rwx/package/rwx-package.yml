@@ -32,7 +32,7 @@ tasks:
         echo "Setting timestamp on files to $TIMESTAMP"
         find "$DIRECTORY" -exec touch -t "$TIMESTAMP" {} \;
       fi
-      cd "$DIRECTORY" && zip -X -r "$HOME/package.zip" .
+      cd "$DIRECTORY" && zip -X -r "$RWX_WORKSPACE/package.zip" .
     env:
       DIRECTORY: ${{ params.directory }}
       TIMESTAMP: ${{ params.timestamp }}
@@ -51,6 +51,8 @@ tasks:
       digest=$(jq -r '.digest' result.json)
       echo "Uploaded package with digest: $digest"
       echo -n "$digest" > "$RWX_VALUES/digest"
+    filter:
+      - package.zip
     env:
       RWX_ACCESS_TOKEN:
         cache-key: excluded

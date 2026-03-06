@@ -1,0 +1,66 @@
+on:
+  cli:
+    init:
+      sha: ${{ event.git.sha }}
+base:
+  image: ubuntu:24.04
+  config: rwx/base 1.0.0
+
+tasks:
+  - key: code
+    call: git/clone 2.0.3
+    with:
+      preserve-git-dir: true
+      repository: https://github.com/rwx-cloud/packages.git
+      ref: ${{ init.sha }}
+      github-token: ${{ github['rwx-cloud'].token }}
+
+  - key: timestamp
+    use: code
+    run: |
+      latest_timestamp=$(git ls-files -z $DIRECTORY | xargs -0 -n1 -I{} -- git log -1 --date=format:"%Y%m%d%H%M" --format="%ad" {} | sort | tail -n 1)
+      echo -n "$latest_timestamp" | tee $RWX_VALUES/timestamp
+    env:
+      DIRECTORY: ${{ init.directory }}
+
+  - key: build
+    use: code
+    run: |
+      cd $DIRECTORY
+      if [[ -f build/run.sh ]]; then
+        echo "Running build script"
+        ./build/run.sh
+      else
+        echo "No build script"
+      fi
+    env:
+      DIRECTORY: ${{ init.directory }}
+
+  - key: package
+    use: [build, timestamp]
+    call: dd4f85ab3557afcfcb02d399a2ad115cc0777653ab4dd089da491b3c8ddd803f
+    with:
+      directory: ${{ init.directory }}
+      rwx-access-token: ${{ vaults.mint_leaves_development.secrets.RWX_ACCESS_TOKEN }}
+      timestamp: ${{ tasks.timestamp.values.timestamp }}
+
+  - key: generate-test
+    use: [code, package]
+    run: |
+      if [[ ! -f "$DIRECTORY/rwx-test.yml" ]]; then
+        echo "No rwx-test.yml found, skipping tests"
+        exit 0
+      fi
+      cp "$DIRECTORY/rwx-test.yml" test-run.yml
+    env:
+      DIRECTORY: ${{ init.directory }}
+    outputs:
+      artifacts:
+        - key: test-run
+          path: test-run.yml
+
+  - key: test
+    call: ${{ tasks.generate-test.artifacts.test-run }}
+    after: generate-test
+    init:
+      package-digest: ${{ tasks.package.values.digest }}

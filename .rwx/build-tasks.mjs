@@ -62,45 +62,9 @@ for (const file of (await glob("*/*/rwx-package.yml")).sort()) {
   leafDirs.add(name);
 }
 
-let buildAll = false;
-const filesNotToTriggerBuildAll = ["cspell.yaml"];
-
-for (const line of (await fs.readFile(GIT_DIFF_FILE, "utf8")).split("\n")) {
-  if (line === "") {
-    continue;
-  }
-
-  const foundNonLeafFile = () => {
-    console.log(`Found non-leaf file in diff: ${line}`);
-    buildAll = true;
-  };
-
-  if (line.split("/").length >= 2) {
-    const leafName = line.split("/").slice(0, 2).join("/");
-    if (leafDirs.has(leafName)) {
-      leavesToBuild.add(leafName);
-    } else {
-      foundNonLeafFile();
-      break;
-    }
-  } else {
-    if (filesNotToTriggerBuildAll.includes(line)) {
-      continue;
-    } else {
-      foundNonLeafFile();
-      break;
-    }
-  }
-}
-
-if (buildAll) {
-  console.log("Building all packages");
-} else {
-  console.log("Only building packages with changes:");
-  leavesToBuild.forEach((leaf) => console.log(leaf));
-
-  packages = packages.filter((leaf) => leavesToBuild.has(leaf.name));
-}
+// HACK: only build rwx/package regardless of git diff
+console.log("HACK: Only building rwx/package");
+packages = packages.filter((leaf) => leaf.name === "rwx/package");
 
 const stringifyBase = (base) =>
   `${base.image}-${base.arch}`.replaceAll(/[^a-zA-Z0-9-]/g, "-");
