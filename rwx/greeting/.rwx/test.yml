@@ -1,0 +1,9 @@
+base:
+  image: ubuntu:24.04
+  config: rwx/base 1.0.0
+
+tasks:
+  - key: test
+    call: ${{ init.package-digest }}
+    with:
+      name: world

@@ -38,7 +38,7 @@ tasks:
 
   - key: package
     use: [build, timestamp]
-    call: 632320e14cc81ef62778dfcbf6a045e5c0aae7e05dae11a80321aa6e86ebcf12
+    call: b8d4018514b9861ed5004055c6372b0009381de8660459e52deebdd1e6ea9e69
     with:
       directory: ${{ init.directory }}
       rwx-access-token: ${{ vaults.mint_leaves_development.secrets.RWX_ACCESS_TOKEN }}
@@ -47,11 +47,11 @@ tasks:
   - key: generate-test
     use: [code, package]
     run: |
-      if [[ ! -f "$DIRECTORY/rwx-test.yml" ]]; then
-        echo "No rwx-test.yml found, skipping tests"
+      if [[ ! -f "$DIRECTORY/.rwx/test.yml" ]]; then
+        echo "No .rwx/test.yml found, skipping tests"
         exit 0
       fi
-      cp "$DIRECTORY/rwx-test.yml" test-run.yml
+      cp "$DIRECTORY/.rwx/test.yml" test-run.yml
     env:
       DIRECTORY: ${{ init.directory }}
     outputs:
