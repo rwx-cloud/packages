@@ -32,7 +32,8 @@ tasks:
         echo "Setting timestamp on files to $TIMESTAMP"
         find "$DIRECTORY" -exec touch -t "$TIMESTAMP" {} \;
       fi
-      cd "$DIRECTORY" && zip -X -r "$RWX_WORKSPACE/package.zip" .
+      workspace=$(pwd)
+      cd "$DIRECTORY" && zip -X -r "$workspace/package.zip" .
     env:
       DIRECTORY: ${{ params.directory }}
       TIMESTAMP: ${{ params.timestamp }}

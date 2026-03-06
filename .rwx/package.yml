@@ -38,7 +38,7 @@ tasks:
 
   - key: package
     use: [build, timestamp]
-    call: dd4f85ab3557afcfcb02d399a2ad115cc0777653ab4dd089da491b3c8ddd803f
+    call: 632320e14cc81ef62778dfcbf6a045e5c0aae7e05dae11a80321aa6e86ebcf12
     with:
       directory: ${{ init.directory }}
       rwx-access-token: ${{ vaults.mint_leaves_development.secrets.RWX_ACCESS_TOKEN }}
