@@ -6,16 +6,18 @@ tasks:
   - key: code
     call: git/clone 2.0.3
     with:
-      preserve-git-dir: true
       repository: https://github.com/rwx-cloud/packages.git
       ref: ${{ init.sha }}
-      github-token: ${{ github['rwx-cloud'].token }}
+      preserve-git-dir: true
 
   - key: timestamp
     use: code
     run: |
       latest_timestamp=$(git ls-files -z $DIRECTORY | xargs -0 -n1 -I{} -- git log -1 --date=format:"%Y%m%d%H%M" --format="%ad" {} | sort | tail -n 1)
       echo -n "$latest_timestamp" | tee $RWX_VALUES/timestamp
+    filter:
+      - .git
+      - ${{ init.directory }}
     env:
       DIRECTORY: ${{ init.directory }}
 
@@ -29,11 +31,13 @@ tasks:
       else
         echo "No build script"
       fi
+    filter:
+      - ${{ init.directory }}
     env:
       DIRECTORY: ${{ init.directory }}
 
   - key: package
-    use: [build, timestamp]
+    use: [build]
     call: d2bb517b1d8aeba18543229ac45446d2518e9fbc1a99bcf8bf1cbfa1a374fa1b
     with:
       directory: ${{ init.directory }}
@@ -41,7 +45,7 @@ tasks:
       timestamp: ${{ tasks.timestamp.values.timestamp }}
 
   - key: generate-test
-    use: [code, package]
+    use: [code]
     run: |
       if [[ -f "$DIRECTORY/rwx-test-base.json" ]]; then
         cat "$DIRECTORY/rwx-test-base.json" | tee $RWX_VALUES/base-images
@@ -49,6 +53,8 @@ tasks:
         echo '[{"image": "ubuntu:24.04", "config": "rwx/base 1.0.0"}]' | tee $RWX_VALUES/base-images
       fi
       cp "$DIRECTORY/rwx-test.yml" test-run.yml
+    filter:
+      - ${{ init.directory }}
     env:
       DIRECTORY: ${{ init.directory }}
     outputs:
