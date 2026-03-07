@@ -1,3 +1,9 @@
+on:
+  cli:
+    init:
+      sha: ${{ event.git.sha }}
+      publish: false
+
 base:
   image: ubuntu:24.04
   config: rwx/base 1.0.0
@@ -50,7 +56,7 @@ tasks:
       if [[ -f "$DIRECTORY/rwx-test-base.json" ]]; then
         cat "$DIRECTORY/rwx-test-base.json" | tee $RWX_VALUES/base-images
       else
-        echo '[{"image": "ubuntu:24.04", "config": "rwx/base 1.0.0"}]' | tee $RWX_VALUES/base-images
+        echo '[{"image": "ubuntu:24.04", "config": "rwx/base 1.0.0", "arch": "x86_64"}]' | tee $RWX_VALUES/base-images
       fi
       cp "$DIRECTORY/rwx-test.yml" test-run.yml
     filter:
@@ -70,6 +76,7 @@ tasks:
       package-digest: ${{ tasks.package.values.digest }}
       base-image: ${{ parallel.image }}
       base-config: ${{ parallel.config }}
+      base-arch: ${{ parallel.arch }}
 
   - key: publish
     if: ${{ init.publish }}
