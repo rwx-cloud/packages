@@ -7,7 +7,7 @@ tasks:
     call: git/clone 2.0.3
     with:
       repository: https://github.com/rwx-cloud/packages.git
-      ref: main
+      ref: dan/package
 
   - key: test
     use: code
