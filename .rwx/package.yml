@@ -1,9 +1,3 @@
-on:
-  cli:
-    init:
-      sha: ${{ event.git.sha }}
-      publish: false
-
 base:
   image: ubuntu:24.04
   config: rwx/base 1.0.0
@@ -40,7 +34,7 @@ tasks:
 
   - key: package
     use: [build, timestamp]
-    call: d2bb517b1d8aeba18543229ac45446d2518e9fbc1a99bcf8bf1cbfa1a374fa1b
+    call: rwx/package 1.0.0
     with:
       directory: ${{ init.directory }}
       rwx-access-token: ${{ vaults.mint_leaves_development.secrets.RWX_ACCESS_TOKEN }}
@@ -49,7 +43,11 @@ tasks:
   - key: generate-test
     use: [code, package]
     run: |
-      echo '[{"image": "ubuntu:24.04", "config": "rwx/base 1.0.0"}]' | tee $RWX_VALUES/base-images
+      if [[ -f "$DIRECTORY/rwx-test-base.json" ]]; then
+        cat "$DIRECTORY/rwx-test-base.json" | tee $RWX_VALUES/base-images
+      else
+        echo '[{"image": "ubuntu:24.04", "config": "rwx/base 1.0.0"}]' | tee $RWX_VALUES/base-images
+      fi
       cp "$DIRECTORY/.rwx/test.yml" test-run.yml
     env:
       DIRECTORY: ${{ init.directory }}
