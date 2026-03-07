@@ -27,12 +27,6 @@ base:
   config: rwx/base 1.0.0
 
 tasks:
-  - key: system-packages
-    run: |
-      sudo apt-get update
-      sudo apt-get install gettext-base jq zip
-      sudo apt-get clean
-
   - key: checkout
     call: git/clone 2.0.3
     with:
@@ -90,7 +84,7 @@ tasks:
       - "**/rwx-package.yml"
 
   - key: detect-changes
-    use: [checkout, system-packages]
+    use: [checkout]
     run: |
       git fetch origin $UNQUALIFIED_BASE_REF
       changed_files=$(git diff --name-only $QUALIFIED_BASE_REF $SHA)
