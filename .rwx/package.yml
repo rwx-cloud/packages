@@ -34,7 +34,7 @@ tasks:
 
   - key: package
     use: [build, timestamp]
-    call: rwx/package 1.0.0
+    call: d2bb517b1d8aeba18543229ac45446d2518e9fbc1a99bcf8bf1cbfa1a374fa1b
     with:
       directory: ${{ init.directory }}
       rwx-access-token: ${{ vaults.mint_leaves_development.secrets.RWX_ACCESS_TOKEN }}
@@ -48,7 +48,7 @@ tasks:
       else
         echo '[{"image": "ubuntu:24.04", "config": "rwx/base 1.0.0"}]' | tee $RWX_VALUES/base-images
       fi
-      cp "$DIRECTORY/.rwx/test.yml" test-run.yml
+      cp "$DIRECTORY/rwx-test.yml" test-run.yml
     env:
       DIRECTORY: ${{ init.directory }}
     outputs:
