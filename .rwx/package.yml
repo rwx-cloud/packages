@@ -2,6 +2,8 @@ on:
   cli:
     init:
       sha: ${{ event.git.sha }}
+      publish: false
+
 base:
   image: ubuntu:24.04
   config: rwx/base 1.0.0
@@ -38,7 +40,7 @@ tasks:
 
   - key: package
     use: [build, timestamp]
-    call: b8d4018514b9861ed5004055c6372b0009381de8660459e52deebdd1e6ea9e69
+    call: d2bb517b1d8aeba18543229ac45446d2518e9fbc1a99bcf8bf1cbfa1a374fa1b
     with:
       directory: ${{ init.directory }}
       rwx-access-token: ${{ vaults.mint_leaves_development.secrets.RWX_ACCESS_TOKEN }}
@@ -47,10 +49,7 @@ tasks:
   - key: generate-test
     use: [code, package]
     run: |
-      if [[ ! -f "$DIRECTORY/.rwx/test.yml" ]]; then
-        echo "No .rwx/test.yml found, skipping tests"
-        exit 0
-      fi
+      echo '[{"image": "ubuntu:24.04", "config": "rwx/base 1.0.0"}]' | tee $RWX_VALUES/base-images
       cp "$DIRECTORY/.rwx/test.yml" test-run.yml
     env:
       DIRECTORY: ${{ init.directory }}
@@ -61,6 +60,26 @@ tasks:
 
   - key: test
     call: ${{ tasks.generate-test.artifacts.test-run }}
-    after: generate-test
+    parallel:
+      values: ${{ tasks.generate-test.values.base-images }}
     init:
       package-digest: ${{ tasks.package.values.digest }}
+      base-image: ${{ parallel.image }}
+      base-config: ${{ parallel.config }}
+
+  - key: publish
+    if: ${{ init.publish }}
+    after: test
+    run: |
+      curl \
+        --request POST \
+        --fail-with-body \
+        --header "Authorization: Bearer $RWX_ACCESS_TOKEN" \
+        --header 'Accept: application/json' \
+        --header 'Content-Type: application/json' \
+        --data '{ "digest": "${{ tasks.package.values.digest }}" }' \
+        https://cloud.rwx.com/mint/api/leaves/publish
+    env:
+      RWX_ACCESS_TOKEN:
+        cache-key: excluded
+        value: ${{ vaults.mint_leaves_development.secrets.RWX_ACCESS_TOKEN }}

@@ -3,6 +3,14 @@ base:
   config: rwx/base 1.0.0
 
 tasks:
+  - key: cat-base-config
+    run: |
+      echo "Image is $IMAGE"
+      echo "Config is $CONFIG"
+    env:
+      IMAGE: ${{ init.base-image }}
+      CONFIG: ${{ init.base-config }}
+
   - key: test
     call: ${{ init.package-digest }}
     with:
