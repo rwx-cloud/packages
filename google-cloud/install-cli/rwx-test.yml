@@ -1,0 +1,32 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: test-default
+    call: ${{ init.package-digest }}
+
+  - key: test-default--assert
+    use: test-default
+    run: gcloud --version | grep '^Google Cloud SDK [0-9.]\+$'
+
+  - key: test-specified
+    call: ${{ init.package-digest }}
+    with:
+      cli-version: "462.0.1"
+  - key: test-specified--assert
+    use: test-specified
+    run: gcloud --version | grep '^Google Cloud SDK 462.0.1$'
+
+  - key: test-components
+    call: ${{ init.package-digest }}
+    with:
+      components: "bigtable cloud-sql-proxy"
+  - key: test-components--assert
+    use: test-components
+    run: |
+      component_output=$(gcloud components list --only-local-state)
+      echo "$component_output"
+      echo "$component_output" | grep 'bigtable'
+      echo "$component_output" | grep 'cloud-sql-proxy'
