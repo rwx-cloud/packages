@@ -104,7 +104,7 @@ tasks:
       UNQUALIFIED_BASE_REF: ${{ init.unqualified-base-ref }}
       SHA: ${{ init.sha }}
 
-  - key: build-and-test
+  - key: packages
     call: ${{ run.dir }}/package.yml
     parallel:
       values: ${{ tasks.detect-changes.values.packages }}
