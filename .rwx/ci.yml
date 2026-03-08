@@ -22,6 +22,9 @@ concurrency-pools:
     capacity: 1
     on-overflow: cancel-running
 
+tool-cache:
+  vault: rwx-packages-main
+
 base:
   image: ubuntu:24.04
   config: rwx/base 1.0.0
