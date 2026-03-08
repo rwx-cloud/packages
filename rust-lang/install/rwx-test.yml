@@ -1,0 +1,23 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: install-1-83-0
+    call: ${{ init.package-digest }}
+    with:
+      rust-version: 1.83.0
+
+  - key: install-1-83-0--assert
+    use: install-1-83-0
+    run: rustc --version | grep "1.83.0"
+
+  - key: install-1-0-0
+    call: ${{ init.package-digest }}
+    with:
+      rust-version: 1.0.0
+
+  - key: install-1-0-0--assert
+    use: install-1-0-0
+    run: rustc --version | grep "1.0.0"

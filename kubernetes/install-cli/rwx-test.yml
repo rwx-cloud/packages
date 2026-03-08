@@ -1,0 +1,21 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: test-default
+    call: ${{ init.package-digest }}
+
+  - key: test-default--assert
+    use: test-default
+    run: "kubectl version --client | grep 'Client Version: v'"
+
+  - key: test-specified
+    call: ${{ init.package-digest }}
+    with:
+      cli-version: "1.28.7"
+
+  - key: test-specified--assert
+    use: test-specified
+    run: "kubectl version --client | grep 'Client Version: v1.28.7'"

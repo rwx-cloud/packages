@@ -1,0 +1,27 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: test-default
+    call: ${{ init.package-digest }}
+
+  - key: test-default--assert
+    use: test-default
+    run: |
+      output=$(terraform --version)
+      echo "$output"
+      echo "$output" | grep -E 'Terraform v[0-9]'
+
+  - key: test-specified
+    call: ${{ init.package-digest }}
+    with:
+      terraform-version: 1.7.3
+
+  - key: test-specified--assert
+    use: test-specified
+    run: |
+      output=$(terraform --version)
+      echo "$output"
+      echo "$output" | grep 'Terraform v1\.7\.3'
