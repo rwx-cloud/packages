@@ -1,4 +1,0 @@
-- key: go
-  call: golang/install 1.1.5
-  with:
-    go-version: "1.23.3"

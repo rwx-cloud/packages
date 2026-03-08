@@ -1,0 +1,21 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: test-default
+    call: ${{ init.package-digest }}
+
+  - key: test-default--assert
+    use: test-default
+    run: depot --version | head -1 | grep 'depot version 2\.'
+
+  - key: test-specified
+    call: ${{ init.package-digest }}
+    with:
+      cli-version: "2.52.0"
+
+  - key: test-specified--assert
+    use: test-specified
+    run: depot --version | head -1 | grep 'depot version 2\.52\.0 '

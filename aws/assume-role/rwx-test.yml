@@ -1,0 +1,98 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+
+tasks:
+  - key: install-cli
+    call: aws/install-cli 1.0.8
+
+  - key: test--defaults
+    call: ${{ init.package-digest }}
+    with:
+      region: us-east-2
+      role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-assume }}
+
+  - key: test--defaults--assert
+    use: [install-cli, test--defaults]
+    run: aws sts get-caller-identity &> /dev/null # avoid leaking account/role info
+    env:
+      AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
+
+  - key: test--defaults--skip-auth--assert
+    use: [install-cli, test--defaults]
+    run: |
+      if ! (aws sts get-caller-identity &> /dev/null); then
+        echo "Not authenticated with AWS."
+        exit 0
+      fi
+      echo "Authenticated with AWS."
+      exit 1
+    env:
+      AWS_SKIP_AUTH: true
+
+  - key: test--parallel-group
+    call: ${{ init.package-digest }}
+    with:
+      region: us-east-2
+      role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-assume }}
+  - key: test--parallel-group--assert
+    use: [install-cli, test--parallel-group]
+    parallel: 2
+    run: |
+      aws sts get-caller-identity &> /dev/null # avoid leaking account/role info
+    env:
+      AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
+
+  - key: test--custom-profile
+    call: ${{ init.package-digest }}
+    with:
+      region: us-east-2
+      role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-assume }}
+      profile-name: custom
+      oidc-token-env-var: AWS_OIDC_TOKEN_2
+  - key: test--multiple-profiles--assert
+    use: [install-cli, test--defaults, test--custom-profile]
+    run:
+      - aws sts get-caller-identity &> /dev/null # avoid leaking account/role info
+      - aws sts get-caller-identity --profile custom &> /dev/null # avoid leaking account/role info
+    env:
+      AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
+      AWS_OIDC_TOKEN_2: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
+
+  - key: test--defaults--role-chain
+    call: ${{ init.package-digest }}
+    with:
+      region: us-east-2
+      role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-chain-assume }}
+      role-chaining: true
+  - key: test--defaults--role-chain--assert
+    use: [install-cli, test--defaults, test--defaults--role-chain]
+    run: aws sts get-caller-identity &> /dev/null # avoid leaking account/role info
+    env:
+      AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
+
+  - key: test--specified-profile-name
+    call: ${{ init.package-digest }}
+    with:
+      region: us-east-2
+      role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-assume }}
+      profile-name: my-profile
+  - key: test--specified-profile-name--assert
+    use: [install-cli, test--specified-profile-name]
+    run: aws sts get-caller-identity --profile my-profile &> /dev/null # avoid leaking account/role info
+    env:
+      AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
+
+  - key: test--specified-profile-name--role-chain
+    call: ${{ init.package-digest }}
+    with:
+      region: us-east-2
+      role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-chain-assume }}
+      source-profile-name: my-profile
+      profile-name: my-other-profile
+      role-chaining: true
+  - key: test--specified-profile-name--role-chain--assert
+    use: [install-cli, test--specified-profile-name, test--specified-profile-name--role-chain]
+    run: aws sts get-caller-identity --profile my-other-profile &> /dev/null # avoid leaking account/role info
+    env:
+      AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}

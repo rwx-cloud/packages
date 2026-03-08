@@ -1,6 +1,0 @@
-- key: github--install-cli--test-default
-  call: $LEAF_DIGEST
-- key: github--install-cli--test-default--assert
-  use: github--install-cli--test-default
-  run: gh --version | grep 'gh version'
-

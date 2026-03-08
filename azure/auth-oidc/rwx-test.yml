@@ -1,0 +1,23 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: install-cli
+    call: azure/install-cli 1.0.8
+
+  - key: test--authenticate
+    use: install-cli
+    call: ${{ init.package-digest }}
+    with:
+      oidc-token: ${{ vaults.mint_leaves_azure_auth_testing.oidc.azure }}
+      client-id: ${{ vaults.mint_leaves_azure_auth_testing.secrets.AZURE_CLIENT_ID }}
+      subscription-id: ${{ vaults.mint_leaves_azure_auth_testing.secrets.AZURE_SUBSCRIPTION_ID }}
+      tenant-id: ${{ vaults.mint_leaves_azure_auth_testing.secrets.AZURE_TENANT_ID }}
+
+  - key: test--authenticate--assert
+    use: test--authenticate
+    run: az account show | grep "${TENANT_ID}"
+    env:
+      TENANT_ID: ${{ vaults.mint_leaves_azure_auth_testing.secrets.AZURE_TENANT_ID }}
