@@ -1,0 +1,96 @@
+on:
+  cli:
+    init:
+      sha: ${{ event.git.sha }}
+      publish: false
+
+base:
+  image: ubuntu:24.04
+  config: rwx/base 1.0.0
+
+tasks:
+  - key: code
+    call: git/clone 2.0.3
+    with:
+      repository: https://github.com/rwx-cloud/packages.git
+      ref: ${{ init.sha }}
+      preserve-git-dir: true
+
+  - key: timestamp
+    use: code
+    run: |
+      latest_timestamp=$(git ls-files -z $DIRECTORY | xargs -0 -n1 -I{} -- git log -1 --date=format:"%Y%m%d%H%M" --format="%ad" {} | sort | tail -n 1)
+      echo -n "$latest_timestamp" | tee $RWX_VALUES/timestamp
+    filter:
+      - .git
+      - ${{ init.directory }}
+    env:
+      DIRECTORY: ${{ init.directory }}
+
+  - key: build
+    use: code
+    run: |
+      cd $DIRECTORY
+      if [[ -f build/run.sh ]]; then
+        echo "Running build script"
+        ./build/run.sh
+      else
+        echo "No build script"
+      fi
+    filter:
+      - ${{ init.directory }}
+    env:
+      DIRECTORY: ${{ init.directory }}
+
+  - key: package
+    use: [build]
+    call: 4ad359d09e34defc6da32ad46013c07cba6ae9a8b18b58351d095ce90beadcd9
+    with:
+      directory: ${{ init.directory }}
+      rwx-access-token: ${{ vaults.mint_leaves_development.secrets.RWX_ACCESS_TOKEN }}
+      timestamp: ${{ tasks.timestamp.values.timestamp }}
+
+  - key: generate-test
+    use: [code]
+    run: |
+      if [[ -f "$DIRECTORY/rwx-test-base.json" ]]; then
+        cat "$DIRECTORY/rwx-test-base.json" | tee $RWX_VALUES/base-images
+      else
+        echo '[{"image": "ubuntu:24.04", "config": "rwx/base 1.0.0", "arch": "x86_64"}]' | tee $RWX_VALUES/base-images
+      fi
+      cp "$DIRECTORY/rwx-test.yml" test-run.yml
+    filter:
+      - ${{ init.directory }}
+    env:
+      DIRECTORY: ${{ init.directory }}
+    outputs:
+      artifacts:
+        - key: test-run
+          path: test-run.yml
+
+  - key: test
+    call: ${{ tasks.generate-test.artifacts.test-run }}
+    parallel:
+      values: ${{ tasks.generate-test.values.base-images }}
+    init:
+      package-digest: ${{ tasks.package.values.digest }}
+      base-image: ${{ parallel.image }}
+      base-config: ${{ parallel.config }}
+      base-arch: ${{ parallel.arch }}
+
+  - key: publish
+    if: ${{ init.publish }}
+    after: test
+    run: |
+      curl \
+        --request POST \
+        --fail-with-body \
+        --header "Authorization: Bearer $RWX_ACCESS_TOKEN" \
+        --header 'Accept: application/json' \
+        --header 'Content-Type: application/json' \
+        --data '{ "digest": "${{ tasks.package.values.digest }}" }' \
+        https://cloud.rwx.com/mint/api/leaves/publish
+    env:
+      RWX_ACCESS_TOKEN:
+        cache-key: excluded
+        value: ${{ vaults.mint_leaves_development.secrets.RWX_ACCESS_TOKEN }}

@@ -5,7 +5,7 @@ on:
         qualified-base-ref: origin/${{ event.github.pull_request.pull_request.base.ref }}
         unqualified-base-ref: ${{ event.github.pull_request.pull_request.base.ref }}
         branch: ${{ event.git.branch }}
-        publish-leaves: false
+        publish: false
         sha: ${{ event.git.sha }}
     push:
       if: ${{ event.git.branch == 'main' }}
@@ -13,7 +13,7 @@ on:
         qualified-base-ref: ${{ event.github.push.before }}
         unqualified-base-ref: ${{ event.github.push.before }}
         branch: ${{ event.git.branch }}
-        publish-leaves: true
+        publish: true
         sha: ${{ event.git.sha }}
 
 concurrency-pools:
@@ -22,17 +22,14 @@ concurrency-pools:
     capacity: 1
     on-overflow: cancel-running
 
+tool-cache:
+  vault: rwx-packages-main
+
 base:
   image: ubuntu:24.04
   config: rwx/base 1.0.0
 
 tasks:
-  - key: system-packages
-    run: |
-      sudo apt-get update
-      sudo apt-get install gettext-base jq zip
-      sudo apt-get clean
-
   - key: checkout
     call: git/clone 2.0.3
     with:
@@ -89,16 +86,32 @@ tasks:
       - "**/README.md"
       - "**/rwx-package.yml"
 
-  - key: build-leaf-runs
-    use: npm-install
+  - key: detect-changes
+    use: [checkout]
     run: |
-      mkdir build
       git fetch origin $UNQUALIFIED_BASE_REF
-      git diff --name-only $QUALIFIED_BASE_REF $SHA > $GIT_DIFF_FILE
-      node .rwx/build-tasks.mjs
+      changed_files=$(git diff --name-only $QUALIFIED_BASE_REF $SHA)
+
+      packages="[]"
+      for pkg_file in $(ls */*/rwx-package.yml | sort); do
+        dir=$(dirname "$pkg_file")
+        if echo "$changed_files" | grep -q "^${dir}/"; then
+          packages=$(echo "$packages" | jq -c --arg d "$dir" '. + [{"directory": $d}]')
+        fi
+      done
+
+      echo "Changed packages: $packages"
+      echo -n "$packages" > $RWX_VALUES/packages
     env:
       QUALIFIED_BASE_REF: ${{ init.qualified-base-ref }}
       UNQUALIFIED_BASE_REF: ${{ init.unqualified-base-ref }}
-      BUILD_DIR: build
-      GIT_DIFF_FILE: build/git-diff.txt
       SHA: ${{ init.sha }}
+
+  - key: packages
+    call: ${{ run.dir }}/package.yml
+    parallel:
+      values: ${{ tasks.detect-changes.values.packages }}
+    init:
+      directory: ${{ parallel.directory }}
+      sha: ${{ init.sha }}
+      publish: ${{ init.publish }}

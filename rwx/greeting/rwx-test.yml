@@ -1,0 +1,9 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+
+tasks:
+  - key: test
+    call: ${{ init.package-digest }}
+    with:
+      name: world
