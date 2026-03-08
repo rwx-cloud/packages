@@ -27,8 +27,13 @@ tasks:
     env:
       DIRECTORY: ${{ init.directory }}
 
+  - key: go
+    call: golang/install 1.1.5
+    with:
+      go-version: "1.23.3"
+
   - key: build
-    use: code
+    use: [go, code]
     run: |
       cd $DIRECTORY
       if [[ -f build/run.sh ]]; then

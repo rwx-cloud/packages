@@ -1,0 +1,157 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: github-cli
+    call: github/install-cli 1.0.8
+
+  - key: test-one-pattern-has-changes
+    use: github-cli
+    call: ${{ init.package-digest }}
+    with:
+      repository: rwx-research/captain
+      base-ref: 5294685f36ff0edd7775f685a1e92728d7f223cf
+      head-ref: 8fe238bebb9276a7fafb83c7ee0513c83fa89061
+      github-token: ${{ github['rwx-research'].token }}
+      patterns: "**/*.go"
+
+  - key: assert-one-pattern-has-changes
+    run: |
+      [ "${{ tasks.test-one-pattern-has-changes.values.has-changes }}" == "true" ]
+
+      echo "internal/cli/parse.go" >> expected_changes.txt
+      echo "internal/fs/local.go" >> expected_changes.txt
+      echo "internal/fs/local_test.go" >> expected_changes.txt
+      echo -n "test/oss_integration_test.go" >> expected_changes.txt
+      expected_changes=$(cat expected_changes.txt)
+      [ "${{ tasks.test-one-pattern-has-changes.values.changes }}" == "${expected_changes}" ]
+
+  - key: test-multiple-patterns-have-changes
+    use: github-cli
+    call: ${{ init.package-digest }}
+    with:
+      repository: rwx-research/captain
+      base-ref: 5294685f36ff0edd7775f685a1e92728d7f223cf
+      head-ref: 8fe238bebb9276a7fafb83c7ee0513c83fa89061
+      github-token: ${{ github['rwx-research'].token }}
+      patterns: |
+        **/*.go
+        **/*.txt
+
+  - key: assert-multiple-patterns-have-changes
+    run: |
+      [ "${{ tasks.test-multiple-patterns-have-changes.values.have-changes }}" == "true" ]
+
+      echo "internal/cli/parse.go" >> expected_changes.txt
+      echo "internal/fs/local.go" >> expected_changes.txt
+      echo "internal/fs/local_test.go" >> expected_changes.txt
+      echo "test/fixtures/filenames/nested/$ @=:+{}[]^><~#|.txt" >> expected_changes.txt
+      echo "test/fixtures/filenames/nested/**.txt" >> expected_changes.txt
+      echo "test/fixtures/filenames/nested/*.txt" >> expected_changes.txt
+      echo "test/fixtures/filenames/nested/?.txt" >> expected_changes.txt
+      echo "test/fixtures/filenames/nested/[].txt" >> expected_changes.txt
+      echo "test/fixtures/filenames/nested/\.txt" >> expected_changes.txt
+      echo -n "test/oss_integration_test.go" >> expected_changes.txt
+      expected_changes=$(cat expected_changes.txt)
+      [ "${{ tasks.test-multiple-patterns-have-changes.values.changes }}" == "${expected_changes}" ]
+
+  - key: test-negations-have-changes
+    use: github-cli
+    call: ${{ init.package-digest }}
+    with:
+      repository: rwx-research/captain
+      base-ref: 5294685f36ff0edd7775f685a1e92728d7f223cf
+      head-ref: 8fe238bebb9276a7fafb83c7ee0513c83fa89061
+      github-token: ${{ github['rwx-research'].token }}
+      patterns: |
+        !**/*.go
+        internal/cli/parse.go
+
+  - key: assert-negations-have-changes
+    run: |
+      [ "${{ tasks.test-negations-have-changes.values.have-changes }}" == "true" ]
+
+      echo -n "internal/cli/parse.go" >> expected_changes.txt
+      expected_changes=$(cat expected_changes.txt)
+      [ "${{ tasks.test-negations-have-changes.values.changes }}" == "${expected_changes}" ]
+
+  - key: test-one-pattern-has-no-changes
+    use: github-cli
+    call: ${{ init.package-digest }}
+    with:
+      repository: rwx-research/captain
+      base-ref: 5294685f36ff0edd7775f685a1e92728d7f223cf
+      head-ref: 8fe238bebb9276a7fafb83c7ee0513c83fa89061
+      github-token: ${{ github['rwx-research'].token }}
+      patterns: "**/*.rb"
+
+  - key: assert-one-pattern-has-no-changes
+    run: |
+      [ "${{ tasks.test-one-pattern-has-no-changes.values.has-changes }}" == "false" ]
+      [ "${{ tasks.test-one-pattern-has-no-changes.values.changes }}" == "" ]
+
+  - key: test-multiple-patterns-have-no-changes
+    use: github-cli
+    call: ${{ init.package-digest }}
+    with:
+      repository: rwx-research/captain
+      base-ref: 5294685f36ff0edd7775f685a1e92728d7f223cf
+      head-ref: 8fe238bebb9276a7fafb83c7ee0513c83fa89061
+      github-token: ${{ github['rwx-research'].token }}
+      patterns: |
+        **/*.rb
+        Gemfile.lock
+
+  - key: assert-multiple-patterns-have-no-changes
+    run: |
+      [ "${{ tasks.test-multiple-patterns-have-no-changes.values.have-changes }}" == "false" ]
+      [ "${{ tasks.test-multiple-patterns-have-no-changes.values.changes }}" == "" ]
+
+  - key: test-negations-have-no-changes
+    use: github-cli
+    call: ${{ init.package-digest }}
+    with:
+      repository: rwx-research/captain
+      base-ref: 5294685f36ff0edd7775f685a1e92728d7f223cf
+      head-ref: 8fe238bebb9276a7fafb83c7ee0513c83fa89061
+      github-token: ${{ github['rwx-research'].token }}
+      patterns: |
+        internal/cli/parse.go
+        !**/*.go
+
+  - key: assert-negations-have-no-changes
+    run: |
+      [ "${{ tasks.test-negations-have-no-changes.values.have-changes }}" == "false" ]
+      [ "${{ tasks.test-negations-have-no-changes.values.changes }}" == "" ]
+
+  - key: test-resolves-ref-names
+    use: github-cli
+    call: ${{ init.package-digest }}
+    with:
+      repository: rwx-research/captain
+      base-ref: main
+      head-ref: main
+      github-token: ${{ github['rwx-research'].token }}
+      patterns: "**/*"
+
+  - key: assert-resolves-ref-names
+    run: |
+      [ "${{ tasks.test-resolves-ref-names.values.has-changes }}" == "false" ]
+      [ "${{ tasks.test-resolves-ref-names.values.changes }}" == "" ]
+
+  - key: test-resolves-refs-with-prefixes
+    use: github-cli
+    call: ${{ init.package-digest }}
+    with:
+      repository: rwx-research/captain
+      base-ref: refs/heads/main
+      head-ref: refs/heads/main
+      github-token: ${{ github['rwx-research'].token }}
+      patterns: "**/*"
+
+  - key: assert-resolves-refs-with-prefixes
+    run: |
+      [ "${{ tasks.test-resolves-refs-with-prefixes.values.has-changes }}" == "false" ]
+      [ "${{ tasks.test-resolves-refs-with-prefixes.values.changes }}" == "" ]
