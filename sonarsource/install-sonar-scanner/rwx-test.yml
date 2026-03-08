@@ -1,0 +1,23 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: test--install-oldest-sonar-scanner
+    call: ${{ init.package-digest }}
+    with:
+      sonar-scanner-version: "5.0.0.2966"
+
+  - key: verify--install-oldest-sonar-scanner
+    use: test--install-oldest-sonar-scanner
+    run: sonar-scanner --version | grep '5.0.0.2966'
+
+  - key: test--install-newest-sonar-scanner
+    call: ${{ init.package-digest }}
+    with:
+      sonar-scanner-version: "6.2.1.4610"
+
+  - key: verify--install-newest-sonar-scanner
+    use: test--install-newest-sonar-scanner
+    run: sonar-scanner --version | grep '6.2.1.4610'
