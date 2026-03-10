@@ -1,0 +1,21 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: test-default
+    call: ${{ init.package-digest }}
+
+  - key: test-default--assert
+    use: test-default
+    run: tailscale --version
+
+  - key: test-specified
+    call: ${{ init.package-digest }}
+    with:
+      version: "1.66.4"
+
+  - key: test-specified--assert
+    use: test-specified
+    run: tailscale --version | grep '1\.66\.4'
