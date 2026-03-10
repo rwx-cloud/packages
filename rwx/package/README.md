@@ -12,5 +12,4 @@ tasks:
     call: rwx/package 1.0.0
     with:
       directory: path/to/package
-      rwx-access-token: ${{ secrets.RWX_ACCESS_TOKEN }}
 ```
