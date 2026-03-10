@@ -14,7 +14,6 @@ tasks:
     call: ${{ init.package-digest }}
     with:
       directory: rwx/package
-      rwx-access-token: ${{ vaults.mint_leaves_development.secrets.RWX_ACCESS_TOKEN }}
       timestamp: ${{ date("%Y%m%d%H%M") }}
     filter:
       - rwx/package

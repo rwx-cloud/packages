@@ -7,10 +7,7 @@ issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 parameters:
   directory:
     description: Path to the directory containing the package files
-    required: true
-  rwx-access-token:
-    description: RWX API access token for uploading the package
-    required: true
+    default: .
   timestamp:
     description: "Timestamp to normalize file modification times before zipping (format: YYYYMMDDHHmm). Ensures deterministic zip output for content-based caching."
 
@@ -56,10 +53,6 @@ tasks:
       echo -n "$digest" > "$RWX_VALUES/digest"
     filter:
       - package.zip
-    env:
-      RWX_ACCESS_TOKEN:
-        cache-key: excluded
-        value: ${{ params.rwx-access-token }}
 
 outputs:
   values-from: [upload]
