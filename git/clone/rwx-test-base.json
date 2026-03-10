@@ -21,12 +21,12 @@
   },
   {
     "image": "ubuntu:24.04",
-    "config": "none",
+    "config": "6e590fe8cb5122675c1998821470722bc58dab3f53cc992c18d3b3382f03a31e",
     "arch": "x86_64"
   },
   {
     "image": "alpine:latest",
-    "config": "none",
+    "config": "6e590fe8cb5122675c1998821470722bc58dab3f53cc992c18d3b3382f03a31e",
     "arch": "x86_64"
   }
 ]
