@@ -1,0 +1,18 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: test-default
+    call: ${{ init.package-digest }}
+    with:
+      twingate-service-key:  ${{ vaults.mint_leaves_twingate_install_testing.secrets.twingate-service-key }}
+
+  - key: test-default--assert
+    use: test-default
+    background-processes:
+      - key: twingate
+        run: sudo twingate start
+        ready-check: twingate status | grep online
+    run: twingate status | grep online

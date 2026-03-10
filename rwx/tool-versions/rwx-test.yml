@@ -1,0 +1,42 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: write-file
+    run: |
+      cat <<EOF > .my-tool-versions
+        awscli 2.17.13 # comment
+        golang 1.22.5 1.16.0
+        #comment
+        jq 1.7.1 #   comment
+            nodejs   22.4.1 system
+        python 3.12.4
+      EOF
+
+  - key: tool-versions
+    use: write-file
+    call: ${{ init.package-digest }}
+    with:
+      tool-versions-file: .my-tool-versions
+
+  - key: tool-versions--test
+    use: tool-versions
+    run: |
+      expect_tool_version() {
+        local tool=$1
+        local expected=$2
+        local actual=$3
+
+        if [ "$expected" != "$actual" ]; then
+          >&2 echo "expected '$tool' version '$expected', got '$actual'"
+          exit 1
+        fi
+      }
+
+      expect_tool_version awscli 2.17.13 ${{ tasks.tool-versions.values.awscli }}
+      expect_tool_version golang 1.22.5 ${{ tasks.tool-versions.values.golang }}
+      expect_tool_version jq 1.7.1 ${{ tasks.tool-versions.values.jq }}
+      expect_tool_version nodejs 22.4.1 ${{ tasks.tool-versions.values.nodejs }}
+      expect_tool_version python 3.12.4 ${{ tasks.tool-versions.values.python }}

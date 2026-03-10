@@ -1,0 +1,21 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: test-default
+    call: ${{ init.package-digest }}
+
+  - key: test-default--assert
+    use: test-default
+    run: abq --version | grep '^abq 1\.'
+
+  - key: test-with-token
+    call: ${{ init.package-digest }}
+    with:
+      rwx-access-token: ${{ vaults.mint_leaves_development.secrets.RWX_ACCESS_TOKEN }}
+
+  - key: test-with-token--assert
+    use: test-with-token
+    run: abq --version | grep '^abq 1\.'
