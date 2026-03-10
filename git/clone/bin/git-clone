@@ -34,8 +34,10 @@ fi
 git config --local maintenance.auto false
 git config --local gc.auto 0
 
-if [ "${FETCH_FULL_DEPTH}" = "true" ] || [ "${PRESERVE_GIT_DIR}" = "true" ]; then
+if [ "${FETCH_FULL_DEPTH}" = "true" ]; then
   git fetch --no-auto-gc origin "${CHECKOUT_REF}"
+elif [ "${PRESERVE_GIT_DIR}" = "true" ]; then
+  git fetch --no-auto-gc --depth=1 origin "${CHECKOUT_REF}"
 else
   git fetch --no-auto-gc --depth=1 origin "${RESOLVED_SHA}"
 fi

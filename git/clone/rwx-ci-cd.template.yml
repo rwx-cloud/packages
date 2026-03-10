@@ -79,6 +79,7 @@
   use: git-clone--test-preserve-git-dir
   run: |
     test -d .git
+    test -f .git/shallow
     test -e file-in-repo.txt
     git fetch
     test "$(git config --local --get maintenance.auto)" = "false"
@@ -104,6 +105,7 @@
   use: git-clone--test-preserve-git-dir-from-ref
   run: |
     test -d .git
+    test -f .git/shallow
     test -e file-in-repo.txt
     git fetch
 
@@ -390,6 +392,23 @@
   run: |
     grep -q "lfs file" lfs-file.txt
     git status | grep -q "nothing to commit, working tree clean"
+
+- key: git-clone--test-preserve-git-dir-with-full-depth
+  call: $LEAF_DIGEST
+  use: system-packages
+  with:
+    repository: https://github.com/rwx-cloud/test-checkout-package.git
+    ref: e38d490f8b854325402c95bb56e5003a52e10df3
+    github-token: ${{ github['rwx-cloud'].token }}
+    preserve-git-dir: true
+    fetch-full-depth: true
+
+- key: git-clone--test-preserve-git-dir-with-full-depth--assert
+  use: git-clone--test-preserve-git-dir-with-full-depth
+  run: |
+    test -d .git
+    ! test -f .git/shallow
+    test -e file-in-repo.txt
 
 - key: git-clone--test-lfs-with-path
   call: $LEAF_DIGEST

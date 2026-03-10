@@ -31,7 +31,7 @@ tasks:
 
   - key: code
     use: system-packages
-    call: git/clone 2.0.4
+    call: git/clone 2.0.5
     with:
       repository: ...
 ```
@@ -41,7 +41,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.0.4
+    call: git/clone 2.0.5
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -67,7 +67,7 @@ If you're using GitHub, RWX will automatically provide a token that you can use 
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.0.4
+    call: git/clone 2.0.5
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -79,7 +79,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.0.4
+    call: git/clone 2.0.5
     with:
       repository: git@github.com:YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -97,7 +97,7 @@ If you need to reference one of these to alter behavior of a task, be sure to in
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.0.4
+    call: git/clone 2.0.5
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -155,6 +155,8 @@ The name of the unresolved ref associated with the commit. For example, given a 
 
 v2 of `git/clone` introduces tool caching for faster incremental clones. The `.git` directory is now preserved in a tool cache between runs, meaning subsequent clones of the same repository become fast incremental fetches.
 
+By default, preserved `.git` directories still use shallow fetches for better performance. Set `fetch-full-depth: true` explicitly if you need full history while preserving `.git`.
+
 ### What's New
 
 - **Tool-cached `.git` directory**: The `.git` directory persists between task executions via RWX tool caches
@@ -172,7 +174,7 @@ For most usage, it's as easy as:
 tasks:
   - key: code
 -    call: git/clone 1.9.5
-+    call: git/clone 2.0.4
++    call: git/clone 2.0.5
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
