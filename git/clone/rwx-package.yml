@@ -1,5 +1,5 @@
 name: git/clone
-version: 2.0.4
+version: 2.0.5
 description: Clone git repositories over ssh or http, with support for Git Large File Storage (LFS)
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/git/clone
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -30,7 +30,7 @@ parameters:
     description: "The ssh key to use if cloning over ssh"
     required: false
   fetch-full-depth:
-    description: "Whether to use a shallow fetch or a full-depth fetch when the repository is cloned and when not preserving the git directory (when `preserve-git-dir` is true, this parameter has no effect). Typically, setting this to `false` (the default) will result in better cloning performance within RWX. However, for certain large repositories, a full depth fetch may be faster."
+    description: "Whether to use a full-depth fetch instead of a shallow fetch. This defaults to `false`, including when `preserve-git-dir` is `true`. Typically, leaving this as `false` results in better cloning performance within RWX. However, for certain large repositories or workflows that require full history, a full-depth fetch may be preferable."
     default: false
   submodules:
     description: Whether to clone submodules
