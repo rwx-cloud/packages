@@ -110,6 +110,7 @@ tasks:
   - key: packages
     call: ${{ run.dir }}/package.yml
     parallel:
+      tasks-limit: 20
       values: ${{ tasks.detect-changes.values.packages }}
     init:
       directory: ${{ parallel.directory }}
