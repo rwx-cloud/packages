@@ -93,10 +93,12 @@ tasks:
       changed_files=$(git diff --name-only $QUALIFIED_BASE_REF $SHA)
 
       packages="[]"
+      echo -n "false" > $RWX_VALUES/any-packages-changed
       for pkg_file in $(ls */*/rwx-package.yml | sort); do
         dir=$(dirname "$pkg_file")
         if echo "$changed_files" | grep -q "^${dir}/"; then
           packages=$(echo "$packages" | jq -c --arg d "$dir" '. + [{"directory": $d}]')
+          echo -n "true" > $RWX_VALUES/any-packages-changed
         fi
       done
 
@@ -108,6 +110,7 @@ tasks:
       SHA: ${{ init.sha }}
 
   - key: packages
+    if: ${{ tasks.detect-changes.values.any-packages-changed }}
     call: ${{ run.dir }}/package.yml
     parallel:
       values: ${{ tasks.detect-changes.values.packages }}
