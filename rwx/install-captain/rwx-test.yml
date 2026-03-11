@@ -1,0 +1,21 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: test-default
+    call: ${{ init.package-digest }}
+
+  - key: test-default--assert
+    use: test-default
+    run: captain --version | grep '^v2\.'
+
+  - key: test-specified
+    call: ${{ init.package-digest }}
+    with:
+      captain-version: v1.11.5
+
+  - key: test-specified--assert
+    use: test-specified
+    run: captain --version | grep '^v1\.11\.5$'

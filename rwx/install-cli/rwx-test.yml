@@ -1,0 +1,21 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: test-default
+    call: ${{ init.package-digest }}
+
+  - key: test-default--assert
+    use: test-default
+    run: rwx --version | grep 'rwx version v3\.'
+
+  - key: test-specified
+    call: ${{ init.package-digest }}
+    with:
+      cli-version: v1.9.1
+
+  - key: test-specified--assert
+    use: test-specified
+    run: rwx --version | grep 'rwx version v1\.9\.1'

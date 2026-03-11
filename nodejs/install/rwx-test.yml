@@ -1,0 +1,50 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: test-version
+    call: ${{ init.package-digest }}
+    with:
+      node-version: 20.8.0
+
+  - key: test-version--assert
+    use: test-version
+    run: node --version | grep '20\.8\.0'
+
+  - key: test-version-file-write-file
+    run: echo 20.13.1 > .node-version
+
+  - key: test-version-file
+    use: test-version-file-write-file
+    call: ${{ init.package-digest }}
+    with:
+      node-version-file: .node-version
+    filter:
+      - .node-version
+
+  - key: test-version-file--assert
+    use: test-version-file
+    run: node --version | grep '20\.13\.1'
+
+  - key: install-22-18-0
+    call: ${{ init.package-digest }}
+    with:
+      node-version: "22.18.0"
+
+  - key: test-install-22-18-0
+    use: install-22-18-0
+    run: node --version | grep '22\.18\.0'
+
+  - key: test-npm-install-g
+    use: install-22-18-0
+    run: |
+      npm install -g yaml
+      npm root -g > $RWX_ENV/NODE_PATH
+
+  - key: test-npm-install-g--assert
+    use: test-npm-install-g
+    run: |
+      echo 'require("yaml")' > code.js
+      node code.js

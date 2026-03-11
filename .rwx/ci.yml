@@ -113,6 +113,7 @@ tasks:
     if: ${{ tasks.detect-changes.values.any-packages-changed }}
     call: ${{ run.dir }}/package.yml
     parallel:
+      tasks-limit: 20
       values: ${{ tasks.detect-changes.values.packages }}
     init:
       directory: ${{ parallel.directory }}

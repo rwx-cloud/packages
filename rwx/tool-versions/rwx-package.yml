@@ -1,5 +1,5 @@
 name: rwx/tool-versions
-version: 1.0.6
+version: 1.0.7
 description: Extract tool versions from a .tool-versions file.
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/tool-versions
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -15,7 +15,9 @@ outputs:
 tasks:
   - key: determine-versions
     run: |
-      sed -e 's/\s*#.*$//' -e '/^\s*$/d' -e 's/^\s\+//' "${{ params.tool-versions-file }}" | tr -s ' ' | cut -d' ' -f-2 | while IFS=' ' read -r tool version ; do
+      sed -e 's/\s*#.*$//' -e '/^\s*$/d' -e 's/^\s\+//' "$TOOL_VERSIONS_FILE" | tr -s ' ' | cut -d' ' -f-2 | while IFS=' ' read -r tool version ; do
         echo "$tool = $version"
         printf "$version" > "${RWX_VALUES}/${tool}"
       done
+    env:
+      TOOL_VERSIONS_FILE: ${{ params.tool-versions-file }}

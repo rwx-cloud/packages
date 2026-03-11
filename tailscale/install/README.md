@@ -5,7 +5,7 @@ To install the latest version of Tailscale:
 ```yaml
 tasks:
   - key: tailscale
-    call: tailscale/install 1.0.5
+    call: tailscale/install 1.0.6
 ```
 
 To install a specific version of Tailscale:
@@ -13,7 +13,7 @@ To install a specific version of Tailscale:
 ```yaml
 tasks:
   - key: tailscale
-    call: tailscale/install 1.0.5
+    call: tailscale/install 1.0.6
     with:
       version: "1.78.1"
 ```
