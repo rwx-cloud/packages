@@ -26,5 +26,5 @@ tasks:
   - key: ruby
     call: ruby/install 1.2.19
     with:
-      ruby-version: 3.4.8
+      ruby-version: 3.4.9
 ```
