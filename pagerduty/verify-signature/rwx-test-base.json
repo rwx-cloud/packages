@@ -1,0 +1,27 @@
+[
+  {
+    "image": "ubuntu:22.04",
+    "config": "rwx/base 1.0.0",
+    "arch": "x86_64"
+  },
+  {
+    "image": "ubuntu:22.04",
+    "config": "rwx/base 1.0.0",
+    "arch": "arm64"
+  },
+  {
+    "image": "ubuntu:24.04",
+    "config": "rwx/base 1.0.0",
+    "arch": "x86_64"
+  },
+  {
+    "image": "ubuntu:24.04",
+    "config": "rwx/base 1.0.0",
+    "arch": "arm64"
+  },
+  {
+    "image": "alpine:latest",
+    "config": "6e590fe8cb5122675c1998821470722bc58dab3f53cc992c18d3b3382f03a31e",
+    "arch": "x86_64"
+  }
+]

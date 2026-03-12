@@ -78,8 +78,8 @@ tasks:
       values: ${{ tasks.generate-test.values.base-images }}
     init:
       package-digest: ${{ tasks.package.values.digest }}
-      base-image: ${{ parallel.image }}
-      base-config: ${{ parallel.config }}
+      base-os: ${{ parallel.os }}
+      base-tag: ${{ parallel.tag }}
       base-arch: ${{ parallel.arch }}
 
   - key: publish
