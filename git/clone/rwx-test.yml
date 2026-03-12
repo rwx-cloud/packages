@@ -1,6 +1,7 @@
 base:
   image: ${{ init.base-image }}
   config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
 
 tasks:
   - key: system-packages
