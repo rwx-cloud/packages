@@ -1,15 +1,5 @@
 [
   {
-    "image": "ubuntu:22.04",
-    "config": "rwx/base 1.0.0",
-    "arch": "x86_64"
-  },
-  {
-    "image": "ubuntu:22.04",
-    "config": "rwx/base 1.0.0",
-    "arch": "arm64"
-  },
-  {
     "image": "ubuntu:24.04",
     "config": "rwx/base 1.0.0",
     "arch": "x86_64"
@@ -21,12 +11,12 @@
   },
   {
     "os": "ubuntu 22.04",
-    "tag": "1.2",
+    "tag": "1.1",
     "arch": "x86_64"
   },
   {
     "os": "ubuntu 22.04",
-    "tag": "1.2",
+    "tag": "1.1",
     "arch": "arm64"
   },
   {
