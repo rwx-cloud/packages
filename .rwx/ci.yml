@@ -92,42 +92,18 @@ tasks:
       git fetch origin $UNQUALIFIED_BASE_REF
       changed_files=$(git diff --name-only $QUALIFIED_BASE_REF $SHA)
 
-      legacy_base_packages=(
-        "google/install-chrome"
-        "python/install"
-        "ruby/install"
-      )
-
       packages="[]"
-      packages_legacy_base="[]"
       echo -n "false" > $RWX_VALUES/any-packages-changed
-      echo -n "false" > $RWX_VALUES/any-packages-legacy-base-changed
       for pkg_file in $(ls */*/rwx-package.yml | sort); do
         dir=$(dirname "$pkg_file")
         if echo "$changed_files" | grep -q "^${dir}/"; then
-          is_legacy=false
-          for legacy in "${legacy_base_packages[@]}"; do
-            if [[ "$dir" == "$legacy" ]]; then
-              is_legacy=true
-              break
-            fi
-          done
-
-          if [[ "$is_legacy" == "true" ]]; then
-            packages_legacy_base=$(echo "$packages_legacy_base" | jq -c --arg d "$dir" '. + [{"directory": $d}]')
-            echo -n "true" > $RWX_VALUES/any-packages-legacy-base-changed
-          else
-            packages=$(echo "$packages" | jq -c --arg d "$dir" '. + [{"directory": $d}]')
-            echo -n "true" > $RWX_VALUES/any-packages-changed
-          fi
+          packages=$(echo "$packages" | jq -c --arg d "$dir" '. + [{"directory": $d}]')
+          echo -n "true" > $RWX_VALUES/any-packages-changed
         fi
       done
 
       echo "Changed packages: $packages"
       echo -n "$packages" > $RWX_VALUES/packages
-
-      echo "Changed legacy base packages: $packages_legacy_base"
-      echo -n "$packages_legacy_base" > $RWX_VALUES/packages-legacy-base
     env:
       QUALIFIED_BASE_REF: ${{ init.qualified-base-ref }}
       UNQUALIFIED_BASE_REF: ${{ init.unqualified-base-ref }}
@@ -139,16 +115,6 @@ tasks:
     parallel:
       tasks-limit: 20
       values: ${{ tasks.detect-changes.values.packages }}
-    init:
-      directory: ${{ parallel.directory }}
-      sha: ${{ init.sha }}
-      publish: ${{ init.publish }}
-
-  - key: packages-legacy-base
-    if: ${{ tasks.detect-changes.values.any-packages-legacy-base-changed }}
-    call: ${{ run.dir }}/package-legacy-base.yml
-    parallel:
-      values: ${{ tasks.detect-changes.values.packages-legacy-base }}
     init:
       directory: ${{ parallel.directory }}
       sha: ${{ init.sha }}

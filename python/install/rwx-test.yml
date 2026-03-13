@@ -1,6 +1,6 @@
 base:
-  os: ${{ init.base-os }}
-  tag: ${{ init.base-tag }}
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
   arch: ${{ init.base-arch }}
 
 tasks:
