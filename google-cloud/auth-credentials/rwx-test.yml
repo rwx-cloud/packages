@@ -1,0 +1,22 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: auth-credentials--install-cli
+    call: google-cloud/install-cli 1.1.6
+
+  - key: auth-credentials--test--defaults
+    use: auth-credentials--install-cli
+    call: ${{ init.package-digest }}
+    with:
+      credentials-json: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_CREDENTIALS_JSON }}
+
+  - key: auth-credentials--test--defaults--assert
+    use: auth-credentials--test--defaults
+    run: |
+      gcloud auth list --filter="status:ACTIVE" --format="value(account)" | \
+        grep -q "$SERVICE_ACCOUNT"
+    env:
+      SERVICE_ACCOUNT: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}

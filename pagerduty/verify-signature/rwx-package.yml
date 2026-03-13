@@ -1,5 +1,5 @@
 name: pagerduty/verify-signature
-version: 1.0.0
+version: 1.0.1
 description: Verify webhook signatures from PagerDuty
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/pagerduty/verify-signature
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues

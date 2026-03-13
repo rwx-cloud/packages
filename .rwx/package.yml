@@ -19,7 +19,7 @@ tasks:
   - key: timestamp
     use: code
     run: |
-      latest_timestamp=$(git ls-files -z $DIRECTORY | xargs -0 -n1 -I{} -- git log -1 --date=format:"%Y%m%d%H%M" --format="%ad" {} | sort | tail -n 1)
+      latest_timestamp=$(git ls-files -z $DIRECTORY | xargs -0 -n1 -I{} -- git log -1 --date=format:"%Y%m%d%H%M" --format="%ad" -- {} | sort | tail -n 1)
       echo -n "$latest_timestamp" | tee $RWX_VALUES/timestamp
     filter:
       - .git
@@ -58,11 +58,18 @@ tasks:
     use: [code]
     run: |
       if [[ -f "$DIRECTORY/rwx-test-base.json" ]]; then
-        cat "$DIRECTORY/rwx-test-base.json" | tee $RWX_VALUES/base-images
+        jq '[.[] | select(has("image"))]' "$DIRECTORY/rwx-test-base.json" | tee $RWX_VALUES/base-images
+        jq '[.[] | select(has("os"))]' "$DIRECTORY/rwx-test-base.json" | tee $RWX_VALUES/base-images-legacy
       else
         echo '[{"image": "ubuntu:24.04", "config": "rwx/base 1.0.0", "arch": "x86_64"}]' | tee $RWX_VALUES/base-images
+        echo '[]' | tee $RWX_VALUES/base-images-legacy
       fi
+      echo -n $(jq 'length > 0' $RWX_VALUES/base-images) > $RWX_VALUES/any-base-images
+      echo -n $(jq 'length > 0' $RWX_VALUES/base-images-legacy) > $RWX_VALUES/any-base-images-legacy
       cp "$DIRECTORY/rwx-test.yml" test-run.yml
+      cp "$DIRECTORY/rwx-test.yml" test-run-legacy.yml
+      sed -i 's/image: \${{ init.base-image }}/os: \${{ init.base-os }}/' test-run-legacy.yml
+      sed -i 's/config: \${{ init.base-config }}/tag: \${{ init.base-tag }}/' test-run-legacy.yml
     filter:
       - ${{ init.directory }}
     env:
@@ -71,8 +78,11 @@ tasks:
       artifacts:
         - key: test-run
           path: test-run.yml
+        - key: test-run-legacy
+          path: test-run-legacy.yml
 
   - key: test
+    if: ${{ tasks.generate-test.values.any-base-images }}
     call: ${{ tasks.generate-test.artifacts.test-run }}
     parallel:
       values: ${{ tasks.generate-test.values.base-images }}
@@ -82,9 +92,20 @@ tasks:
       base-config: ${{ parallel.config }}
       base-arch: ${{ parallel.arch }}
 
+  - key: test-legacy
+    if: ${{ tasks.generate-test.values.any-base-images-legacy }}
+    call: ${{ tasks.generate-test.artifacts.test-run-legacy }}
+    parallel:
+      values: ${{ tasks.generate-test.values.base-images-legacy }}
+    init:
+      package-digest: ${{ tasks.package.values.digest }}
+      base-os: ${{ parallel.os }}
+      base-tag: ${{ parallel.tag }}
+      base-arch: ${{ parallel.arch }}
+
   - key: publish
     if: ${{ init.publish }}
-    after: test
+    after: ${{ (test.succeeded || test.skipped) && (test-legacy.succeeded || test-legacy.skipped) }}
     run: |
       curl \
         --request POST \
