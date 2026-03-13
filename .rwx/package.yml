@@ -68,8 +68,8 @@ tasks:
       echo -n $(jq 'length > 0' $RWX_VALUES/base-images-legacy) > $RWX_VALUES/any-base-images-legacy
       cp "$DIRECTORY/rwx-test.yml" test-run.yml
       cp "$DIRECTORY/rwx-test.yml" test-run-legacy.yml
-      sed -i 's/image: ${{ init.base-image }}/os: ${{ init.base-os }}/' test-run-legacy.yml
-      sed -i 's/config: ${{ init.base-config }}/tag: ${{ init.base-tag }}/' test-run-legacy.yml
+      sed -i 's/image: \${{ init.base-image }}/os: \${{ init.base-os }}/' test-run-legacy.yml
+      sed -i 's/config: \${{ init.base-config }}/tag: \${{ init.base-tag }}/' test-run-legacy.yml
     filter:
       - ${{ init.directory }}
     env:
