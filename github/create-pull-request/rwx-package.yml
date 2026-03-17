@@ -1,6 +1,6 @@
 name: github/create-pull-request
 version: 1.0.5
-description: Create a pull request
+description: Creates a pull request
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/create-pull-request
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 
