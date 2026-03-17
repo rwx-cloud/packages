@@ -21,7 +21,7 @@ If this task should be authenticating into AWS, set the \`AWS_OIDC_TOKEN\` envir
 
 If this task should not be authenticating into AWS, remove the dependency from \`use\`, or set the \`AWS_SKIP_AUTH\` environment variable to true.
 
-For more information see [https://cloud.rwx.com/leaves/aws/assume-role](https://cloud.rwx.com/leaves/aws/assume-role)"
+For more information see [https://www.rwx.com/docs/packages/aws/assume-role](https://www.rwx.com/docs/packages/aws/assume-role)"
 
   exit 1
 fi

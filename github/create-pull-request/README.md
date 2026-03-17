@@ -13,7 +13,7 @@ with repository permissions for:
 
 ## Instructions
 
-- Clone a git repository using the [git/clone](https://www.rwx.com/docs/mint/leaves/git/clone) package. Remember to pass `preserve-git-dir: true`.
+- Clone a git repository using the [git/clone](https://www.rwx.com/docs/packages/git/clone) package. Remember to pass `preserve-git-dir: true`.
 - Define a task to make the desired changes
 - Use this package to create a pull request, or update an existing one identified by the `branch-prefix`.
 
@@ -55,7 +55,7 @@ tasks:
     run: rwx packages update | tee $RWX_VALUES/update-output
 
   - key: create-pull-request
-    call: github/create-pull-request 1.0.4
+    call: github/create-pull-request 1.0.5
     use: [update-packages]
     with:
       github-token: ${{ github-apps.your-orgs-bot.token }}

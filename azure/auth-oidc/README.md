@@ -3,7 +3,7 @@
 This leaf authenticates the Azure CLI via OIDC. It works with Azure's [workload identity federation](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation).
 Specifically, you can authenticate as a service principal or user-assigned managed identity.
 
-The Azure CLI is required. Mint provides the [azure/install-cli](https://cloud.rwx.com/leaves/azure/install-cli) leaf.
+The Azure CLI is required. Mint provides the [azure/install-cli](https://www.rwx.com/docs/packages/azure/install-cli) leaf.
 
 To authenticate with an identity using a subscription:
 
@@ -14,7 +14,7 @@ tasks:
 
   - key: azure-auth
     use: azure-cli
-    call: azure/auth-oidc 1.0.5
+    call: azure/auth-oidc 1.0.6
     with:
       oidc-token: ${{ vaults.your-vault.oidc.your-token }}
       client-id: ${{ vaults.your-vault.secrets.your-azure-client-id }}
@@ -31,7 +31,7 @@ tasks:
 
   - key: azure-auth
     use: azure-cli
-    call: azure/auth-oidc 1.0.5
+    call: azure/auth-oidc 1.0.6
     with:
       oidc-token: ${{ vaults.your-vault.oidc.your-token }}
       client-id: ${{ vaults.your-vault.secrets.your-azure-client-id }}
