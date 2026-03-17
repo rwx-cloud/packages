@@ -16,6 +16,25 @@ tasks:
       ref: ${{ init.sha }}
       preserve-git-dir: true
 
+  - key: rwx-cli
+    call: rwx/install-cli 4.0.3
+
+  - key: check-packages
+    use: [rwx-cli, code]
+    run: |
+      package_file="$DIRECTORY/rwx-package.yml"
+      cp "$package_file" "$package_file.before"
+      rwx packages update "$package_file"
+      if ! diff "$package_file.before" "$package_file"; then
+        echo ""
+        echo "ERROR: Package dependencies are outdated in $package_file"
+        echo "Run 'rwx packages update $package_file' locally and commit the result."
+        exit 1
+      fi
+      echo "All package dependencies are up to date."
+    env:
+      DIRECTORY: ${{ init.directory }}
+
   - key: timestamp
     use: code
     run: |
