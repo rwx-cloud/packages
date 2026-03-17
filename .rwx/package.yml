@@ -32,6 +32,8 @@ tasks:
         exit 1
       fi
       echo "All package dependencies are up to date."
+    filter:
+      - ${{ init.directory }}
     env:
       DIRECTORY: ${{ init.directory }}
 
