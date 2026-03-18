@@ -118,6 +118,97 @@ tasks:
       golang.org/x/text v0.21.0/go.mod h1:4IBbMaMmOPCJ8SecivzSH54+73PCFmPWxNTLm+vZkEQ=
       EOF
 
+  - key: code-local-replace
+    run: |
+      mkdir localdep
+      cat > go.mod << 'EOF'
+      module test
+
+      go 1.25
+
+      require example.com/localdep v0.0.0
+
+      replace example.com/localdep => ./localdep
+      EOF
+      cat > go.sum << 'EOF'
+      golang.org/x/text v0.21.0 h1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=
+      golang.org/x/text v0.21.0/go.mod h1:4IBbMaMmOPCJ8SecivzSH54+73PCFmPWxNTLm+vZkEQ=
+      EOF
+      cat > localdep/go.mod << 'EOF'
+      module example.com/localdep
+
+      go 1.25
+
+      require golang.org/x/text v0.21.0
+      EOF
+
+  - key: code-remote-replace
+    run: |
+      cat > go.mod << 'EOF'
+      module test
+
+      go 1.25
+
+      require rsc.io/quote v1.5.2
+
+      replace rsc.io/quote => rsc.io/sampler v1.3.0
+      EOF
+      cat > go.sum << 'EOF'
+      golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c h1:qgOY6WgZOaTkIIMiVjBQcw93ERBE4m30iBm00nkL0i8=
+      golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
+      rsc.io/sampler v1.3.0 h1:7uVkIFmeBqHfdjD+gZwtXXI+RODJ2Wc4O7MPEh/QiW4=
+      rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=
+      EOF
+
+  - key: code-all-local
+    run: |
+      mkdir localdep
+      cat > go.mod << 'EOF'
+      module test
+
+      go 1.25
+
+      require example.com/localdep v0.0.0
+
+      replace example.com/localdep => ./localdep
+      EOF
+      cat > localdep/go.mod << 'EOF'
+      module example.com/localdep
+
+      go 1.25
+      EOF
+
+  - key: code-workspace-replace
+    run: |
+      mkdir app lib
+      cat > app/go.mod << 'EOF'
+      module example.com/app
+
+      go 1.25
+
+      require example.com/lib v0.0.0
+      EOF
+      cat > app/go.sum << 'EOF'
+      golang.org/x/text v0.21.0 h1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=
+      golang.org/x/text v0.21.0/go.mod h1:4IBbMaMmOPCJ8SecivzSH54+73PCFmPWxNTLm+vZkEQ=
+      EOF
+      cat > lib/go.mod << 'EOF'
+      module example.com/lib
+
+      go 1.25
+
+      require golang.org/x/text v0.21.0
+      EOF
+      cat > go.work << 'EOF'
+      go 1.25
+
+      use (
+        ./app
+      )
+
+      replace example.com/lib v0.0.0 => ./lib
+      EOF
+
   - key: mod-download--test-go-1-20
     use: [go-1-20, code-1-20]
     call: ${{ init.package-digest }}
@@ -181,5 +272,51 @@ tasks:
 
   - key: mod-download--test-go-1-25--assert
     use: mod-download--test-go-1-25
+    run: |
+      test -d "$(go env GOMODCACHE)/golang.org/x/text@v0.21.0"
+
+  - key: mod-download--test-local-replace
+    use: [go-1-25, code-local-replace]
+    call: ${{ init.package-digest }}
+    with:
+      tool-cache: golang-mod-download-local-replace
+
+  - key: mod-download--test-local-replace--assert
+    use: mod-download--test-local-replace
+    run: |
+      test -d "$(go env GOMODCACHE)/golang.org/x/text@v0.21.0"
+
+  - key: mod-download--test-remote-replace
+    use: [go-1-25, code-remote-replace]
+    call: ${{ init.package-digest }}
+    with:
+      tool-cache: golang-mod-download-remote-replace
+
+  - key: mod-download--test-remote-replace--assert
+    use: mod-download--test-remote-replace
+    run: |
+      test -d "$(go env GOMODCACHE)/rsc.io/sampler@v1.3.0"
+
+  - key: mod-download--test-all-local
+    use: [go-1-25, code-all-local]
+    call: ${{ init.package-digest }}
+    with:
+      tool-cache: golang-mod-download-all-local
+
+  - key: mod-download--test-all-local--assert
+    use: mod-download--test-all-local
+    run: |
+      test -f "$(go env GOMODCACHE)/.rwx-mod-download.json"
+      test ! -s "$(go env GOMODCACHE)/.rwx-mod-download.json"
+
+  - key: mod-download--test-workspace-replace
+    use: [go-1-25, code-workspace-replace]
+    call: ${{ init.package-digest }}
+    with:
+      path: app
+      tool-cache: golang-mod-download-workspace-replace
+
+  - key: mod-download--test-workspace-replace--assert
+    use: mod-download--test-workspace-replace
     run: |
       test -d "$(go env GOMODCACHE)/golang.org/x/text@v0.21.0"
