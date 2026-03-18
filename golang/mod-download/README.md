@@ -23,7 +23,7 @@ tasks:
 
   - key: go-modules
     use: [go, code]
-    call: golang/mod-download 1.0.1
+    call: golang/mod-download 1.0.2
     filter: [go.mod, go.sum]
     with:
       tool-cache: my-repo-go-modules
@@ -38,7 +38,7 @@ If your Go project is not in the workspace root, you can specify a path:
 ```yaml
   - key: go-modules
     use: [go, code]
-    call: golang/mod-download 1.0.1
+    call: golang/mod-download 1.0.2
     filter: [path/to/go.mod, path/to/go.sum]
     with:
       path: path/to
