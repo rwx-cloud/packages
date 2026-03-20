@@ -1,30 +1,71 @@
 #!/bin/sh
 set -e
 
+git_clone_ls_remote_refs() {
+  remote=$1
+  shift
+
+  if [ -n "${CREDENTIAL_HELPER}" ]; then
+    git -c "credential.helper=${CREDENTIAL_HELPER}" ls-remote --refs "$remote" "$@"
+  else
+    git ls-remote --refs "$remote" "$@"
+  fi
+}
+
+git_clone_exact_ref_matches() {
+  remote=$1
+  ref=$2
+
+  case "$ref" in
+    refs/*)
+      git_clone_ls_remote_refs "$remote" "$ref"
+      ;;
+    *)
+      git_clone_ls_remote_refs "$remote" "refs/heads/$ref" "refs/tags/$ref"
+      ;;
+  esac
+}
+
+git_clone_ref_match_count() {
+  printf '%s' "$1" | awk 'NF { count += 1 } END { print count + 0 }'
+}
+
+git_clone_ref_match_sha() {
+  printf '%s' "$1" | awk 'NF { print $1; exit }'
+}
+
+git_clone_print_ambiguous_ref_error() {
+  ref=$1
+  matches=$2
+
+  cat << EOF
+Ref \`${ref}\` is ambiguous. \`git ls-remote\` returned multiple exact matches:
+
+\`\`\`
+${matches}
+\`\`\`
+
+Please specify a fully qualified ref, for example:
+
+- \`refs/heads/<name>\` for a branch
+- \`refs/tags/<name>\` for a tag
+EOF
+}
+
 if [ "${CHECKOUT_REF}" = "HEAD" ]; then
   echo "Cloning from HEAD is ambiguous. If you want to clone from the HEAD of a particular branch, pass in the name of that branch as the ref instead." | tee "$RWX_ERRORS/error-head" >&2
   exit 1
 fi
 
-CREDENTIAL_ARG=""
-if [ "${CREDENTIAL_HELPER}" != "" ]; then
-  CREDENTIAL_ARG="-c credential.helper='${CREDENTIAL_HELPER}'"
-fi
-COMMAND="git $CREDENTIAL_ARG ls-remote \"${CHECKOUT_REPOSITORY}\" \"${CHECKOUT_REF}\""
-LS_REMOTE_OUTPUT=$(eval "$COMMAND")
-LS_REMOTE_LINE_COUNT=$(echo "$LS_REMOTE_OUTPUT" | wc -l)
+LS_REMOTE_OUTPUT=$(git_clone_exact_ref_matches "${CHECKOUT_REPOSITORY}" "${CHECKOUT_REF}")
+LS_REMOTE_LINE_COUNT=$(git_clone_ref_match_count "$LS_REMOTE_OUTPUT")
 
 if [ "$LS_REMOTE_LINE_COUNT" -gt 1 ]; then
-  {
-    echo "ref '${CHECKOUT_REF}' is ambiguous. git ls-remote returned multiple matches:"
-    echo "$LS_REMOTE_OUTPUT"
-    echo ""
-    echo "Please specify a more specific ref (e.g., 'refs/heads/${CHECKOUT_REF}' for a branch or 'refs/tags/${CHECKOUT_REF}' for a tag)."
-  } | tee "$RWX_ERRORS/error-ambiguous-ref" >&2
+  git_clone_print_ambiguous_ref_error "${CHECKOUT_REF}" "${LS_REMOTE_OUTPUT}" | tee "$RWX_ERRORS/error-ambiguous-ref" >&2
   exit 1
 fi
 
-RESOLVED_SHA=$(echo "$LS_REMOTE_OUTPUT" | awk '{print $1}')
+RESOLVED_SHA=$(git_clone_ref_match_sha "$LS_REMOTE_OUTPUT")
 if [ "$RESOLVED_SHA" = "" ]; then
   RESOLVED_SHA="${CHECKOUT_REF}"
 fi

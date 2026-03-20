@@ -126,6 +126,48 @@ tasks:
     env:
       GITHUB_TOKEN: ${{ github['rwx-cloud'].token }}
 
+  - key: git-clone--test-preserve-git-dir-from-short-branch
+    call: ${{ init.package-digest }}
+    use: system-packages
+    with:
+      repository: https://github.com/rwx-cloud/test-checkout-package.git
+      ref: branch
+      github-token: ${{ github['rwx-cloud'].token }}
+      preserve-git-dir: true
+
+  - key: git-clone--test-preserve-git-dir-from-short-branch--assert
+    use: git-clone--test-preserve-git-dir-from-short-branch
+    run: |
+      test -d .git
+      test -f .git/shallow
+      test -e file-in-repo.txt
+
+      SHA=$(git rev-parse HEAD)
+      REF=$(git symbolic-ref --short HEAD)
+      test $SHA = "ff0a833ae95a01cf897f5c72dc4586afc968dece"
+      test $REF = "branch"
+
+  - key: git-clone--test-preserve-git-dir-from-nested-branch
+    call: ${{ init.package-digest }}
+    use: system-packages
+    with:
+      repository: https://github.com/rwx-cloud/test-checkout-package.git
+      ref: nested/branch
+      github-token: ${{ github['rwx-cloud'].token }}
+      preserve-git-dir: true
+
+  - key: git-clone--test-preserve-git-dir-from-nested-branch--assert
+    use: git-clone--test-preserve-git-dir-from-nested-branch
+    run: |
+      test -d .git
+      test -f .git/shallow
+      test -e file-in-repo.txt
+
+      SHA=$(git rev-parse HEAD)
+      REF=$(git symbolic-ref --short HEAD)
+      test $SHA = "ff0a833ae95a01cf897f5c72dc4586afc968dece"
+      test $REF = "nested/branch"
+
   - key: git-clone--test-commit-sha-ref-meta
     call: ${{ init.package-digest }}
     use: system-packages
