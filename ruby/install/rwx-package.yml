@@ -1,5 +1,5 @@
 name: ruby/install
-version: 1.2.21
+version: 1.2.22
 description: Install Ruby, a dynamic programming language with a focus on simplicity and productivity
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/ruby/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -87,7 +87,12 @@ tasks:
         escaped_arch="arm64"
       fi
 
-      version_line=$(cat $RWX_PACKAGE_PATH/known-rubies.csv | { grep -E "^$escaped_version,[^,]+,[^,]+,$escaped_os,$escaped_arch" || test $? = 1; })
+      if [ "$(id -u)" = "999" ]; then
+        known_rubies_file="known-rubies-os-base.csv"
+      else
+        known_rubies_file="known-rubies-image-base.csv"
+      fi
+      version_line=$(cat $RWX_PACKAGE_PATH/$known_rubies_file | { grep -E "^$escaped_version,[^,]+,[^,]+,$escaped_os,$escaped_arch" || test $? = 1; })
       if [[ -z "$version_line" ]]; then
         cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
       Ruby $RUBY_VERSION is not available in this version of [ruby/install](https://www.rwx.com/docs/mint/packages/ruby/install) and OS.
