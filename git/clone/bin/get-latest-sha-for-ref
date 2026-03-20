@@ -39,10 +39,16 @@ git_clone_print_ambiguous_ref_error() {
   matches=$2
 
   cat << EOF
-ref '${ref}' is ambiguous. git ls-remote returned multiple exact matches:
-${matches}
+Ref \`${ref}\` is ambiguous. \`git ls-remote\` returned multiple exact matches:
 
-Please specify a fully qualified ref (for example, 'refs/heads/<name>' for a branch or 'refs/tags/<name>' for a tag).
+\`\`\`
+${matches}
+\`\`\`
+
+Please specify a fully qualified ref, for example:
+
+- \`refs/heads/<name>\` for a branch
+- \`refs/tags/<name>\` for a tag
 EOF
 }
 
