@@ -51,6 +51,26 @@ tasks:
       GCP_OIDC_TOKEN: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
       SERVICE_ACCOUNT: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}
 
+  - key: test--service-account--assert-second-use
+    use: test--service-account
+    run: |
+      gcloud auth list --filter="status:ACTIVE" --format="value(account)" | \
+        grep -q "$SERVICE_ACCOUNT"
+    env:
+      GCP_OIDC_TOKEN: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
+      SERVICE_ACCOUNT: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}
+
+  - key: test--service-account--assert-unauthed
+    use: test--service-account
+    run: |
+      active_accounts=$(gcloud auth list --filter="status:ACTIVE" --format="value(account)")
+      if [ -n "$active_accounts" ]; then
+        >&2 echo "Expected no active gcloud accounts, but found: $active_accounts"
+        exit 1
+      fi
+    env:
+      GCP_SKIP_AUTH: "true"
+
   - key: test--service-account-with-lifetime
     use: install-cli
     call: ${{ init.package-digest }}
