@@ -1,0 +1,108 @@
+#!/bin/bash
+
+set -ueo pipefail
+
+log_error() {
+  local message="$1"
+  local tmpfile
+  tmpfile=$(mktemp "$RWX_ERRORS/error-XXXX")
+  cat <<EOF > "$tmpfile"
+$message
+EOF
+}
+
+GCP_OIDC_TOKEN="${%{{OIDC_TOKEN_ENV_VAR}}:-}"
+GCP_SKIP_AUTH="${GCP_SKIP_AUTH:-}"
+
+if [ -z "$GCP_SKIP_AUTH" ] && [ -z "$GCP_OIDC_TOKEN" ]; then
+  log_error "One of the upstream dependencies from this task's \`use\` configuration is a \`google-cloud/auth-oidc\` task which configures a hook to authenticate with Google Cloud.
+
+If this task should be authenticating with Google Cloud, set the \`%{{OIDC_TOKEN_ENV_VAR}}\` environment variable.
+
+If this task should not be authenticating with Google Cloud, remove the dependency from \`use\`, or set the \`GCP_SKIP_AUTH\` environment variable to true.
+
+For more information see [https://www.rwx.com/docs/packages/google-cloud/auth-oidc](https://www.rwx.com/docs/packages/google-cloud/auth-oidc)"
+
+  exit 1
+fi
+
+if [ -n "$GCP_SKIP_AUTH" ]; then
+  echo "GCP_SKIP_AUTH is set, the google-cloud/auth-oidc hook has been skipped."
+  exit 0
+fi
+
+if ! command -v gcloud &> /dev/null; then
+  log_error "The Google Cloud CLI (gcloud) must be installed. To install it, you can use the \`google-cloud/install-cli\` package."
+  exit 1
+fi
+
+WORKLOAD_IDENTITY_PROVIDER="%{{WORKLOAD_IDENTITY_PROVIDER}}"
+SERVICE_ACCOUNT="%{{SERVICE_ACCOUNT}}"
+SERVICE_ACCOUNT_TOKEN_LIFETIME_SECONDS="%{{SERVICE_ACCOUNT_TOKEN_LIFETIME_SECONDS}}"
+AUDIENCE="%{{AUDIENCE}}"
+PROJECT_ID="%{{PROJECT_ID}}"
+
+credentials_dir="$(mktemp -d)"
+token_source_file="${credentials_dir}/oidc-token.txt"
+credentials_file="${credentials_dir}/credentials.json"
+
+audience="$AUDIENCE"
+if [[ -z "$audience" ]]; then
+  audience="//iam.googleapis.com/${WORKLOAD_IDENTITY_PROVIDER}"
+fi
+
+echo
+echo "Saving OIDC token"
+echo "$GCP_OIDC_TOKEN" > "$token_source_file"
+chmod 0600 "$token_source_file"
+
+echo
+echo "Building application credentials file"
+credentials_content=$(jq -n \
+  --arg audience "$audience" \
+  --arg token_source_file "$token_source_file" \
+  '{
+    "type": "external_account",
+    "audience": $audience,
+    "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
+    "token_url": "https://sts.googleapis.com/v1/token",
+    "credential_source": {
+      "file": $token_source_file,
+      "format": {
+        "type": "text"
+      }
+    }
+  }')
+
+if [[ -n "$SERVICE_ACCOUNT" ]]; then
+  echo "Enabling service account impersonation"
+  credentials_content=$(echo "$credentials_content" | \
+    jq --arg url "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${SERVICE_ACCOUNT}:generateAccessToken" \
+      '.service_account_impersonation_url = $url')
+
+  if [[ -n "$SERVICE_ACCOUNT_TOKEN_LIFETIME_SECONDS" ]]; then
+    echo "Setting service account token lifetime to ${SERVICE_ACCOUNT_TOKEN_LIFETIME_SECONDS} seconds"
+    credentials_content=$(echo "$credentials_content" | \
+      jq --arg lifetime "$SERVICE_ACCOUNT_TOKEN_LIFETIME_SECONDS" \
+        '.service_account_impersonation += {"token_lifetime_seconds": ($lifetime | tonumber)}')
+  fi
+fi
+
+echo "$credentials_content" >"$credentials_file"
+chmod 0600 "$credentials_file"
+
+echo "$credentials_file" >> "${RWX_ENV}/GOOGLE_APPLICATION_CREDENTIALS"
+export GOOGLE_APPLICATION_CREDENTIALS="$credentials_file"
+
+echo
+echo "Authenticating with gcloud"
+
+gcloud auth login --cred-file="$GOOGLE_APPLICATION_CREDENTIALS"
+echo "Authenticated with gcloud"
+
+if [[ -n "$PROJECT_ID" ]]; then
+  echo
+  echo "Configuring gcloud project"
+  gcloud config set project "$PROJECT_ID"
+  echo "Using project: $(gcloud config get project)"
+fi

@@ -1,52 +1,47 @@
 name: google-cloud/auth-credentials
-version: 1.0.9
+version: 2.0.0
 description: Authenticate to Google Cloud with credentials JSON
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/auth-credentials
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 
 parameters:
-  credentials-json:
-    description: "The Service Account Key JSON used for authentication"
-    required: true
   project-id:
     description: "The default project to select once authenticated"
     required: false
+  credentials-json-env-var:
+    description: "The environment variable that contains the credentials JSON."
+    default: "GCP_CREDENTIALS_JSON"
 
 tasks:
-  - key: require-gcloud
-    run: |
-      if ! command -v gcloud &> /dev/null; then
-        cat << 'EOF' > $(mktemp "$RWX_ERRORS/error-XXXX")
-      The Google Cloud CLI (gcloud) must be installed. To install it, you can use the `google-cloud/install-cli` leaf.
-      EOF
-        exit 2
-      fi
-    filter: []
-
-  - key: auth-login
-    after: require-gcloud
+  - key: produce-auth-hooks
     run: |
       set -ueo pipefail
 
-      credentials_dir="$(mktemp -d)"
-      credentials_file="${credentials_dir}/credentials.json"
+      BEFORE_HOOK_TEMPLATE="$RWX_PACKAGES_PATH/auth-login.template.txt"
+      BEFORE_HOOK="$RWX_HOOKS_BEFORE_TASK/gcp-auth-login.sh"
+      AFTER_HOOK="$RWX_HOOKS_AFTER_TASK/gcp-auth-login.sh"
 
-      echo '${{ params.credentials-json }}' >"$credentials_file"
-      chmod 0600 "$credentials_file"
+      awk \
+        -v PROJECT_ID="${{ params.project-id }}" \
+        -v CREDENTIALS_JSON_ENV_VAR="${{ params.credentials-json-env-var }}" \
+      '{
+          gsub("%{{PROJECT_ID}}", PROJECT_ID);
+          gsub("%{{CREDENTIALS_JSON_ENV_VAR}}", CREDENTIALS_JSON_ENV_VAR);
+          print
+      }' "$BEFORE_HOOK_TEMPLATE" > "$BEFORE_HOOK"
 
-      echo "$credentials_file" >> "${RWX_ENV}/GOOGLE_APPLICATION_CREDENTIALS"
-      export GOOGLE_APPLICATION_CREDENTIALS="$credentials_file"
+      bash -n "$BEFORE_HOOK" || { echo "Generated before hook script has syntax errors."; exit 1; }
 
-      echo
-      echo "Authenticating with gcloud"
-
-      gcloud auth login --cred-file="$GOOGLE_APPLICATION_CREDENTIALS"
-      echo "Authenticated with gcloud"
-
-      if [[ -n "${{ params.project-id }}" ]]; then
-        echo
-        echo "Configuring gcloud project"
-        gcloud config set project "${{ params.project-id }}"
-        echo "Using project: $(gcloud config get project)"
+      cat <<'EOF' > "$AFTER_HOOK"
+      #!/bin/bash
+      set -ueo pipefail
+      GCP_SKIP_AUTH="${GCP_SKIP_AUTH:-}"
+      if [ -n "$GCP_SKIP_AUTH" ]; then
+        exit 0
       fi
-    cache: false
+      echo 'Logging out of gcloud'
+      gcloud auth revoke 2>/dev/null || true
+      EOF
+
+      chmod +x "$BEFORE_HOOK"
+      chmod +x "$AFTER_HOOK"

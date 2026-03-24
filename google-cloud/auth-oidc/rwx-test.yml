@@ -11,7 +11,6 @@ tasks:
     use: install-cli
     call: ${{ init.package-digest }}
     with:
-      oidc-token: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
       workload-identity-provider: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
   - key: test--direct-workload--assert
     use: test--direct-workload
@@ -19,13 +18,13 @@ tasks:
       gcloud auth list --filter="status:ACTIVE" --format="value(account)" | \
         grep -q "workloadIdentityPools/${POOL_NAME}/subject"
     env:
+      GCP_OIDC_TOKEN: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
       POOL_NAME: mint-sample-identity-pool
 
   - key: test--service-account
     use: install-cli
     call: ${{ init.package-digest }}
     with:
-      oidc-token: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
       workload-identity-provider: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       service-account: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}
   - key: test--service-account--assert
@@ -49,13 +48,13 @@ tasks:
       echo "Now: $now"
       echo "Token remaining lifetime seconds: $lifetime_seconds"
     env:
+      GCP_OIDC_TOKEN: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
       SERVICE_ACCOUNT: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}
 
   - key: test--service-account-with-lifetime
     use: install-cli
     call: ${{ init.package-digest }}
     with:
-      oidc-token: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
       workload-identity-provider: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       service-account: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}
       service-account-token-lifetime-seconds: 63
@@ -87,9 +86,10 @@ tasks:
       echo "Now: $now"
       echo "Token remaining lifetime seconds: $lifetime_seconds"
 
-      if [ "$lifetime_seconds" -gte $(($expected_lifetime_seconds + 5)) ]; then
+      if [ "$lifetime_seconds" -ge $(($expected_lifetime_seconds + 5)) ]; then
         >&2 echo "Expected remaining lifetime seconds to be under $(($expected_lifetime_seconds + 5))"
         exit 1
       fi
     env:
+      GCP_OIDC_TOKEN: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
       SERVICE_ACCOUNT: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}
