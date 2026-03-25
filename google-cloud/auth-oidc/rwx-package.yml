@@ -1,13 +1,10 @@
 name: google-cloud/auth-oidc
-version: 1.0.11
+version: 2.0.0
 description: Authenticate to Google Cloud with OIDC and Workload Identity Federation
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/auth-oidc
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 
 parameters:
-  oidc-token:
-    description: "The OIDC token that will be exchanged for temporary credentials (e.g. vaults.your-vault.oidc.your-token)"
-    required: true
   workload-identity-provider:
     description: "The full identifier of the Workload Identity Provider"
     required: true
@@ -23,81 +20,48 @@ parameters:
   project-id:
     description: "The default project to select once authenticated"
     required: false
+  oidc-token-env-var:
+    description: "The environment variable that contains the OIDC token."
+    default: "GCP_OIDC_TOKEN"
 
 tasks:
-  - key: auth-login
+  - key: produce-auth-hooks
     run: |
       set -ueo pipefail
 
-      if ! command -v gcloud &> /dev/null; then
-        cat << 'EOF' > $(mktemp "$RWX_ERRORS/error-XXXX")
-      The Google Cloud CLI (gcloud) must be installed. To install it, you can use the `google-cloud/install-cli` leaf.
+      BEFORE_HOOK_TEMPLATE="$RWX_PACKAGES_PATH/auth-login.template.txt"
+      BEFORE_HOOK="$RWX_HOOKS_BEFORE_TASK/gcp-auth-oidc-login.sh"
+      AFTER_HOOK="$RWX_HOOKS_AFTER_TASK/gcp-auth-oidc-login.sh"
+
+      awk \
+        -v WORKLOAD_IDENTITY_PROVIDER="${{ params.workload-identity-provider }}" \
+        -v SERVICE_ACCOUNT="${{ params.service-account }}" \
+        -v SERVICE_ACCOUNT_TOKEN_LIFETIME_SECONDS="${{ params.service-account-token-lifetime-seconds }}" \
+        -v AUDIENCE="${{ params.audience }}" \
+        -v PROJECT_ID="${{ params.project-id }}" \
+        -v OIDC_TOKEN_ENV_VAR="${{ params.oidc-token-env-var }}" \
+      '{
+          gsub("%{{WORKLOAD_IDENTITY_PROVIDER}}", WORKLOAD_IDENTITY_PROVIDER);
+          gsub("%{{SERVICE_ACCOUNT}}", SERVICE_ACCOUNT);
+          gsub("%{{SERVICE_ACCOUNT_TOKEN_LIFETIME_SECONDS}}", SERVICE_ACCOUNT_TOKEN_LIFETIME_SECONDS);
+          gsub("%{{AUDIENCE}}", AUDIENCE);
+          gsub("%{{PROJECT_ID}}", PROJECT_ID);
+          gsub("%{{OIDC_TOKEN_ENV_VAR}}", OIDC_TOKEN_ENV_VAR);
+          print
+      }' "$BEFORE_HOOK_TEMPLATE" > "$BEFORE_HOOK"
+
+      bash -n "$BEFORE_HOOK" || { echo "Generated before hook script has syntax errors."; exit 1; }
+
+      cat <<'EOF' > "$AFTER_HOOK"
+      #!/bin/bash
+      set -ueo pipefail
+      GCP_SKIP_AUTH="${GCP_SKIP_AUTH:-}"
+      if [ -n "$GCP_SKIP_AUTH" ]; then
+        exit 0
+      fi
+      echo 'Logging out of gcloud'
+      gcloud auth revoke 2>/dev/null || true
       EOF
-        exit 2
-      fi
 
-      credentials_dir="$(mktemp -d)"
-      token_source_file="${credentials_dir}/oidc-token.txt"
-      credentials_file="${credentials_dir}/credentials.json"
-
-      audience="${{ params.audience }}"
-      if [[ -z "$audience" ]]; then
-        audience="//iam.googleapis.com/${{ params.workload-identity-provider }}"
-      fi
-
-      echo
-      echo "Saving OIDC token"
-      echo "${{ params.oidc-token }}" > "$token_source_file"
-      chmod 0600 "$token_source_file"
-
-      echo
-      echo "Building application credentials file"
-      credentials_content=$(jq -n \
-        --arg audience "$audience" \
-        --arg token_source_file "$token_source_file" \
-        '{
-          "type": "external_account",
-          "audience": $audience,
-          "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
-          "token_url": "https://sts.googleapis.com/v1/token",
-          "credential_source": {
-            "file": $token_source_file,
-            "format": {
-              "type": "text"
-            }
-          }
-        }')
-
-      if [[ -n "${{ params.service-account }}" ]]; then
-        echo "Enabling service account impersonation"
-        credentials_content=$(echo "$credentials_content" | \
-          jq --arg url "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${{ params.service-account }}:generateAccessToken" \
-            '.service_account_impersonation_url = $url')
-
-        if [[ -n "${{ params.service-account-token-lifetime-seconds }}" ]]; then
-          echo "Setting service account token lifetime to ${{ params.service-account-token-lifetime-seconds }} seconds"
-          credentials_content=$(echo "$credentials_content" | \
-            jq --arg lifetime "${{ params.service-account-token-lifetime-seconds }}" \
-              '.service_account_impersonation += {"token_lifetime_seconds": ($lifetime | tonumber)}')
-        fi
-      fi
-
-      echo "$credentials_content" >"$credentials_file"
-      chmod 0600 "$credentials_file"
-
-      echo "$credentials_file" >> "${RWX_ENV}/GOOGLE_APPLICATION_CREDENTIALS"
-      export GOOGLE_APPLICATION_CREDENTIALS="$credentials_file"
-
-      echo
-      echo "Authenticating with gcloud"
-
-      gcloud auth login --cred-file="$GOOGLE_APPLICATION_CREDENTIALS"
-      echo "Authenticated with gcloud"
-
-      if [[ -n "${{ params.project-id }}" ]]; then
-        echo
-        echo "Configuring gcloud project"
-        gcloud config set project "${{ params.project-id }}"
-        echo "Using project: $(gcloud config get project)"
-      fi
-    cache: false
+      chmod +x "$BEFORE_HOOK"
+      chmod +x "$AFTER_HOOK"

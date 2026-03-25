@@ -10,8 +10,6 @@ tasks:
   - key: auth-credentials--test--defaults
     use: auth-credentials--install-cli
     call: ${{ init.package-digest }}
-    with:
-      credentials-json: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_CREDENTIALS_JSON }}
 
   - key: auth-credentials--test--defaults--assert
     use: auth-credentials--test--defaults
@@ -19,4 +17,25 @@ tasks:
       gcloud auth list --filter="status:ACTIVE" --format="value(account)" | \
         grep -q "$SERVICE_ACCOUNT"
     env:
+      GCP_CREDENTIALS_JSON: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_CREDENTIALS_JSON }}
       SERVICE_ACCOUNT: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}
+
+  - key: auth-credentials--test--defaults--assert-second-use
+    use: auth-credentials--test--defaults
+    run: |
+      gcloud auth list --filter="status:ACTIVE" --format="value(account)" | \
+        grep -q "$SERVICE_ACCOUNT"
+    env:
+      GCP_CREDENTIALS_JSON: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_CREDENTIALS_JSON }}
+      SERVICE_ACCOUNT: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}
+
+  - key: auth-credentials--test--defaults--assert-unauthed
+    use: auth-credentials--test--defaults
+    run: |
+      active_accounts=$(gcloud auth list --filter="status:ACTIVE" --format="value(account)")
+      if [ -n "$active_accounts" ]; then
+        >&2 echo "Expected no active gcloud accounts, but found: $active_accounts"
+        exit 1
+      fi
+    env:
+      GCP_SKIP_AUTH: "true"

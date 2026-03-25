@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set -ueo pipefail
+
+log_error() {
+  local message="$1"
+  local tmpfile
+  tmpfile=$(mktemp "$RWX_ERRORS/error-XXXX")
+  cat <<EOF > "$tmpfile"
+$message
+EOF
+}
+
+GCP_CREDENTIALS_JSON="${%{{CREDENTIALS_JSON_ENV_VAR}}:-}"
+GCP_SKIP_AUTH="${GCP_SKIP_AUTH:-}"
+
+if [ -z "$GCP_SKIP_AUTH" ] && [ -z "$GCP_CREDENTIALS_JSON" ]; then
+  log_error "One of the upstream dependencies from this task's \`use\` configuration is a \`google-cloud/auth-credentials\` task which configures a hook to authenticate with Google Cloud.
+
+If this task should be authenticating with Google Cloud, set the \`%{{CREDENTIALS_JSON_ENV_VAR}}\` environment variable.
+
+If this task should not be authenticating with Google Cloud, remove the dependency from \`use\`, or set the \`GCP_SKIP_AUTH\` environment variable to true.
+
+For more information see [https://www.rwx.com/docs/packages/google-cloud/auth-credentials](https://www.rwx.com/docs/packages/google-cloud/auth-credentials)"
+
+  exit 1
+fi
+
+if [ -n "$GCP_SKIP_AUTH" ]; then
+  echo "GCP_SKIP_AUTH is set, the google-cloud/auth-credentials hook has been skipped."
+  exit 0
+fi
+
+if ! command -v gcloud &> /dev/null; then
+  log_error "The Google Cloud CLI (gcloud) must be installed. To install it, you can use the \`google-cloud/install-cli\` package."
+  exit 1
+fi
+
+PROJECT_ID="%{{PROJECT_ID}}"
+
+credentials_dir="$(mktemp -d)"
+credentials_file="${credentials_dir}/credentials.json"
+
+echo "$GCP_CREDENTIALS_JSON" >"$credentials_file"
+chmod 0600 "$credentials_file"
+
+export GOOGLE_APPLICATION_CREDENTIALS="$credentials_file"
+echo "$credentials_file" >> "${RWX_ENV}/GOOGLE_APPLICATION_CREDENTIALS"
+
+echo
+echo "Authenticating with gcloud"
+
+gcloud auth login --cred-file="$GOOGLE_APPLICATION_CREDENTIALS"
+echo "Authenticated with gcloud"
+
+if [[ -n "$PROJECT_ID" ]]; then
+  echo
+  echo "Configuring gcloud project"
+  gcloud config set project "$PROJECT_ID"
+  echo "Using project: $(gcloud config get project)"
+fi
