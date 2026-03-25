@@ -19,7 +19,7 @@ tasks:
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.0.7
+    call: github/compare 1.0.8
     with:
       repository: my-organization/my-repository
       base-ref: abc123
@@ -41,7 +41,7 @@ tasks:
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.0.7
+    call: github/compare 1.0.8
     with:
       repository: my-organization/my-repository
       base-ref: abc123
@@ -79,7 +79,7 @@ tasks:
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.0.7
+    call: github/compare 1.0.8
     with:
       repository: my-organization/my-repository
       base-ref: ${{ init.base-ref }}
@@ -111,7 +111,7 @@ tasks:
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.0.7
+    call: github/compare 1.0.8
     with:
       repository: my-organization/my-repository
       base-ref: ${{ init.base-ref }}
