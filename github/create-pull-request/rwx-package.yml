@@ -1,5 +1,5 @@
 name: github/create-pull-request
-version: 1.0.5
+version: 1.0.6
 description: Creates a pull request
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/create-pull-request
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -23,7 +23,7 @@ outputs:
 
 tasks:
   - key: gh-cli
-    call: github/install-cli 1.0.8
+    call: github/install-cli 1.0.10
 
   - key: create-or-update-pull-request
     use: [gh-cli]
@@ -34,6 +34,12 @@ tasks:
 
       git_status=$(git status --porcelain)
       if [ -n "$git_status" ]; then
+        viewer=$(gh api graphql -f query='{ viewer { databaseId login } }')
+        login=$(printf '%s' "$viewer" | jq -r '.data.viewer.login')
+        user_id=$(printf '%s' "$viewer" | jq -r '.data.viewer.databaseId')
+        git config user.email "${user_id}+${login}@users.noreply.github.com"
+        git config user.name "$login"
+
         git add --all
         git commit -m "$PULL_REQUEST_TITLE"
       else
