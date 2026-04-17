@@ -1,5 +1,5 @@
 name: rwx/base
-version: 1.0.1
+version: 1.0.2
 description: The default base image configuration
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/base
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
