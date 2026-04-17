@@ -1,0 +1,59 @@
+name: rwx/package
+version: 1.0.0
+description: Build and upload an RWX package
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/package
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+
+parameters:
+  directory:
+    description: Path to the directory containing the package files
+    default: .
+  timestamp:
+    description: "Timestamp to normalize file modification times before zipping (format: YYYYMMDDHHmm). Ensures deterministic zip output for content-based caching."
+
+tasks:
+  - key: system-packages
+    run: |
+      if command -v zip &> /dev/null; then
+        echo "zip is already installed"
+        exit 0
+      fi
+      sudo apt-get update
+      sudo apt-get install zip
+      sudo apt-get clean
+    filter: []
+
+  - key: zip
+    use: system-packages
+    run: |
+      if [[ -n "$TIMESTAMP" ]]; then
+        echo "Setting timestamp on files to $TIMESTAMP"
+        find "$DIRECTORY" -exec touch -t "$TIMESTAMP" {} \;
+      fi
+      workspace=$(pwd)
+      cd "$DIRECTORY" && zip -X -r "$workspace/package.zip" .
+    filter:
+      - ${{ params.directory }}
+    env:
+      DIRECTORY: ${{ params.directory }}
+      TIMESTAMP: ${{ params.timestamp }}
+
+  - key: upload
+    use: zip
+    run: |
+      curl \
+        --request POST \
+        --fail-with-body \
+        --header "Authorization: Bearer $RWX_ACCESS_TOKEN" \
+        --header 'Accept: application/json' \
+        -F 'file=@package.zip' \
+        https://cloud.rwx.com/mint/api/leaves | tee result.json
+
+      digest=$(jq -r '.digest' result.json)
+      echo "Uploaded package with digest: $digest"
+      echo -n "$digest" > "$RWX_VALUES/digest"
+    filter:
+      - package.zip
+
+outputs:
+  values-from: [upload]
