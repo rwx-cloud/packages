@@ -1,0 +1,20 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: base
+    call: ${{ init.package-digest }}
+
+  - key: test-user
+    use: base
+    run: |
+      cat /etc/os-release
+      test "$(whoami)" == "ubuntu"
+      test "$(sudo whoami)" == "root"
+
+  - key: test-docker
+    use: base
+    docker: true
+    run: docker run hello-world

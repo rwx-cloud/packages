@@ -1,5 +1,5 @@
 name: rwx/base
-version: 1.0.0
+version: 1.0.1
 description: The default base image configuration
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/base
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -29,11 +29,12 @@ tasks:
         exit 1
       fi
 
-      export DEBIAN_FRONTEND=noniteractive
+      export DEBIAN_FRONTEND=noninteractive
 
       echo "LANG=C.UTF-8" > /etc/default/locale
       cat /etc/default/locale >> /etc/environment
 
+      ${RWX_PACKAGE_PATH}/scripts/apt-mirror.sh
       ${RWX_PACKAGE_PATH}/scripts/apt-install.sh
       ${RWX_PACKAGE_PATH}/scripts/user.sh
       ${RWX_PACKAGE_PATH}/scripts/configure.sh
