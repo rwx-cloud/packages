@@ -21,6 +21,7 @@ tasks:
       sudo apt-get update
       sudo apt-get install zip
       sudo apt-get clean
+    filter: []
 
   - key: zip
     use: system-packages
