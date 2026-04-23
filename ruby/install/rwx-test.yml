@@ -4,17 +4,27 @@ base:
   arch: ${{ init.base-arch }}
 
 tasks:
+  - key: ruby-version
+    run: |
+      if [ "${BASE}" = "os" ]; then
+        echo "4.0.0" | tee "${RWX_VALUES}/ruby-version"
+      else
+        echo "4.0.3" | tee "${RWX_VALUES}/ruby-version"
+      fi
+    env:
+      BASE: ${{ init.base-kind }}
+
   - key: specify-version
     call: ${{ init.package-digest }}
     with:
-      ruby-version: 4.0.0
+      ruby-version: ${{ tasks.ruby-version.values.ruby-version }}
 
   - key: specify-version--assert
     use: specify-version
-    run: ruby --version | grep 4.0.0
+    run: ruby --version | grep ${{ tasks.ruby-version.values.ruby-version }}
 
   - key: write-ruby-version-file
-    run: echo 4.0.0 > .ruby-version
+    run: echo ${{ tasks.ruby-version.values.ruby-version }} > .ruby-version
 
   - key: ruby-version-file
     use: write-ruby-version-file
@@ -24,10 +34,10 @@ tasks:
 
   - key: ruby-version-file--assert
     use: ruby-version-file
-    run: ruby --version | grep 4.0.0
+    run: ruby --version | grep ${{ tasks.ruby-version.values.ruby-version }}
 
   - key: write-prefixed-ruby-version-file
-    run: echo ruby-4.0.0 > .ruby-version
+    run: echo ruby-${{ tasks.ruby-version.values.ruby-version }} > .ruby-version
 
   - key: prefixed-ruby-version-file
     use: write-prefixed-ruby-version-file
@@ -37,4 +47,4 @@ tasks:
 
   - key: prefixed-ruby-version-file--assert
     use: prefixed-ruby-version-file
-    run: ruby --version | grep 4.0.0
+    run: ruby --version | grep ${{ tasks.ruby-version.values.ruby-version }}

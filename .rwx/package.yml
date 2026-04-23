@@ -109,6 +109,7 @@ tasks:
       values: ${{ tasks.generate-test.values.base-images }}
     init:
       package-digest: ${{ tasks.package.values.digest }}
+      base-kind: image
       base-image: ${{ parallel.image }}
       base-config: ${{ parallel.config }}
       base-arch: ${{ parallel.arch }}
@@ -120,6 +121,7 @@ tasks:
       values: ${{ tasks.generate-test.values.base-images-legacy }}
     init:
       package-digest: ${{ tasks.package.values.digest }}
+      base-kind: os
       base-os: ${{ parallel.os }}
       base-tag: ${{ parallel.tag }}
       base-arch: ${{ parallel.arch }}
