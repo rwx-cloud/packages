@@ -7,6 +7,12 @@ source "${RWX_PACKAGE_PATH}/scripts/mint-utils.sh"
 echo "Installing Docker on $(mint_os_name_version)"
 
 case "$(mint_os_name_version)" in
+  "ubuntu 26.04")
+    DOCKER_VERSION=5:29.4.1-1~ubuntu.26.04~resolute
+    DOCKER_BUILDX_VERSION=0.33.0-1~ubuntu.26.04~resolute
+    DOCKER_COMPOSE_VERSION=5.1.3-1~ubuntu.26.04~resolute
+    CONTAINERD_IO_VERSION=2.2.3-1~ubuntu.26.04~resolute
+    ;;
   "ubuntu 24.04")
     DOCKER_VERSION=5:28.0.4-1~ubuntu.24.04~noble
     DOCKER_BUILDX_VERSION=0.22.0-1~ubuntu.24.04~noble
@@ -45,5 +51,19 @@ apt-get install -y \
   docker-compose-plugin=$DOCKER_COMPOSE_VERSION
 apt-get clean
 rm -rf /var/lib/apt/lists/*
+
+# Docker 29.x enables the containerd image store by default. Disable it so we
+# keep using the classic overlay2 snapshotter, matching older Ubuntu versions
+# that ship with Docker 26.x/28.x.
+if [ "$(mint_os_name_version)" = "ubuntu 26.04" ]; then
+  install -m 0755 -d /etc/docker
+  cat > /etc/docker/daemon.json <<'EOF'
+{
+  "features": {
+    "containerd-snapshotter": false
+  }
+}
+EOF
+fi
 
 usermod -aG docker ubuntu
