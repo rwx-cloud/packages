@@ -5,7 +5,7 @@ To install the latest version of the RWX CLI:
 ```yaml
 tasks:
   - key: rwx-cli
-    call: rwx/install-cli 4.0.3
+    call: rwx/install-cli 4.0.4
 ```
 
 To install a specific version of the RWX CLI:
@@ -13,7 +13,7 @@ To install a specific version of the RWX CLI:
 ```yaml
 tasks:
   - key: rwx-cli
-    call: rwx/install-cli 4.0.3
+    call: rwx/install-cli 4.0.4
     with:
       cli-version: v3.7.0
 ```
