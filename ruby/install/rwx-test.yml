@@ -7,7 +7,7 @@ tasks:
   - key: ruby-version
     run: |
       if [ "${BASE}" = "os" ]; then
-        echo "4.0.3" | tee "${RWX_VALUES}/ruby-version"
+        echo "4.0.0" | tee "${RWX_VALUES}/ruby-version"
       else
         echo "4.0.3" | tee "${RWX_VALUES}/ruby-version"
       fi
