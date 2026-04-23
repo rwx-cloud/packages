@@ -94,10 +94,17 @@ tasks:
       fi
       version_line=$(cat $RWX_PACKAGE_PATH/$known_rubies_file | { grep -E "^$escaped_version,[^,]+,[^,]+,$escaped_os,$escaped_arch" || test $? = 1; })
       if [[ -z "$version_line" ]]; then
-        cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
-      Ruby $RUBY_VERSION is not available in this version of [ruby/install](https://www.rwx.com/docs/mint/packages/ruby/install) and OS.
-      Try upgrading to the most recent version of this package. If the Ruby version is still not available, [file an issue](https://github.com/rwx-cloud/packages/issues/new).
-      EOF
+        if [ "$(id -u)" = "999" ]; then
+          cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
+        Ruby $RUBY_VERSION is not available for runs using the deprecated \`base.os\` and \`base.tag\` configuration.
+        See https://www.rwx.com/docs/base-os-to-image-migration to learn how to migrate \`base.os\` and \`base.tag\` to \`base.image\` and \`base.config\`.
+        EOF
+        else
+          cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
+        Ruby $RUBY_VERSION is not available in this version of [ruby/install](https://www.rwx.com/docs/mint/packages/ruby/install) and OS.
+        Try upgrading to the most recent version of this package. If the Ruby version is still not available, [file an issue](https://github.com/rwx-cloud/packages/issues/new).
+        EOF
+        fi
         exit 3
       fi
       echo "Found Ruby $RUBY_VERSION!"
