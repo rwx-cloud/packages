@@ -1,5 +1,5 @@
 name: rwx/base
-version: 1.0.2
+version: 1.0.3
 description: The default base image configuration
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/base
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -9,7 +9,7 @@ tasks:
     run: |
       source "$RWX_PACKAGE_PATH/scripts/mint-utils.sh"
 
-      supported_os_version=("ubuntu 20.04" "ubuntu 22.04" "ubuntu 24.04")
+      supported_os_version=("ubuntu 20.04" "ubuntu 22.04" "ubuntu 24.04" "ubuntu 26.04")
       current_os_version="$(mint_os_name_version)"
 
       supported=false
@@ -43,5 +43,5 @@ tasks:
   - key: docker
     use: configure
     run: |
-      sudo --preserve-env ${RWX_PACKAGE_PATH}/scripts/docker.sh
+      sudo RWX_PACKAGE_PATH="$RWX_PACKAGE_PATH" ${RWX_PACKAGE_PATH}/scripts/docker.sh
       docker --version

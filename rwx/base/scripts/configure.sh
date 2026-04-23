@@ -38,10 +38,18 @@ echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 mkdir -p /var/mint-workspace
 chown -R ubuntu:ubuntu /var/mint-workspace
 
-# Don't write .sudo_as_admin_successful on first use of `sudo`
-cat <<EOF >> /etc/sudoers.d/disable_admin_file_in_home
+# Don't write .sudo_as_admin_successful on first use of `sudo`.
+# The `admin_flag` sudoers setting is an Ubuntu patch to the classic C `sudo`;
+# it is not recognized by `sudo-rs` (the Rust rewrite that is the default on
+# Ubuntu 25.10+). Skip writing it on those versions — the sudo-rs rewrite
+# does not create ~/.sudo_as_admin_successful in the first place, so this is
+# only needed for older releases.
+source "${RWX_PACKAGE_PATH}/scripts/mint-utils.sh"
+if mint_os_version_lte 25.04; then
+  cat <<EOF >> /etc/sudoers.d/disable_admin_file_in_home
 Defaults !admin_flag
 EOF
+fi
 
 # Ensure /etc/timezone is valid
 sudo dpkg-reconfigure tzdata
