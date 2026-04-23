@@ -1,0 +1,26 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: test-stable
+    call: ${{ init.package-digest }}
+    with:
+      chrome-version: stable
+
+  - key: test-stable--assert
+    use: test-stable
+    run: google-chrome --version | grep 'Google Chrome'
+
+  - key: test-with-chromedriver
+    call: ${{ init.package-digest }}
+    with:
+      chrome-version: stable
+      install-chromedriver: true
+
+  - key: test-with-chromedriver--assert
+    use: test-with-chromedriver
+    run: |
+      google-chrome --version | grep 'Google Chrome'
+      chromedriver --version | grep 'ChromeDriver'

@@ -7,7 +7,7 @@ To install the ABQ CLI:
 ```yaml
 tasks:
   - key: abq
-    call: rwx/install-abq 1.1.8
+    call: rwx/install-abq 1.1.9
 ```
 
 ### ABQ Documentation
