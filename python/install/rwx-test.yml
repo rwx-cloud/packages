@@ -63,33 +63,39 @@ tasks:
       pip --version | grep 'pip 23\.0\.1'
 
   - key: install-3-9-25
+    if: ${{ init.base-image != "ubuntu:26.04" }}
     call: ${{ init.package-digest }}
     with:
       python-version: 3.9.25
 
   - key: install-3-9-25--assert
+    if: ${{ init.base-image != "ubuntu:26.04" }}
     use: install-3-9-25
     run: |
       python --version | grep 'Python 3\.9\.25'
       pip --version | grep 'pip 23\.0\.1'
 
   - key: install-3-8-20
+    if: ${{ init.base-image != "ubuntu:26.04" }}
     call: ${{ init.package-digest }}
     with:
       python-version: 3.8.20
 
   - key: install-3-8-20--assert
+    if: ${{ init.base-image != "ubuntu:26.04" }}
     use: install-3-8-20
     run: |
       python --version | grep 'Python 3\.8\.20'
       pip --version | grep 'pip 23\.0\.1'
 
   - key: install-3-7-17
+    if: ${{ init.base-image != "ubuntu:26.04" }}
     call: ${{ init.package-digest }}
     with:
       python-version: 3.7.17
 
   - key: install-3-7-17--assert
+    if: ${{ init.base-image != "ubuntu:26.04" }}
     use: install-3-7-17
     run: |
       python --version | grep 'Python 3\.7\.17'

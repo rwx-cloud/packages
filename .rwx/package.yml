@@ -125,6 +125,7 @@ tasks:
       base-os: ${{ parallel.os }}
       base-tag: ${{ parallel.tag }}
       base-arch: ${{ parallel.arch }}
+      base-image: ""
 
   - key: publish
     if: ${{ init.publish }}
