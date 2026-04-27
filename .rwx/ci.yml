@@ -27,7 +27,7 @@ tool-cache:
 
 base:
   image: ubuntu:24.04
-  config: rwx/base 1.0.0
+  config: rwx/base 1.0.3
 
 tasks:
   - key: checkout
