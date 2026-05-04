@@ -6,9 +6,12 @@ This package applies recommended base image configuration. It currently works wi
 - `ubuntu:22.04`
 - `ubuntu:24.04`
 - `ubuntu:26.04`
+- `debian:11`
+- `debian:12`
+- `debian:13`
 
 ```yaml
 base:
   image: ubuntu:24.04
-  config: rwx/base 1.0.3
+  config: rwx/base 1.1.0
 ```

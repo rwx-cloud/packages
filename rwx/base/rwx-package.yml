@@ -1,5 +1,5 @@
 name: rwx/base
-version: 1.0.3
+version: 1.1.0
 description: The default base image configuration
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/base
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -9,7 +9,7 @@ tasks:
     run: |
       source "$RWX_PACKAGE_PATH/scripts/mint-utils.sh"
 
-      supported_os_version=("ubuntu 20.04" "ubuntu 22.04" "ubuntu 24.04" "ubuntu 26.04")
+      supported_os_version=("ubuntu 20.04" "ubuntu 22.04" "ubuntu 24.04" "ubuntu 26.04" "debian 11" "debian 12" "debian 13")
       current_os_version="$(mint_os_name_version)"
 
       supported=false
@@ -24,7 +24,7 @@ tasks:
         echo "Configuring $current_os_version"
       else
         error_file="$(mktemp "$RWX_ERRORS/error-XXXX")"
-        echo -e "Operating system not supported by `rwx/base`: ${current_os_version}\n" | tee -a $error_file
+        echo -e "Operating system not supported by \`rwx/base\`: ${current_os_version}\n" | tee -a $error_file
         echo "You can pass \`config: none\` to use the image without the RWX base configuration" | tee -a $error_file
         exit 1
       fi
@@ -38,7 +38,7 @@ tasks:
       ${RWX_PACKAGE_PATH}/scripts/apt-install.sh
       ${RWX_PACKAGE_PATH}/scripts/user.sh
       ${RWX_PACKAGE_PATH}/scripts/configure.sh
-      echo ubuntu | tee $RWX_IMAGE/user
+      echo 1000 | tee $RWX_IMAGE/user
 
   - key: docker
     use: configure

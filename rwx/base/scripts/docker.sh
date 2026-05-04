@@ -31,6 +31,24 @@ case "$(mint_os_name_version)" in
     DOCKER_COMPOSE_VERSION=2.35.1-1~ubuntu.20.04~focal
     CONTAINERD_IO_VERSION=1.7.27-1
     ;;
+  "debian 13")
+    DOCKER_VERSION=5:29.4.2-2~debian.13~trixie
+    DOCKER_BUILDX_VERSION=0.33.0-1~debian.13~trixie
+    DOCKER_COMPOSE_VERSION=5.1.3-1~debian.13~trixie
+    CONTAINERD_IO_VERSION=2.2.3-1~debian.13~trixie
+    ;;
+  "debian 12")
+    DOCKER_VERSION=5:29.4.2-2~debian.12~bookworm
+    DOCKER_BUILDX_VERSION=0.33.0-1~debian.12~bookworm
+    DOCKER_COMPOSE_VERSION=5.1.3-1~debian.12~bookworm
+    CONTAINERD_IO_VERSION=2.2.3-1~debian.12~bookworm
+    ;;
+  "debian 11")
+    DOCKER_VERSION=5:29.4.2-2~debian.11~bullseye
+    DOCKER_BUILDX_VERSION=0.33.0-1~debian.11~bullseye
+    DOCKER_COMPOSE_VERSION=5.1.3-1~debian.11~bullseye
+    CONTAINERD_IO_VERSION=2.2.3-1~debian.11~bullseye
+    ;;
   *)
     echo "Operating system not supported"
     exit 1
@@ -39,8 +57,8 @@ esac
 
 
 install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" > /etc/apt/sources.list.d/docker.list
+curl -fsSL "https://download.docker.com/linux/$(mint_os_name)/gpg" | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$(mint_os_name) $(. /etc/os-release && echo "$VERSION_CODENAME") stable" > /etc/apt/sources.list.d/docker.list
 apt-get update
 apt-get install -y \
   docker-ce=$DOCKER_VERSION \
@@ -55,15 +73,17 @@ rm -rf /var/lib/apt/lists/*
 # Docker 29.x enables the containerd image store by default. Disable it so we
 # keep using the classic overlay2 snapshotter, matching older Ubuntu versions
 # that ship with Docker 26.x/28.x.
-if [ "$(mint_os_name_version)" = "ubuntu 26.04" ]; then
-  install -m 0755 -d /etc/docker
-  cat > /etc/docker/daemon.json <<'EOF'
+case "$(mint_os_name_version)" in
+  "ubuntu 26.04"|"debian 11"|"debian 12"|"debian 13")
+    install -m 0755 -d /etc/docker
+    cat > /etc/docker/daemon.json <<'EOF'
 {
   "features": {
     "containerd-snapshotter": false
   }
 }
 EOF
-fi
+    ;;
+esac
 
-usermod -aG docker ubuntu
+usermod -aG docker "$(id -un 1000)"
