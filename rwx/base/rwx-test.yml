@@ -11,7 +11,15 @@ tasks:
     use: base
     run: |
       cat /etc/os-release
-      test "$(whoami)" == "ubuntu"
+      # Ubuntu 24.04+ ships a default `ubuntu` user at UID 1000 which our
+      # base config preserves. On older Ubuntu and on Debian, UID 1000 is
+      # unused and our base config creates an `rwx` user there.
+      case "${{ init.base-image }}" in
+        ubuntu:24.04|ubuntu:26.04) expected_user=ubuntu ;;
+        *) expected_user=rwx ;;
+      esac
+      test "$(whoami)" == "$expected_user"
+      test "$(id -u)" == "1000"
       test "$(sudo whoami)" == "root"
 
   - key: test-docker

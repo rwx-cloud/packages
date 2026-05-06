@@ -2,10 +2,12 @@
 
 set -euo pipefail
 
-if id "ubuntu" &>/dev/null; then
-  echo "ubuntu user already exists"
+if id -u 1000 &>/dev/null; then
+  existing_user=$(id -un 1000)
+  echo "uid 1000 already exists ($existing_user); leaving it as-is"
+  usermod -aG sudo $existing_user
 else
-  groupadd --gid 1000 ubuntu
-  useradd --uid 1000 --no-log-init --system --gid ubuntu --create-home --home-dir /home/ubuntu ubuntu
-  usermod -aG sudo ubuntu
+  groupadd --gid 1000 rwx
+  useradd --uid 1000 --no-log-init --system --gid rwx --create-home --home-dir /home/rwx rwx
+  usermod -aG sudo rwx
 fi
