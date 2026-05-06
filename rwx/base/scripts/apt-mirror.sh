@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-source "${RWX_PACKAGE_PATH}/scripts/mint-utils.sh"
+source "${RWX_PACKAGE_PATH}/scripts/rwx-utils.sh"
 
 # We write apt sources in deb822 format and blank out /etc/apt/sources.list so
 # apt only reads our new file (otherwise apt would see the same logical
@@ -17,7 +17,7 @@ source "${RWX_PACKAGE_PATH}/scripts/mint-utils.sh"
 codename="$VERSION_CODENAME"
 arch="$(dpkg --print-architecture)"
 
-case "$(mint_os_name)" in
+case "$(rwx_os_name)" in
   ubuntu)
     # Point apt at the AWS EC2 regional mirror for the archive and at
     # security.ubuntu.com (or ports.ubuntu.com on non-primary arches) for

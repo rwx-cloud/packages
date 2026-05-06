@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-source "${RWX_PACKAGE_PATH}/scripts/mint-utils.sh"
+source "${RWX_PACKAGE_PATH}/scripts/rwx-utils.sh"
 
 echo 'tzdata tzdata/Areas select Etc'       | debconf-set-selections
 echo 'tzdata tzdata/Zones/Etc select UTC'   | debconf-set-selections
@@ -26,7 +26,7 @@ packages=(
   wget
   xz-utils
 )
-if [ "$(mint_os_name)" = "debian" ] || mint_os_version_gte 22.04; then
+if [ "$(rwx_os_name)" = "debian" ] || rwx_os_version_gte 22.04; then
   packages+=(bsdextrautils)
 fi
 

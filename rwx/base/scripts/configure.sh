@@ -49,16 +49,16 @@ echo /var/mint-workspace > $RWX_IMAGE/workspace
 # 1.8.31, Debian 11's 1.9.5), and Ubuntu 25.10+ defaults to `sudo-rs` which
 # also doesn't recognize it (and doesn't emit ~/.sudo_as_admin_successful in
 # the first place, so the directive isn't needed there).
-source "${RWX_PACKAGE_PATH}/scripts/mint-utils.sh"
+source "${RWX_PACKAGE_PATH}/scripts/rwx-utils.sh"
 admin_flag_supported=false
-case "$(mint_os_name)" in
+case "$(rwx_os_name)" in
   ubuntu)
-    if mint_os_version_gte 22.04 && mint_os_version_lte 25.04; then
+    if rwx_os_version_gte 22.04 && rwx_os_version_lte 25.04; then
       admin_flag_supported=true
     fi
     ;;
   debian)
-    if mint_os_version_gte 12; then
+    if rwx_os_version_gte 12; then
       admin_flag_supported=true
     fi
     ;;
@@ -73,7 +73,7 @@ fi
 # entries RWX prepends (e.g. for installed languages and tools) when a login
 # shell sources it. Rewrite the assignments so they preserve any existing
 # $PATH instead of overwriting it. Ubuntu's /etc/profile does not touch PATH.
-if [ "$(mint_os_name)" = "debian" ]; then
+if [ "$(rwx_os_name)" = "debian" ]; then
   sed -i '/^[[:space:]]*PATH="/ s/PATH="/PATH="$PATH:/' /etc/profile
 fi
 
