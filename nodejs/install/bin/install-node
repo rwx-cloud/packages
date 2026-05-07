@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -ueo pipefail
 
+source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+
 if [ "$NODE_VERSION" = "" ]; then
   if [ "$NODE_VERSION_FILE" = "" ]; then
     cat << EOF > "$(mktemp "$RWX_ERRORS/error-XXXX")"
@@ -74,7 +76,7 @@ trap cleanup EXIT
 
 echo "Creating ${install_dir}"
 sudo mkdir -p "$install_dir"
-sudo chown ubuntu:ubuntu "$install_dir"
+sudo chown "$(id -un):$(id -gn)" "$install_dir"
 cd "$source_dir"
 
 echo "Fetching and verifying SHASUMS256.txt.asc"
@@ -92,7 +94,7 @@ Failed to verify the GPG signature of the Node release file.
 
 Check to see if you are using the latest version of \`nodejs/install\`
 
-You can find the latest version at: https://www.rwx.com/docs/mint/packages/nodejs/install
+You can find the latest version at: https://www.rwx.com/docs/packages/nodejs/install
 EOF
   exit $gpg_exit
 fi
