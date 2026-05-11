@@ -27,7 +27,7 @@ tool-cache:
 
 base:
   image: ubuntu:24.04
-  config: rwx/base 1.0.3
+  config: rwx/base 1.1.0
 
 tasks:
   - key: checkout
@@ -46,7 +46,7 @@ tasks:
 
   - key: node
     use: [checkout, tool-versions]
-    call: nodejs/install 1.1.13
+    call: nodejs/install 1.1.14
     with:
       node-version: ${{ tasks.tool-versions.values.nodejs }}
     filter:
