@@ -28,11 +28,9 @@ case "$(rwx_os_name)" in
     case "$arch" in
       amd64|i386)
         archive_mirror="${aws_apt_mirror_region}.ec2.archive.ubuntu.com/ubuntu"
-        security_mirror="security.ubuntu.com/ubuntu"
         ;;
       *)
         archive_mirror="${aws_apt_mirror_region}.ec2.ports.ubuntu.com/ubuntu-ports"
-        security_mirror="ports.ubuntu.com/ubuntu-ports"
         ;;
     esac
 
@@ -41,12 +39,6 @@ case "$(rwx_os_name)" in
 Types: deb
 URIs: http://${archive_mirror}/
 Suites: ${codename} ${codename}-updates ${codename}-backports
-Components: main universe restricted multiverse
-Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
-
-Types: deb
-URIs: http://${security_mirror}/
-Suites: ${codename}-security
 Components: main universe restricted multiverse
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 EOF
