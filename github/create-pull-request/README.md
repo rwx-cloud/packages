@@ -11,6 +11,11 @@ with repository permissions for:
 - Contents: read and write
 - Pull Requests: read and write
 
+If you request reviews from a `org/team` slug via the `reviewers` parameter,
+the app additionally needs organization permission:
+
+- Members: read
+
 ## Instructions
 
 - Clone a git repository using the [git/clone](https://www.rwx.com/docs/packages/git/clone) package. Remember to pass `preserve-git-dir: true`.
@@ -55,11 +60,26 @@ tasks:
     run: rwx packages update | tee $RWX_VALUES/update-output
 
   - key: create-pull-request
-    call: github/create-pull-request 1.0.6
+    call: github/create-pull-request 1.0.7
     use: [update-packages]
     with:
       github-token: ${{ github-apps.your-orgs-bot.token }}
       branch-prefix: rwx-packages-update
       pull-request-title: Update RWX packages
       pull-request-body: "```\n${{ tasks.update-packages.values.update-output }}\n```"
+```
+
+### Enable auto-merge and request reviewers
+
+```yaml
+  - key: create-pull-request
+    call: github/create-pull-request 1.0.7
+    use: [update-packages]
+    with:
+      github-token: ${{ github-apps.your-orgs-bot.token }}
+      branch-prefix: rwx-packages-update
+      pull-request-title: Update RWX packages
+      pull-request-body: "```\n${{ tasks.update-packages.values.update-output }}\n```"
+      enable-auto-merge: true
+      reviewers: "octocat,my-org/release-reviewers"
 ```
