@@ -135,3 +135,93 @@ tasks:
     env:
       GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
       PR_NUMBER: ${{ tasks.create-pr.values.pull-request-number }}
+
+  - key: code-change-auto-merge
+    after: code-change2
+    use: code
+    cache: false
+    run: |
+      # needs a unique-per-second nonce vs. other code-change tasks
+      sleep 1
+      nonce=$(date +%s)
+      echo "$nonce" | tee $RWX_VALUES/nonce
+      file="${nonce}.txt"
+      echo "$file" | tee $RWX_VALUES/file
+      touch "$file"
+
+  - key: create-pr-auto-merge
+    after: close-pr
+    call: ${{ init.package-digest }}
+    use: code-change-auto-merge
+    with:
+      github-token: ${{ github-apps.rwx-cloud-bot.token }}
+      branch-prefix: ${{ run.id }}-am
+      pull-request-title: "auto-merge test ${{ tasks.code-change-auto-merge.values.nonce }}"
+      pull-request-body: "auto-merge test ${{ tasks.code-change-auto-merge.values.nonce }}"
+      enable-auto-merge: true
+
+  - key: assert--auto-merge
+    after: create-pr-auto-merge
+    use: gh-cli
+    run: |
+      pr_details=$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json autoMergeRequest)
+      echo "$pr_details"
+
+      auto_merge_enabled=$(echo "$pr_details" | jq -r '.autoMergeRequest != null')
+      if [ "$auto_merge_enabled" != "true" ]; then
+        >&2 echo "Auto-merge is not enabled on PR #${PR_NUMBER}"
+        exit 1
+      fi
+
+      merge_method=$(echo "$pr_details" | jq -r '.autoMergeRequest.mergeMethod')
+      if [ "$merge_method" != "SQUASH" ]; then
+        >&2 echo "Expected SQUASH merge method, got \"$merge_method\""
+        exit 1
+      fi
+
+      gh --repo rwx-cloud/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
+    env:
+      GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
+      PR_NUMBER: ${{ tasks.create-pr-auto-merge.values.pull-request-number }}
+
+  - key: code-change-reviewers
+    after: code-change-auto-merge
+    use: code
+    cache: false
+    run: |
+      # needs a unique-per-second nonce vs. other code-change tasks
+      sleep 1
+      nonce=$(date +%s)
+      echo "$nonce" | tee $RWX_VALUES/nonce
+      file="${nonce}.txt"
+      echo "$file" | tee $RWX_VALUES/file
+      touch "$file"
+
+  - key: create-pr-reviewers
+    after: assert--auto-merge
+    call: ${{ init.package-digest }}
+    use: code-change-reviewers
+    with:
+      github-token: ${{ github-apps.rwx-cloud-bot.token }}
+      branch-prefix: ${{ run.id }}-rv
+      pull-request-title: "reviewer test ${{ tasks.code-change-reviewers.values.nonce }}"
+      pull-request-body: "reviewer test ${{ tasks.code-change-reviewers.values.nonce }}"
+      reviewers: robinaugh
+
+  - key: assert--reviewers
+    after: create-pr-reviewers
+    use: gh-cli
+    run: |
+      pr_details=$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json reviewRequests)
+      echo "$pr_details"
+
+      requested=$(echo "$pr_details" | jq -r '[.reviewRequests[].login] | join(",")')
+      if ! echo "$requested" | grep -q "robinaugh"; then
+        >&2 echo "Expected robinaugh in reviewRequests on PR #${PR_NUMBER}, got \"$requested\""
+        exit 1
+      fi
+
+      gh --repo rwx-cloud/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
+    env:
+      GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
+      PR_NUMBER: ${{ tasks.create-pr-reviewers.values.pull-request-number }}

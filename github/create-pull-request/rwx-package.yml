@@ -1,5 +1,5 @@
 name: github/create-pull-request
-version: 1.0.6
+version: 1.0.7
 description: Creates a pull request
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/create-pull-request
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -17,6 +17,12 @@ parameters:
   pull-request-body:
     description: "The body to use for the pull request"
     required: true
+  enable-auto-merge:
+    description: "Enable squash auto-merge on the pull request (requires repository auto-merge support)"
+    default: false
+  reviewers:
+    description: "Comma-separated list of reviewers to request (usernames and/or org/team slugs in `gh`'s native format)"
+    default: ""
 
 outputs:
   values-from: [create-or-update-pull-request]
@@ -72,10 +78,62 @@ tasks:
       fi
 
       pr_details=$(gh pr view "$branch" --json number,url)
-      echo "$pr_details" | jq -r '.number' > "$RWX_VALUES/pull-request-number"
-      echo "$pr_details" | jq -r '.url' > "$RWX_LINKS/View pull request"
+      pr_number=$(echo "$pr_details" | jq -r '.number')
+      pr_url=$(echo "$pr_details" | jq -r '.url')
+      echo "$pr_number" > "$RWX_VALUES/pull-request-number"
+      echo "$pr_url" > "$RWX_LINKS/View pull request"
+
+      fatal=()
+
+      # Request reviewers before enabling auto-merge so a merge-ready PR does not
+      # merge before review requests are applied. Skip auto-merge if a fatal
+      # reviewer error was already recorded.
+      if [ -n "$REVIEWERS" ]; then
+        # Self-review requests and other non-permission failures: log and continue.
+        # If a team slug is present and the org team API fails, treat as missing
+        # Members: read and record a fatal reason (PR already exists at this point).
+        if ! gh pr edit "$pr_number" --add-reviewer "$REVIEWERS"; then
+          warning="Warning: failed to request one or more reviewers (\"$REVIEWERS\"). Continuing."
+          members_read_missing=false
+          IFS=',' read -ra reviewer_list <<< "$REVIEWERS"
+          for reviewer in "${reviewer_list[@]}"; do
+            reviewer="${reviewer// /}"
+            if [[ "$reviewer" == *"/"* ]]; then
+              org="${reviewer%%/*}"
+              team="${reviewer##*/}"
+              if ! gh api "/orgs/${org}/teams/${team}" >/dev/null 2>&1; then
+                members_read_missing=true
+              fi
+              break
+            fi
+          done
+          if [ "$members_read_missing" = "true" ]; then
+            fatal+=("Requesting team reviewer(s) (\"$REVIEWERS\") failed because the GitHub App is missing the \"Members: read\" organization permission.")
+          else
+            echo "$warning"
+          fi
+        fi
+      fi
+
+      if [ "$ENABLE_AUTO_MERGE" = "true" ]; then
+        if [ "${#fatal[@]}" -gt 0 ]; then
+          fatal+=("Squash auto-merge was not attempted because of the failure(s) above.")
+        elif ! gh pr merge "$pr_number" --auto --squash; then
+          fatal+=("Failed to enable squash auto-merge. Check repository auto-merge support, merge conflicts, and that the token can merge this branch.")
+        fi
+      fi
+
+      if [ "${#fatal[@]}" -gt 0 ]; then
+        echo "Error: Pull request was created (#${pr_number}, ${pr_url}), but one or more follow-up steps failed:"
+        for msg in "${fatal[@]}"; do
+          echo "  - $msg"
+        done
+        exit 1
+      fi
     env:
       BRANCH_PREFIX: ${{ params.branch-prefix }}
       GITHUB_TOKEN: ${{ params.github-token }}
       PULL_REQUEST_TITLE: ${{ params.pull-request-title }}
       PULL_REQUEST_BODY: ${{ params.pull-request-body }}
+      ENABLE_AUTO_MERGE: ${{ params.enable-auto-merge }}
+      REVIEWERS: ${{ params.reviewers }}
