@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+set -ueo pipefail
+
+if [[ -z "${GLOBAL_JSON_FILE}" && -z "${DOTNET_CHANNEL}" && -z "${DOTNET_CHANNELS}" ]]; then
+  cat << EOF > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+Invalid parameters: set \`global-json-file\`, \`dotnet-channel\`, or \`dotnet-channels\`.
+EOF
+  exit 2
+fi
+
+if [[ -n "${GLOBAL_JSON_FILE}" && ! -f "${GLOBAL_JSON_FILE}" ]]; then
+  cat << EOF > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+Invalid parameter: \`global-json-file\` path does not exist.
+
+Received \`${GLOBAL_JSON_FILE}\`
+EOF
+  exit 2
+fi
+
+DOTNET_INSTALL_DIR="/opt/dotnet"
+DOTNET_INSTALL_SCRIPT_DIR="$(mktemp -d)"
+DOTNET_INSTALL_SCRIPT_PATH="${DOTNET_INSTALL_SCRIPT_DIR}/dotnet-install.sh"
+
+cleanup() {
+  rm -rf "$DOTNET_INSTALL_SCRIPT_DIR"
+}
+trap cleanup EXIT
+
+sudo mkdir -p "$DOTNET_INSTALL_DIR"
+sudo chown "$(id -un):$(id -gn)" "$DOTNET_INSTALL_DIR"
+curl -Lsfo "$DOTNET_INSTALL_SCRIPT_PATH" https://dot.net/v1/dotnet-install.sh
+chmod +x "$DOTNET_INSTALL_SCRIPT_PATH"
+
+export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER=0
+export DOTNET_ROLL_FORWARD_ON_NO_CANDIDATE_FX=2
+export DOTNET_ROOT="$DOTNET_INSTALL_DIR"
+export PATH="$DOTNET_ROOT:$PATH"
+
+channels=()
+if [[ -n "${DOTNET_CHANNELS}" ]]; then
+  normalized="$(echo "$DOTNET_CHANNELS" | tr -d '[:space:]')"
+  if [[ "$normalized" =~ ^\[.*\]$ ]]; then
+    inner="${normalized#[}"
+    inner="${inner%]}"
+    if [[ -n "$inner" ]]; then
+      IFS=',' read -r -a raw_channels <<< "$inner"
+      for raw_channel in "${raw_channels[@]}"; do
+        channel="${raw_channel#\"}"
+        channel="${channel%\"}"
+        channel="${channel#\'}"
+        channel="${channel%\'}"
+        if [[ -n "$channel" ]]; then
+          channels+=("$channel")
+        fi
+      done
+    fi
+  else
+    if [[ "$DOTNET_CHANNELS" == *","* ]]; then
+      IFS=',' read -r -a raw_channels <<< "$DOTNET_CHANNELS"
+    else
+      IFS=' ' read -r -a raw_channels <<< "$DOTNET_CHANNELS"
+    fi
+
+    for raw_channel in "${raw_channels[@]}"; do
+      channel="$(echo "$raw_channel" | xargs)"
+      if [[ -n "$channel" ]]; then
+        channels+=("$channel")
+      fi
+    done
+  fi
+fi
+
+if [[ ${#channels[@]} -eq 0 && -n "${DOTNET_CHANNEL}" ]]; then
+  channels=("$DOTNET_CHANNEL")
+fi
+
+if [[ -n "${GLOBAL_JSON_FILE}" ]]; then
+  echo "Installing .NET SDK from ${GLOBAL_JSON_FILE}"
+  bash "$DOTNET_INSTALL_SCRIPT_PATH" --jsonfile "$GLOBAL_JSON_FILE" --install-dir "$DOTNET_INSTALL_DIR" --no-path
+else
+  if [[ ${#channels[@]} -eq 0 ]]; then
+    cat << EOF > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+Invalid parameters: could not determine any .NET channel from \`dotnet-channel\` or \`dotnet-channels\`.
+EOF
+    exit 2
+  fi
+
+  idx=0
+  for channel in "${channels[@]}"; do
+    echo "Installing .NET SDK channel ${channel}"
+
+    command=(bash "$DOTNET_INSTALL_SCRIPT_PATH" --channel "$channel" --install-dir "$DOTNET_INSTALL_DIR" --no-path)
+
+    if [[ -n "${DOTNET_QUALITY}" ]]; then
+      command+=(--quality "$DOTNET_QUALITY")
+    fi
+
+    if [[ ${#channels[@]} -gt 1 && $idx -gt 0 ]]; then
+      command+=(--skip-non-versioned-files)
+    fi
+
+    "${command[@]}"
+    idx=$((idx + 1))
+  done
+fi
+
+echo "$DOTNET_INSTALL_DIR" >> "$RWX_ENV/PATH"
+echo "$DOTNET_INSTALL_DIR" >> "$RWX_ENV/DOTNET_ROOT"
+echo "$DOTNET_SKIP_FIRST_TIME_EXPERIENCE" >> "$RWX_ENV/DOTNET_SKIP_FIRST_TIME_EXPERIENCE"
+echo "$DOTNET_CLI_TELEMETRY_OPTOUT" >> "$RWX_ENV/DOTNET_CLI_TELEMETRY_OPTOUT"
+echo "$DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER" >> "$RWX_ENV/DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER"
+echo "$DOTNET_ROLL_FORWARD_ON_NO_CANDIDATE_FX" >> "$RWX_ENV/DOTNET_ROLL_FORWARD_ON_NO_CANDIDATE_FX"
+
+dotnet --version

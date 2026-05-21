@@ -1,0 +1,73 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: install-channel-8
+    call: ${{ init.package-digest }}
+    with:
+      dotnet-channel: "8.0"
+
+  - key: install-channel-8--assert
+    use: install-channel-8
+    run: dotnet --version | grep '^8\.'
+
+  - key: install-channel-9
+    call: ${{ init.package-digest }}
+    with:
+      dotnet-channel: "9.0"
+
+  - key: install-channel-9--assert
+    use: install-channel-9
+    run: dotnet --version | grep '^9\.'
+
+  - key: install-channel-10-preview
+    call: ${{ init.package-digest }}
+    with:
+      dotnet-channel: "10.0"
+      dotnet-quality: preview
+
+  - key: install-channel-10-preview--assert
+    use: install-channel-10-preview
+    run: dotnet --version | grep '^10\.'
+
+  - key: write-global-json
+    run: |
+      cat > global.json << 'EOF'
+      {
+        "sdk": {
+          "version": "8.0.100"
+        }
+      }
+      EOF
+
+  - key: install-global-json
+    use: write-global-json
+    call: ${{ init.package-digest }}
+    with:
+      global-json-file: global.json
+    filter:
+      - global.json
+
+  - key: install-global-json--assert
+    use: install-global-json
+    run: dotnet --version | grep '^8\.'
+
+  - key: install-multiple-sdks
+    call: ${{ init.package-digest }}
+    with:
+      dotnet-channels: '["8.0","9.0"]'
+
+  - key: install-multiple-sdks--assert
+    use: install-multiple-sdks
+    run: |
+      dotnet --list-sdks | grep '^8\.'
+      dotnet --list-sdks | grep '^9\.'
+
+  - key: dotnet-tool-install
+    use: install-channel-8
+    run: |
+      dotnet tool install -g dotnet-format
+      export PATH="$HOME/.dotnet/tools:$PATH"
+      dotnet format --version
