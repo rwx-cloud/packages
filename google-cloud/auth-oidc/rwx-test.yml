@@ -60,6 +60,22 @@ tasks:
       GCP_OIDC_TOKEN: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
       SERVICE_ACCOUNT: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}
 
+  - key: test--service-account--assert-application-default-credentials
+    use: test--service-account
+    run: |
+      application_default_credentials_file="$HOME/.config/gcloud/application_default_credentials.json"
+
+      if [ ! -r "$application_default_credentials_file" ]; then
+        >&2 echo "Expected application default credentials to point to a readable file"
+        exit 1
+      fi
+
+      jq -e '.type == "external_account" and .credential_source.file' "$application_default_credentials_file" >/dev/null
+      gcloud auth application-default print-access-token >/dev/null
+    env:
+      GCP_OIDC_TOKEN: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
+      SERVICE_ACCOUNT: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}
+
   - key: test--service-account--assert-unauthed
     use: test--service-account
     run: |
