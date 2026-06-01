@@ -45,6 +45,10 @@ PROJECT_ID="%{{PROJECT_ID}}"
 credentials_dir="$(mktemp -d)"
 token_source_file="${credentials_dir}/oidc-token.txt"
 credentials_file="${credentials_dir}/credentials.json"
+gcloud_config_dir="$HOME/.config/gcloud"
+application_default_credentials_file="${gcloud_config_dir}/application_default_credentials.json"
+
+mkdir -p "$gcloud_config_dir"
 
 audience="$AUDIENCE"
 if [[ -z "$audience" ]]; then
@@ -90,6 +94,8 @@ fi
 
 echo "$credentials_content" >"$credentials_file"
 chmod 0600 "$credentials_file"
+echo "$credentials_content" >"$application_default_credentials_file"
+chmod 0600 "$application_default_credentials_file"
 
 echo "$credentials_file" >> "${RWX_ENV}/GOOGLE_APPLICATION_CREDENTIALS"
 export GOOGLE_APPLICATION_CREDENTIALS="$credentials_file"

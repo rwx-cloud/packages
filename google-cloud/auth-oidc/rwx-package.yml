@@ -61,6 +61,9 @@ tasks:
       fi
       echo 'Logging out of gcloud'
       gcloud auth revoke 2>/dev/null || true
+      gcloud_config_dir="$HOME/.config/gcloud"
+      application_default_credentials_file="${gcloud_config_dir}/application_default_credentials.json"
+      rm -f "$application_default_credentials_file"
       EOF
 
       chmod +x "$BEFORE_HOOK"
