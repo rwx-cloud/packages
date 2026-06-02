@@ -1,5 +1,5 @@
 name: google-cloud/auth-oidc
-version: 2.0.0
+version: 2.0.1
 description: Authenticate to Google Cloud with OIDC and Workload Identity Federation
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/auth-oidc
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -61,6 +61,9 @@ tasks:
       fi
       echo 'Logging out of gcloud'
       gcloud auth revoke 2>/dev/null || true
+      gcloud_config_dir="$HOME/.config/gcloud"
+      application_default_credentials_file="${gcloud_config_dir}/application_default_credentials.json"
+      rm -f "$application_default_credentials_file"
       EOF
 
       chmod +x "$BEFORE_HOOK"

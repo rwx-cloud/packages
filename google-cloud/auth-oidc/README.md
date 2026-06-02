@@ -24,7 +24,7 @@ tasks:
     call: google-cloud/install-cli 1.1.6
 
   - key: gcloud-auth
-    call: google-cloud/auth-oidc 2.0.0
+    call: google-cloud/auth-oidc 2.0.1
     with:
       workload-identity-provider: ${{ vaults.your-vault.secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
@@ -43,7 +43,7 @@ tasks:
     call: google-cloud/install-cli 1.1.6
 
   - key: gcloud-auth
-    call: google-cloud/auth-oidc 2.0.0
+    call: google-cloud/auth-oidc 2.0.1
     with:
       workload-identity-provider: ${{ vaults.your-vault.secrets.WORKLOAD_IDENTITY_PROVIDER }}
       service-account: ${{ vaults.your-vault.secrets.SERVICE_ACCOUNT }}
@@ -63,7 +63,7 @@ tasks:
     call: google-cloud/install-cli 1.1.6
 
   - key: gcloud-auth
-    call: google-cloud/auth-oidc 2.0.0
+    call: google-cloud/auth-oidc 2.0.1
     with:
       workload-identity-provider: ${{ vaults.your-vault.secrets.WORKLOAD_IDENTITY_PROVIDER }}
       project-id: identifier-of-my-project
@@ -83,7 +83,7 @@ tasks:
     call: google-cloud/install-cli 1.1.6
 
   - key: gcloud-auth
-    call: google-cloud/auth-oidc 2.0.0
+    call: google-cloud/auth-oidc 2.0.1
     with:
       workload-identity-provider: ${{ vaults.your-vault.secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
@@ -124,7 +124,7 @@ tasks:
     call: google-cloud/install-cli 1.1.6
 
   - key: gcloud-auth
-    call: google-cloud/auth-oidc 2.0.0
+    call: google-cloud/auth-oidc 2.0.1
     with:
       workload-identity-provider: ${{ vaults.your-vault.secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
