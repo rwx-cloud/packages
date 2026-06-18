@@ -1,5 +1,5 @@
 name: rwx/install-cli
-version: 4.0.4
+version: 4.0.5
 description: Install the RWX CLI
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/install-cli
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -14,7 +14,16 @@ tasks:
     run: |
       tmp="$(mktemp -d)"
       curl -o "$tmp/rwx" -fsSL "https://github.com/rwx-cloud/cli/releases/download/${CLI_VERSION_PARAM}/rwx-linux-$(uname -m)"
-      sudo install "$tmp/rwx" /usr/local/bin
+      if [ "$(id -u)" -eq 0 ]; then
+        install "$tmp/rwx" /usr/local/bin
+      elif command -v sudo >/dev/null 2>&1; then
+        sudo install "$tmp/rwx" /usr/local/bin
+      else
+        mkdir -p "$HOME/.local/bin"
+        install "$tmp/rwx" "$HOME/.local/bin"
+        echo "$HOME/.local/bin" >> "$RWX_ENV/PATH"
+        export PATH="$HOME/.local/bin:$PATH"
+      fi
       rm -rf "$tmp"
       rwx --version
     cache:
