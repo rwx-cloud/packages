@@ -37,6 +37,37 @@ tasks:
     env:
       DIRECTORY: ${{ init.directory }}
 
+  - key: check-utils
+    use: code
+    run: |
+      rc=0
+
+      while IFS= read -r utils; do
+        [[ -z "$utils" ]] && continue
+        if ! diff rwx-utils.sh "$utils"; then
+          echo ""
+          echo "ERROR: $utils is out of date with the top-level rwx-utils.sh"
+          echo "Run 'cp rwx-utils.sh $utils' and commit the result."
+          rc=1
+        fi
+      done < <(find "$DIRECTORY" -name rwx-utils.sh)
+
+      while IFS= read -r utils; do
+        [[ -z "$utils" ]] && continue
+        echo "ERROR: $utils must be removed (mint-utils.sh has been replaced by rwx-utils.sh)."
+        rc=1
+      done < <(find "$DIRECTORY" -name mint-utils.sh)
+
+      if [[ "$rc" -eq 0 ]]; then
+        echo "Utils scripts are up to date."
+      fi
+      exit "$rc"
+    filter:
+      - rwx-utils.sh
+      - ${{ init.directory }}
+    env:
+      DIRECTORY: ${{ init.directory }}
+
   - key: timestamp
     use: code
     run: |
