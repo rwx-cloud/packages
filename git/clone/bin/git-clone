@@ -21,6 +21,8 @@ esac
 printf '%s\n' "$rel_path" > "$RWX_VALUES/git-dir-path"
 cd "${CHECKOUT_PATH}"
 
+GIT_CLONE_CHECKOUT_REF=refs/rwx/git-clone/checkout
+
 if [ ! -d .git ]; then
   git init -b main
   git remote add origin "${CHECKOUT_REPOSITORY}"
@@ -33,21 +35,36 @@ fi
 # Avoid background maintenance rewriting packfiles in incremental tool-cache runs.
 git config --local maintenance.auto false
 git config --local gc.auto 0
+git config --local core.trustctime false
+
+if git rev-parse -q --verify HEAD^{commit} >/dev/null 2>&1; then
+  git update-ref refs/rwx/git-clone/previous HEAD
+fi
 
 if [ "${FETCH_FULL_DEPTH}" = "true" ]; then
-  git fetch --no-auto-gc origin "${CHECKOUT_REF}"
+  git fetch --no-auto-gc origin "+${CHECKOUT_REF}:${GIT_CLONE_CHECKOUT_REF}"
 elif [ "${PRESERVE_GIT_DIR}" = "true" ]; then
-  git fetch --no-auto-gc --depth=1 origin "${CHECKOUT_REF}"
+  git fetch --no-auto-gc --depth=1 origin "+${CHECKOUT_REF}:${GIT_CLONE_CHECKOUT_REF}"
 else
-  git fetch --no-auto-gc --depth=1 origin "${RESOLVED_SHA}"
+  git fetch --no-auto-gc --depth=1 origin "+${RESOLVED_SHA}:${GIT_CLONE_CHECKOUT_REF}"
 fi
 
-if [ "${FETCH_FULL_DEPTH}" = "true" ] || [ "${PRESERVE_GIT_DIR}" = "true" ]; then
-  git checkout "${CHECKOUT_REF}"
-  git reset --hard "${RESOLVED_SHA}"
-else
-  git checkout FETCH_HEAD
-fi
+checkout_sha=$(git rev-parse "${GIT_CLONE_CHECKOUT_REF}^{commit}")
+
+case "${RESOLVED_REF}" in
+  refs/heads/*)
+    branch_name="${RESOLVED_REF#refs/heads/}"
+    git update-ref "refs/remotes/origin/${branch_name}" "${checkout_sha}"
+    git checkout -B "${branch_name}" "${checkout_sha}"
+    git config "branch.${branch_name}.remote" origin
+    git config "branch.${branch_name}.merge" "${RESOLVED_REF}"
+    ;;
+  *)
+    git checkout --detach "${checkout_sha}"
+    ;;
+esac
+
+git update-ref "${GIT_CLONE_CHECKOUT_REF}" HEAD
 
 # Remove untracked files that may remain from incremental cache
 git clean -fd

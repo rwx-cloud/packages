@@ -34,6 +34,10 @@ git_clone_ref_match_sha() {
   printf '%s' "$1" | awk 'NF { print $1; exit }'
 }
 
+git_clone_ref_match_ref() {
+  printf '%s' "$1" | awk 'NF { print $2; exit }'
+}
+
 git_clone_print_ambiguous_ref_error() {
   ref=$1
   matches=$2
@@ -66,11 +70,13 @@ if [ "$LS_REMOTE_LINE_COUNT" -gt 1 ]; then
 fi
 
 RESOLVED_SHA=$(git_clone_ref_match_sha "$LS_REMOTE_OUTPUT")
+RESOLVED_REF=$(git_clone_ref_match_ref "$LS_REMOTE_OUTPUT")
 if [ "$RESOLVED_SHA" = "" ]; then
   RESOLVED_SHA="${CHECKOUT_REF}"
 fi
 echo "Latest SHA for ${CHECKOUT_REF}: ${RESOLVED_SHA}"
 printf '%s' "${RESOLVED_SHA}" >> "$RWX_VALUES/sha"
+printf '%s' "${RESOLVED_REF}" >> "$RWX_VALUES/ref"
 
 mkdir -p "${CHECKOUT_PATH}"
 cd "${CHECKOUT_PATH}"
