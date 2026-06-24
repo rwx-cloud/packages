@@ -1,0 +1,19 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+
+tasks:
+  - key: code
+    call: git/clone 2.0.3
+    with:
+      repository: https://github.com/rwx-cloud/packages.git
+      ref: dan/package
+
+  - key: test
+    use: code
+    call: ${{ init.package-digest }}
+    with:
+      directory: rwx/package
+      timestamp: ${{ date("%Y%m%d%H%M") }}
+    filter:
+      - rwx/package
