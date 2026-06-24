@@ -90,6 +90,7 @@ tasks:
       git fetch
       test "$(git config --local --get maintenance.auto)" = "false"
       test "$(git config --local --get gc.auto)" = "0"
+      test "$(git config --local --get core.trustctime)" = "false"
 
       GIT_EMAIL=$(git config user.email)
       GIT_USERNAME=$(git config user.name)
@@ -123,6 +124,8 @@ tasks:
       test $GIT_USERNAME = "rwx-integration[bot]"
       test $SHA = "4704503c51f6b5dd6346e219888488ed693dc54c"
       test $REF = "do-not-delete-this-branch"
+      test "$(git rev-parse refs/rwx/git-clone/checkout)" = "$SHA"
+      test "$(git rev-parse refs/remotes/origin/do-not-delete-this-branch)" = "$SHA"
     env:
       GITHUB_TOKEN: ${{ github['rwx-cloud'].token }}
 
@@ -146,6 +149,8 @@ tasks:
       REF=$(git symbolic-ref --short HEAD)
       test $SHA = "ff0a833ae95a01cf897f5c72dc4586afc968dece"
       test $REF = "branch"
+      test "$(git rev-parse refs/rwx/git-clone/checkout)" = "$SHA"
+      test "$(git rev-parse refs/remotes/origin/branch)" = "$SHA"
 
   - key: git-clone--test-preserve-git-dir-from-nested-branch
     call: ${{ init.package-digest }}
@@ -167,6 +172,8 @@ tasks:
       REF=$(git symbolic-ref --short HEAD)
       test $SHA = "ff0a833ae95a01cf897f5c72dc4586afc968dece"
       test $REF = "nested/branch"
+      test "$(git rev-parse refs/rwx/git-clone/checkout)" = "$SHA"
+      test "$(git rev-parse refs/remotes/origin/nested/branch)" = "$SHA"
 
   - key: git-clone--test-commit-sha-ref-meta
     call: ${{ init.package-digest }}
@@ -388,6 +395,7 @@ tasks:
       git fetch
       test "$(git config --local --get maintenance.auto)" = "false"
       test "$(git config --local --get gc.auto)" = "0"
+      test "$(git config --local --get core.trustctime)" = "false"
 
       GIT_EMAIL=$(git config user.email)
       GIT_USERNAME=$(git config user.name)
@@ -457,6 +465,8 @@ tasks:
       test -d .git
       ! test -f .git/shallow
       test -e file-in-repo.txt
+      test "$(git rev-parse refs/rwx/git-clone/checkout)" = "$(git rev-parse HEAD)"
+      test "$(git symbolic-ref -q HEAD || true)" = ""
 
   - key: git-clone--test-lfs-with-path
     call: ${{ init.package-digest }}

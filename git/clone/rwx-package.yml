@@ -1,5 +1,5 @@
 name: git/clone
-version: 2.0.7
+version: 2.0.8
 description: Clone git repositories over ssh or http, with support for Git Large File Storage (LFS)
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/git/clone
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -226,6 +226,7 @@ tasks:
       CHECKOUT_PATH: ${{ params.path }}
       CHECKOUT_REF: ${{ params.ref }}
       RESOLVED_SHA: ${{ tasks.get-latest-sha-for-ref.values.sha }}
+      RESOLVED_REF: ${{ tasks.get-latest-sha-for-ref.values.ref }}
       CHECKOUT_REPOSITORY: ${{ params.repository }}
       META_REF: ${{ params.meta-ref }}
       LFS: ${{ params.lfs }}
