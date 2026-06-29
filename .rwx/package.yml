@@ -10,14 +10,14 @@ base:
 
 tasks:
   - key: code
-    call: git/clone 2.0.7
+    call: git/clone 2.0.8
     with:
       repository: https://github.com/rwx-cloud/packages.git
       ref: ${{ init.sha }}
       preserve-git-dir: true
 
   - key: rwx-cli
-    call: rwx/install-cli 4.0.4
+    call: rwx/install-cli 4.0.5
 
   - key: check-packages
     use: [rwx-cli, code]
