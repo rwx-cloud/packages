@@ -1,5 +1,5 @@
 name: aws/install-cli
-version: 1.0.11
+version: 2.0.0
 description: Install the AWS CLI
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/aws/install-cli
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -10,51 +10,49 @@ parameters:
     required: false
 
 tasks:
-  - key: install-unzip-if-necessary
+  - key: setup
     run: |
-      if ! command -v unzip &> /dev/null; then
-        source "$RWX_PACKAGE_PATH/mint-utils.sh"
-        if ! mint_os_package_manager_in apt; then
-          echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
-          exit 1
-        fi
+      needed=""
 
-        sudo apt-get update
-        sudo apt-get install unzip
-        sudo apt-get clean
+      if ! command -v curl >/dev/null 2>&1; then
+        needed="$needed curl"
       fi
-    filter: []
-  - key: install-gpg-if-necessary
-    run: |
-      if ! command -v gpg &> /dev/null; then
-        source "$RWX_PACKAGE_PATH/mint-utils.sh"
-        if ! mint_os_package_manager_in apt; then
-          echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
-          exit 1
-        fi
 
-        sudo apt-get update
-        sudo apt-get install gnupg
-        sudo apt-get clean
+      if ! command -v unzip >/dev/null 2>&1; then
+        needed="$needed unzip"
+      fi
+
+      if ! command -v gpg >/dev/null 2>&1; then
+        needed="$needed gpg"
+      fi
+
+      if [ -n "$needed" ]; then
+        cat << EOF > "${RWX_ERRORS}/missing-packages"
+      The \`aws/install-cli\` package requires system packages that were missing:$needed
+
+      Define a task which installs those packages, and specify it as a \`use\` dependency of the \`aws/install-cli\` task
+      EOF
+        exit 1
       fi
     filter: []
   - key: install-cli
-    use: [install-gpg-if-necessary, install-unzip-if-necessary]
+    use: [setup]
     run: |
-      set -ueo pipefail
+      set -ue
+      . "$RWX_PACKAGE_PATH/rwx-utils.sh"
 
       tmp="$(mktemp -d)"
       cd "$tmp"
 
       # installer zip
-      if [[ -n "$CLI_VERSION" ]]; then
+      if [ -n "$CLI_VERSION" ]; then
         curl -o "awscliv2.zip" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m)-$CLI_VERSION.zip"
       else
         curl -o "awscliv2.zip" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip"
       fi
 
       # signature
-      if [[ -n "$CLI_VERSION" ]]; then
+      if [ -n "$CLI_VERSION" ]; then
         curl -o "awscliv2.sig" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m)-$CLI_VERSION.zip.sig"
       else
         curl -o "awscliv2.sig" -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip.sig"
@@ -130,7 +128,7 @@ tasks:
       gpg --verify awscliv2.sig awscliv2.zip
 
       unzip awscliv2.zip
-      sudo ./aws/install
+      rwx_maybe_sudo ./aws/install
       rm -rf "$tmp"
       aws --version
     filter: []
