@@ -28,7 +28,7 @@ tasks:
 
   - key: tool-versions
     use: code
-    call: rwx/tool-versions 1.0.7
+    call: rwx/tool-versions 1.0.8
     filter: [.tool-versions]
 
   - key: nodejs
@@ -43,5 +43,9 @@ tasks:
 ```
 
 The output value is named based on the tool name, so we have `nodejs` and `ruby` in this example.
+
+For tools that use a [mise backend](https://mise.jdx.dev/dev-tools/backends/) prefix, the
+output value is named after the final segment of the tool name. For example, `github:rwx-cloud/rwx`
+becomes `rwx` and `npm:prettier` becomes `prettier`.
 
 Remember to include the [`filter`](https://www.rwx.com/docs/mint/filtering-files) so that the task will be cached only based on the contents of the `.tool-versions` file.

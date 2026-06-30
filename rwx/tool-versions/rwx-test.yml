@@ -13,6 +13,8 @@ tasks:
         jq 1.7.1 #   comment
             nodejs   22.4.1 system
         python 3.12.4
+        github:rwx-cloud/rwx v3.19.0
+        npm:prettier 3.3.3
       EOF
 
   - key: tool-versions
@@ -40,3 +42,5 @@ tasks:
       expect_tool_version jq 1.7.1 ${{ tasks.tool-versions.values.jq }}
       expect_tool_version nodejs 22.4.1 ${{ tasks.tool-versions.values.nodejs }}
       expect_tool_version python 3.12.4 ${{ tasks.tool-versions.values.python }}
+      expect_tool_version rwx v3.19.0 ${{ tasks.tool-versions.values.rwx }}
+      expect_tool_version prettier 3.3.3 ${{ tasks.tool-versions.values.prettier }}
