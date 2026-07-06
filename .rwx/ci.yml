@@ -40,7 +40,7 @@ tasks:
 
   - key: tool-versions
     use: checkout
-    call: rwx/tool-versions 1.0.7
+    call: rwx/tool-versions 1.0.8
     filter:
       - .tool-versions
 
