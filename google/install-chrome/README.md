@@ -12,7 +12,7 @@ Versions 115 and greater are supported.
 ```yaml
 tasks:
   - key: chrome
-    call: google/install-chrome 2.1.10
+    call: google/install-chrome 2.1.11
     with:
       chrome-version: 130
 ```
@@ -22,7 +22,7 @@ tasks:
 ```yaml
 tasks:
   - key: chrome
-    call: google/install-chrome 2.1.10
+    call: google/install-chrome 2.1.11
     with:
       chrome-version: 130
       install-chromedriver: true
@@ -35,7 +35,7 @@ If you are installing multiple versions of chrome and using them within the same
 ```yaml
 tasks:
   - key: chrome-129
-    call: google/install-chrome 2.1.10
+    call: google/install-chrome 2.1.11
     with:
       chrome-version: 129
       install-chromedriver: true
@@ -44,7 +44,7 @@ tasks:
       add-to-path: false
 
   - key: chrome-130
-    call: google/install-chrome 2.1.10
+    call: google/install-chrome 2.1.11
     with:
       chrome-version: 130
       install-chromedriver: true
@@ -68,15 +68,15 @@ By default, `google/install-chrome` supports tools that interact with Chrome in 
 
 ```yml
 - key: chrome
-  call: google/install-chrome 2.1.10
+  call: google/install-chrome 2.1.11
   with:
     chrome-version: stable
     install-chromedriver: true
 
 - key: ruby
-  call: ruby/install 1.2.13
+  call: ruby/install 1.2.31
   with:
-    ruby-version: 3.3.4
+    ruby-version: 4.0.5
 
 - key: selenium-example
   use: [chrome, ruby]
@@ -117,13 +117,13 @@ You can also use tools that interact with headed Chrome. To do so, wrap your com
 
 ```yml
 - key: chrome
-  call: google/install-chrome 2.1.10
+  call: google/install-chrome 2.1.11
   with:
     chrome-version: stable
     install-chromedriver: true
 
 - key: ruby
-  call: ruby/install 1.2.13
+  call: ruby/install 1.2.31
   with:
     ruby-version: 3.3.4
 
