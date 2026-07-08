@@ -24,3 +24,216 @@ tasks:
     run: |
       google-chrome --version | grep 'Google Chrome'
       chromedriver --version | grep 'ChromeDriver'
+
+  - key: test--install-oldest-chrome
+    call: ${{ init.package-digest }}
+    with:
+      chrome-version: 115
+      install-chromedriver: true
+
+  - key: verify--install-oldest-chrome
+    use: test--install-oldest-chrome
+    run: |
+      chrome --version | grep '115\.'
+      google-chrome --version | grep '115\.'
+      chromedriver --version | grep '115\.'
+
+  - key: test--install-only-chrome--full-version-number
+    call: ${{ init.package-digest }}
+    with:
+      chrome-version: 126.0.6478.55
+
+  - key: verify--install-only-chrome--full-version-number
+    use: test--install-only-chrome--full-version-number
+    run: |
+      chrome --version | grep '126\.0\.6478\.55'
+      google-chrome --version | grep '126\.0\.6478\.55'
+
+  - key: test--install-only-chrome--short-version-number
+    call: ${{ init.package-digest }}
+    with:
+      chrome-version: 129
+
+  - key: verify--install-only-chrome--short-version-number
+    use: test--install-only-chrome--short-version-number
+    run: |
+      chrome --version | grep '129\.'
+      google-chrome --version | grep '129\.'
+
+  - key: test--install-only-chrome--stable-version-number
+    call: ${{ init.package-digest }}
+    with:
+      chrome-version: stable
+
+  - key: verify--install-only-chrome--stable-version-number
+    use: test--install-only-chrome--stable-version-number
+    run: |
+      chrome --version | grep "${{ tasks.test--install-only-chrome--stable-version-number.values.chrome-version }}"
+      google-chrome --version | grep "${{ tasks.test--install-only-chrome--stable-version-number.values.chrome-version }}"
+
+  - key: test--install-multiple-chromes--129
+    call: ${{ init.package-digest }}
+    with:
+      chrome-version: 129
+      install-chromedriver: true
+      chrome-directory: /opt/chrome-129
+      chromedriver-directory: /opt/chromedriver-129
+      add-to-path: false
+
+  - key: test--install-multiple-chromes--130
+    call: ${{ init.package-digest }}
+    with:
+      chrome-version: 130
+      install-chromedriver: true
+      chrome-directory: /opt/chrome-130
+      chromedriver-directory: /opt/chromedriver-130
+      add-to-path: false
+
+  - key: verify--install-multiple-chromes
+    use:
+      [test--install-multiple-chromes--129, test--install-multiple-chromes--130]
+    run: |
+      /opt/chrome-129/chrome --version | grep "129\."
+      /opt/chrome-129/google-chrome --version | grep "129\."
+      /opt/chromedriver-129/chromedriver --version | grep "129\."
+
+      /opt/chrome-130/chrome --version | grep "130\."
+      /opt/chrome-130/google-chrome --version | grep "130\."
+      /opt/chromedriver-130/chromedriver --version | grep "130\."
+
+      if chrome; then
+        echo "chrome should not be in PATH"
+        exit 1
+      fi
+
+      if google-chrome; then
+        echo "google-chrome should not be in PATH"
+        exit 1
+      fi
+
+  - key: test--install-chromedriver
+    call: ${{ init.package-digest }}
+    with:
+      chrome-version: 129
+      install-chromedriver: true
+
+  - key: verify--install-chromedriver
+    use: test--install-chromedriver
+    run: chromedriver --version | grep '129\.'
+
+  - key: test--headed-and-headless-chrome-works--install-ruby
+    call: ruby/install 1.2.31
+    with:
+      ruby-version: 4.0.5
+
+  - key: test--headed-and-headless-chrome-works--install-chrome
+    call: ${{ init.package-digest }}
+    with:
+      chrome-version: stable
+      install-chromedriver: true
+
+  - key: verify--headed-chrome-works
+    use:
+      [
+        test--headed-and-headless-chrome-works--install-chrome,
+        test--headed-and-headless-chrome-works--install-ruby,
+      ]
+    run: |
+      cat << EOF > Gemfile
+      source "https://rubygems.org"
+
+      gem "selenium-webdriver", "~> 4.30.1"
+      EOF
+
+      cat << EOF > selenium.rb
+      require "selenium-webdriver"
+
+      options = Selenium::WebDriver::Options.chrome(args: [])
+      driver = Selenium::WebDriver.for(:chrome, options:)
+      driver.navigate.to "https://www.example.com"
+
+      begin
+        driver.find_element(tag_name: 'h1')
+        puts driver.title
+      rescue
+        puts "Failed! Page contents:"
+        puts driver.page_source
+        raise
+      end
+
+      driver.quit
+      EOF
+
+      bundle install
+
+      xvfb-run ruby selenium.rb | tee /dev/stderr | grep "Example Domain"
+
+  - key: verify--headless-chrome-works
+    use:
+      [
+        test--headed-and-headless-chrome-works--install-chrome,
+        test--headed-and-headless-chrome-works--install-ruby,
+      ]
+    run: |
+      cat << EOF > Gemfile
+      source "https://rubygems.org"
+
+      gem "selenium-webdriver", "~> 4.30.1"
+      EOF
+
+      cat << EOF > selenium.rb
+      require "selenium-webdriver"
+
+      options = Selenium::WebDriver::Options.chrome(args: ["--headless=new"])
+      driver = Selenium::WebDriver.for(:chrome, options:)
+      driver.navigate.to "https://www.example.com"
+
+      begin
+        driver.find_element(tag_name: 'h1')
+        puts driver.title
+      rescue
+        puts "Failed! Page contents:"
+        puts driver.page_source
+        raise
+      end
+
+      driver.quit
+      EOF
+
+      bundle install
+
+      ruby selenium.rb | tee /dev/stderr | grep "Example Domain"
+
+  - key: test--testcafe-finds-chrome--install-node
+    call: nodejs/install 1.1.10
+    with:
+      node-version: 22.12.0
+
+  - key: test--testcafe-finds-chrome--install-chrome
+    call: ${{ init.package-digest }}
+    with:
+      chrome-version: 136.0.7086.0
+      install-chromedriver: true
+
+  - key: verify--testcafe-finds-chrome
+    use:
+      [
+        test--testcafe-finds-chrome--install-chrome,
+        test--testcafe-finds-chrome--install-node,
+      ]
+    run: |
+      # https://testcafe.io/documentation/402635/guides/overview/getting-started
+      cat << EOF > testcafe.test.js
+      import { Selector } from 'testcafe';
+
+      fixture('Getting Started').page('https://devexpress.github.io/testcafe/example');
+
+      test('My first test', async t => {
+        await t
+          .typeText('#developer-name', 'John Smith')
+          .click('#submit-button')
+          .expect(Selector('#article-header').innerText).eql('Thank you, John Smith!');
+      });
+      EOF
+
+      npx testcafe@3.7.1 chrome:headless testcafe.test.js
