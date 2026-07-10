@@ -1,0 +1,77 @@
+#!/bin/bash
+
+set -ueo pipefail
+
+log_error() {
+  local message="$1"
+  local tmpfile
+  tmpfile=$(mktemp "$RWX_ERRORS/error-XXXX")
+  printf '%s\n' "$message" > "$tmpfile"
+}
+
+AZURE_OIDC_TOKEN="${%{{OIDC_TOKEN_ENV_VAR}}:-}"
+AZURE_OIDC_TOKEN_PATH="${%{{OIDC_TOKEN_PATH_ENV_VAR}}:-}"
+AZURE_SKIP_AUTH="${AZURE_SKIP_AUTH:-}"
+
+if [ -n "$AZURE_OIDC_TOKEN" ] && [ -n "$AZURE_OIDC_TOKEN_PATH" ]; then
+  log_error "Only one of %{{OIDC_TOKEN_ENV_VAR}} or %{{OIDC_TOKEN_PATH_ENV_VAR}} may be set."
+  exit 1
+fi
+
+if [ -n "$AZURE_SKIP_AUTH" ]; then
+  echo "AZURE_SKIP_AUTH is set, the azure/auth-oidc hook has been skipped."
+  exit 0
+fi
+
+if [ -z "$AZURE_OIDC_TOKEN" ] && [ -z "$AZURE_OIDC_TOKEN_PATH" ]; then
+  log_error "One of the upstream dependencies from this task's \`use\` configuration is an \`azure/auth-oidc\` task which configures a hook to authenticate with Azure.
+
+If this task should be authenticating with Azure, set the \`%{{OIDC_TOKEN_ENV_VAR}}\` environment variable to the token or the \`%{{OIDC_TOKEN_PATH_ENV_VAR}}\` environment variable to its file path.
+
+If this task should not be authenticating with Azure, remove the dependency from \`use\`, or set the \`AZURE_SKIP_AUTH\` environment variable to true.
+
+For more information see [https://www.rwx.com/docs/packages/azure/auth-oidc](https://www.rwx.com/docs/packages/azure/auth-oidc)"
+  exit 1
+fi
+
+if ! command -v az &> /dev/null; then
+  log_error "The Azure CLI (az) must be installed. To install it, you can use the \`azure/install-cli\` package."
+  exit 1
+fi
+
+if [ -n "$AZURE_OIDC_TOKEN_PATH" ]; then
+  if [ ! -r "$AZURE_OIDC_TOKEN_PATH" ]; then
+    log_error "The OIDC token file at \`$AZURE_OIDC_TOKEN_PATH\` is not readable."
+    exit 1
+  fi
+  AZURE_OIDC_TOKEN="$(<"$AZURE_OIDC_TOKEN_PATH")"
+fi
+
+if [ -z "$AZURE_OIDC_TOKEN" ]; then
+  log_error "The Azure OIDC token is empty."
+  exit 1
+fi
+
+CLIENT_ID="%{{CLIENT_ID}}"
+TENANT_ID="%{{TENANT_ID}}"
+SUBSCRIPTION_ID="%{{SUBSCRIPTION_ID}}"
+ALLOW_NO_SUBSCRIPTION="%{{ALLOW_NO_SUBSCRIPTION}}"
+
+if [ "$ALLOW_NO_SUBSCRIPTION" != "false" ]; then
+  az login \
+    --service-principal \
+    --username "$CLIENT_ID" \
+    --tenant "$TENANT_ID" \
+    --federated-token "$AZURE_OIDC_TOKEN" \
+    --allow-no-subscriptions
+else
+  az login \
+    --service-principal \
+    --username "$CLIENT_ID" \
+    --tenant "$TENANT_ID" \
+    --federated-token "$AZURE_OIDC_TOKEN"
+fi
+
+if [ -n "$SUBSCRIPTION_ID" ]; then
+  az account set --subscription "$SUBSCRIPTION_ID"
+fi
