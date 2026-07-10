@@ -24,7 +24,7 @@ tasks:
     call: google-cloud/install-cli 1.1.6
 
   - key: gcloud-auth
-    call: google-cloud/auth-oidc 2.0.1
+    call: google-cloud/auth-oidc 2.0.2
     with:
       workload-identity-provider: ${{ vaults.your-vault.secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
@@ -32,8 +32,10 @@ tasks:
     use: [install-gcloud, gcloud-auth]
     run: gcloud ...
     env:
-      GCP_OIDC_TOKEN: ${{ vaults.your-vault.oidc.gcp }}
+      GCP_OIDC_TOKEN_PATH: ${{ vaults.your-vault.oidc.gcp.path }}
 ```
+
+The package accepts either the token file path in `GCP_OIDC_TOKEN_PATH` or the token contents in `GCP_OIDC_TOKEN`. Token files are refreshed during long-running tasks and remain the credential source for Application Default Credentials, so prefer `GCP_OIDC_TOKEN_PATH` when it is available. Use the `oidc-token-path-env-var` and `oidc-token-env-var` parameters to customize the environment variable names.
 
 To authenticate with Google Cloud using OIDC and a Service Account:
 
@@ -43,7 +45,7 @@ tasks:
     call: google-cloud/install-cli 1.1.6
 
   - key: gcloud-auth
-    call: google-cloud/auth-oidc 2.0.1
+    call: google-cloud/auth-oidc 2.0.2
     with:
       workload-identity-provider: ${{ vaults.your-vault.secrets.WORKLOAD_IDENTITY_PROVIDER }}
       service-account: ${{ vaults.your-vault.secrets.SERVICE_ACCOUNT }}
@@ -63,7 +65,7 @@ tasks:
     call: google-cloud/install-cli 1.1.6
 
   - key: gcloud-auth
-    call: google-cloud/auth-oidc 2.0.1
+    call: google-cloud/auth-oidc 2.0.2
     with:
       workload-identity-provider: ${{ vaults.your-vault.secrets.WORKLOAD_IDENTITY_PROVIDER }}
       project-id: identifier-of-my-project
@@ -83,7 +85,7 @@ tasks:
     call: google-cloud/install-cli 1.1.6
 
   - key: gcloud-auth
-    call: google-cloud/auth-oidc 2.0.1
+    call: google-cloud/auth-oidc 2.0.2
     with:
       workload-identity-provider: ${{ vaults.your-vault.secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
@@ -124,7 +126,7 @@ tasks:
     call: google-cloud/install-cli 1.1.6
 
   - key: gcloud-auth
-    call: google-cloud/auth-oidc 2.0.1
+    call: google-cloud/auth-oidc 2.0.2
     with:
       workload-identity-provider: ${{ vaults.your-vault.secrets.WORKLOAD_IDENTITY_PROVIDER }}
 

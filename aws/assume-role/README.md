@@ -8,7 +8,7 @@ tasks:
     call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.9
+    call: aws/assume-role 2.0.10
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -17,10 +17,10 @@ tasks:
     use: [aws-cli, assume-role]
     run: ...
     env:
-      AWS_OIDC_TOKEN:
-        value: ${{ vaults.your-vault.oidc.your-token }}
-        cache-key: excluded
+      AWS_OIDC_TOKEN_PATH: ${{ vaults.your-vault.oidc.your-token.path }}
 ```
+
+The package accepts either the token file path in `AWS_OIDC_TOKEN_PATH` or the token contents in `AWS_OIDC_TOKEN`. Token files are refreshed during long-running tasks, so prefer `AWS_OIDC_TOKEN_PATH` when it is available. Use the `oidc-token-path-env-var` and `oidc-token-env-var` parameters to customize the environment variable names.
 
 If for some reason you need to opt-out of role assumption, your task can set specify the environment variable `AWS_SKIP_AUTH` to true.
 
@@ -30,7 +30,7 @@ tasks:
     call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.9
+    call: aws/assume-role 2.0.10
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -50,7 +50,7 @@ tasks:
     call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.9
+    call: aws/assume-role 2.0.10
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -73,7 +73,7 @@ tasks:
     call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.9
+    call: aws/assume-role 2.0.10
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -96,7 +96,7 @@ tasks:
     call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.9
+    call: aws/assume-role 2.0.10
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -119,14 +119,14 @@ tasks:
     call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.9
+    call: aws/assume-role 2.0.10
     with:
       oidc-token: ${{ vaults.your-vault.oidc.your-token }}
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
 
   - key: chained-role
-    call: aws/assume-role 2.0.9
+    call: aws/assume-role 2.0.10
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-other-role
@@ -149,14 +149,14 @@ tasks:
     call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.9
+    call: aws/assume-role 2.0.10
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
       profile-name: your-profile
 
   - key: chained-role
-    call: aws/assume-role 2.0.9
+    call: aws/assume-role 2.0.10
     with:
       source-profile-name: your-profile
       region: us-east-2
@@ -210,7 +210,7 @@ tasks:
     call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.9
+    call: aws/assume-role 2.0.10
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
@@ -261,14 +261,14 @@ tasks:
     call: aws/install-cli 1.0.8
 
   - key: assume-role
-    call: aws/assume-role 2.0.9
+    call: aws/assume-role 2.0.10
     with:
       oidc-token: ${{ vaults.your-vault.oidc.your-token }}
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-role
 
   - key: chain-role
-    call: aws/assume-role 2.0.9
+    call: aws/assume-role 2.0.10
     with:
       region: us-east-2
       role-to-assume: arn:aws:iam::your-account-id:role/your-other-role

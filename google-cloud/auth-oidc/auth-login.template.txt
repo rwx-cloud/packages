@@ -12,12 +12,13 @@ EOF
 }
 
 GCP_OIDC_TOKEN="${%{{OIDC_TOKEN_ENV_VAR}}:-}"
+GCP_OIDC_TOKEN_PATH="${%{{OIDC_TOKEN_PATH_ENV_VAR}}:-}"
 GCP_SKIP_AUTH="${GCP_SKIP_AUTH:-}"
 
-if [ -z "$GCP_SKIP_AUTH" ] && [ -z "$GCP_OIDC_TOKEN" ]; then
+if [ -z "$GCP_SKIP_AUTH" ] && [ -z "$GCP_OIDC_TOKEN" ] && [ -z "$GCP_OIDC_TOKEN_PATH" ]; then
   log_error "One of the upstream dependencies from this task's \`use\` configuration is a \`google-cloud/auth-oidc\` task which configures a hook to authenticate with Google Cloud.
 
-If this task should be authenticating with Google Cloud, set the \`%{{OIDC_TOKEN_ENV_VAR}}\` environment variable.
+If this task should be authenticating with Google Cloud, set the \`%{{OIDC_TOKEN_ENV_VAR}}\` environment variable to the token or the \`%{{OIDC_TOKEN_PATH_ENV_VAR}}\` environment variable to its file path.
 
 If this task should not be authenticating with Google Cloud, remove the dependency from \`use\`, or set the \`GCP_SKIP_AUTH\` environment variable to true.
 
@@ -43,7 +44,6 @@ AUDIENCE="%{{AUDIENCE}}"
 PROJECT_ID="%{{PROJECT_ID}}"
 
 credentials_dir="$(mktemp -d)"
-token_source_file="${credentials_dir}/oidc-token.txt"
 credentials_file="${credentials_dir}/credentials.json"
 gcloud_config_dir="$HOME/.config/gcloud"
 application_default_credentials_file="${gcloud_config_dir}/application_default_credentials.json"
@@ -55,10 +55,19 @@ if [[ -z "$audience" ]]; then
   audience="//iam.googleapis.com/${WORKLOAD_IDENTITY_PROVIDER}"
 fi
 
-echo
-echo "Saving OIDC token"
-echo "$GCP_OIDC_TOKEN" > "$token_source_file"
-chmod 0600 "$token_source_file"
+if [[ -n "$GCP_OIDC_TOKEN_PATH" ]]; then
+  if [[ ! -r "$GCP_OIDC_TOKEN_PATH" ]]; then
+    log_error "The OIDC token file at \`$GCP_OIDC_TOKEN_PATH\` is not readable."
+    exit 1
+  fi
+  token_source_file="$GCP_OIDC_TOKEN_PATH"
+else
+  token_source_file="${credentials_dir}/oidc-token.txt"
+  echo
+  echo "Saving OIDC token"
+  printf '%s\n' "$GCP_OIDC_TOKEN" > "$token_source_file"
+  chmod 0600 "$token_source_file"
+fi
 
 echo
 echo "Building application credentials file"

@@ -12,12 +12,13 @@ EOF
 }
 
 AWS_OIDC_TOKEN="${%{{OIDC_TOKEN_ENV_VAR}}:-}"
+AWS_OIDC_TOKEN_PATH="${%{{OIDC_TOKEN_PATH_ENV_VAR}}:-}"
 AWS_SKIP_AUTH="${AWS_SKIP_AUTH:-}"
 
-if [ -z "$AWS_SKIP_AUTH" ] && [ -z "$AWS_OIDC_TOKEN" ]; then
+if [ -z "$AWS_SKIP_AUTH" ] && [ -z "$AWS_OIDC_TOKEN" ] && [ -z "$AWS_OIDC_TOKEN_PATH" ]; then
   log_error "One of the upstream dependencies from this task's \`use\` configuration is an \`aws/assume-role\` task which configures a hook to authenticate into AWS.
 
-If this task should be authenticating into AWS, set the \`AWS_OIDC_TOKEN\` environment variable.
+If this task should be authenticating into AWS, set the \`%{{OIDC_TOKEN_ENV_VAR}}\` environment variable to the token or the \`%{{OIDC_TOKEN_PATH_ENV_VAR}}\` environment variable to its file path.
 
 If this task should not be authenticating into AWS, remove the dependency from \`use\`, or set the \`AWS_SKIP_AUTH\` environment variable to true.
 
@@ -33,6 +34,19 @@ fi
 
 if ! command -v aws &> /dev/null; then
   log_error "The AWS CLI must be installed. To install it, you can use the \`aws/install-cli\` leaf."
+  exit 1
+fi
+
+if [ -n "$AWS_OIDC_TOKEN_PATH" ]; then
+  if [ ! -r "$AWS_OIDC_TOKEN_PATH" ]; then
+    log_error "The OIDC token file at \`$AWS_OIDC_TOKEN_PATH\` is not readable."
+    exit 1
+  fi
+  AWS_OIDC_TOKEN="$(<"$AWS_OIDC_TOKEN_PATH")"
+fi
+
+if [ -z "$AWS_OIDC_TOKEN" ]; then
+  log_error "The AWS OIDC token is empty."
   exit 1
 fi
 
