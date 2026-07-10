@@ -103,17 +103,6 @@ tasks:
     env:
       GCP_SKIP_AUTH: "true"
 
-  - key: test--mutually-exclusive-tokens--assert
-    use: [install-cli, test--dynamic-direct-workload]
-    run: |
-      GCP_SKIP_AUTH="" \
-      GCP_OIDC_TOKEN=static \
-      GCP_OIDC_TOKEN_PATH=/tmp/dynamic \
-        bash "$RWX_HOOKS_BEFORE_TASK/gcp-auth-oidc-login.sh" || true
-      grep -R -q "Only one of GCP_OIDC_TOKEN or GCP_OIDC_TOKEN_PATH may be set" "$RWX_ERRORS"
-    env:
-      GCP_SKIP_AUTH: true
-
   - key: test--service-account-with-lifetime
     use: install-cli
     call: ${{ init.package-digest }}

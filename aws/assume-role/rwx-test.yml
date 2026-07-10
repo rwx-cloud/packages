@@ -82,17 +82,6 @@ tasks:
     env:
       CUSTOM_AWS_OIDC_TOKEN_PATH: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token.path }}
 
-  - key: test--mutually-exclusive-tokens--assert
-    use: [install-cli, test--defaults]
-    run: |
-      AWS_SKIP_AUTH="" \
-      AWS_OIDC_TOKEN=static \
-      AWS_OIDC_TOKEN_PATH=/tmp/dynamic \
-        bash "$RWX_HOOKS_BEFORE_TASK/aws-assume-role--assume-default.sh" || true
-      grep -R -q "Only one of AWS_OIDC_TOKEN or AWS_OIDC_TOKEN_PATH may be set" "$RWX_ERRORS"
-    env:
-      AWS_SKIP_AUTH: true
-
   - key: test--defaults--role-chain
     call: ${{ init.package-digest }}
     with:

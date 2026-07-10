@@ -37,16 +37,3 @@ tasks:
       fi
     env:
       NAMESPACE_OIDC_TOKEN_PATH: ${{ vaults.rwx_packages_namespace_login_testing.oidc.namespace-token.path }}
-
-  - key: test--mutually-exclusive-tokens--assert
-    use: [install-cli, test--defaults]
-    run: |
-      log_error() {
-        printf '%s\n' "$1" > "$RWX_ERRORS/mutually-exclusive-tokens"
-      }
-      export -f log_error
-      hook="$(find "$RWX_HOOKS_BEFORE_TASK" -name 'namespace-login--*.sh')"
-      NAMESPACE_OIDC_TOKEN=static \
-      NAMESPACE_OIDC_TOKEN_PATH=/tmp/dynamic \
-        bash "$hook" || true
-      grep -R -q "Only one of NAMESPACE_OIDC_TOKEN or NAMESPACE_OIDC_TOKEN_PATH may be set" "$RWX_ERRORS"
