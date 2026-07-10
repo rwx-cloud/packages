@@ -1,5 +1,5 @@
 name: google/install-chrome
-version: 2.1.11
+version: 2.1.12
 description: Install Google Chrome, the official web browser from Google
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/google/install-chrome
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -93,9 +93,9 @@ tasks:
       fi
 
       echo "Installing Chrome system dependencies"
-      sudo apt-get update
+      rwx_maybe_sudo apt-get update
 
-      sudo apt-get install --no-upgrade $os_packages \
+      rwx_maybe_sudo apt-get install -y --no-upgrade $os_packages \
         ca-certificates \
         fonts-liberation \
         libcairo2 \
@@ -111,7 +111,7 @@ tasks:
         x11-utils \
         xdg-utils \
         xvfb
-      sudo apt-get clean
+      rwx_maybe_sudo apt-get clean
 
       path_additions=""
       echo "${CHROME_VERSION}" > "${RWX_VALUES}/chrome-version"
@@ -122,12 +122,12 @@ tasks:
       # Unpack chrome into the chrome directory
       curl -fsSL "${CHROME_DOWNLOAD_URL}" -o chrome.zip
       unzip chrome.zip
-      sudo mv chrome-linux64 "${CHROME_DIRECTORY}"
+      rwx_maybe_sudo mv chrome-linux64 "${CHROME_DIRECTORY}"
 
       # Set the correct permissions on the sandbox binary
       chrome_sandbox_binary="${CHROME_DIRECTORY}/chrome_sandbox"
-      sudo chown root:root "${chrome_sandbox_binary}"
-      sudo chmod 4755 "${chrome_sandbox_binary}"
+      rwx_maybe_sudo chown root:root "${chrome_sandbox_binary}"
+      rwx_maybe_sudo chmod 4755 "${chrome_sandbox_binary}"
       echo "${chrome_sandbox_binary}" > "${RWX_ENV}/CHROME_DEVEL_SANDBOX"
 
       # Store useful chrome values
@@ -148,7 +148,7 @@ tasks:
 
         curl -fsSL "${CHROMEDRIVER_DOWNLOAD_URL}" -o chromedriver.zip
         unzip chromedriver.zip
-        sudo mv chromedriver-linux64 "${CHROMEDRIVER_DIRECTORY}"
+        rwx_maybe_sudo mv chromedriver-linux64 "${CHROMEDRIVER_DIRECTORY}"
         chromedriver_binary="${CHROMEDRIVER_DIRECTORY}/chromedriver"
 
         echo "Installed Chromedriver for Chrome ${CHROME_VERSION}"

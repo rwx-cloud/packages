@@ -4,7 +4,25 @@ base:
   arch: ${{ init.base-arch }}
 
 tasks:
+  - key: system-packages
+    run: |
+      # On bases with `config: none` the RWX tooling (curl, sudo, ...) is not
+      # installed and the run executes as root. The package installs its own
+      # Chrome system dependencies, but assumes curl, jq, and unzip are already
+      # present, so ensure they are installed.
+      if ! command -v curl >/dev/null 2>&1 || ! command -v jq >/dev/null 2>&1 || ! command -v unzip >/dev/null 2>&1; then
+        if command -v apt-get >/dev/null 2>&1; then
+          apt-get -y update
+          apt-get -y install curl ca-certificates jq unzip
+          apt-get -y clean
+        else
+          echo "Unsupported package manager; need curl, jq, and unzip installed" >&2
+          exit 1
+        fi
+      fi
+
   - key: test-stable
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       chrome-version: stable
@@ -14,6 +32,7 @@ tasks:
     run: google-chrome --version | grep 'Google Chrome'
 
   - key: test-with-chromedriver
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       chrome-version: stable
@@ -26,6 +45,7 @@ tasks:
       chromedriver --version | grep 'ChromeDriver'
 
   - key: test--install-oldest-chrome
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       chrome-version: 115
@@ -39,6 +59,7 @@ tasks:
       chromedriver --version | grep '115\.'
 
   - key: test--install-only-chrome--full-version-number
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       chrome-version: 126.0.6478.55
@@ -50,6 +71,7 @@ tasks:
       google-chrome --version | grep '126\.0\.6478\.55'
 
   - key: test--install-only-chrome--short-version-number
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       chrome-version: 129
@@ -61,6 +83,7 @@ tasks:
       google-chrome --version | grep '129\.'
 
   - key: test--install-only-chrome--stable-version-number
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       chrome-version: stable
@@ -72,6 +95,7 @@ tasks:
       google-chrome --version | grep "${{ tasks.test--install-only-chrome--stable-version-number.values.chrome-version }}"
 
   - key: test--install-multiple-chromes--129
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       chrome-version: 129
@@ -81,6 +105,7 @@ tasks:
       add-to-path: false
 
   - key: test--install-multiple-chromes--130
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       chrome-version: 130
@@ -112,6 +137,7 @@ tasks:
       fi
 
   - key: test--install-chromedriver
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       chrome-version: 129
@@ -122,17 +148,22 @@ tasks:
     run: chromedriver --version | grep '129\.'
 
   - key: test--headed-and-headless-chrome-works--install-ruby
+    # Skipped on the `config: none` base (root, no sudo): this depends on the
+    # published ruby/install, which is not yet root-without-sudo aware.
+    if: ${{ init.base-config != "6e590fe8cb5122675c1998821470722bc58dab3f53cc992c18d3b3382f03a31e" }}
     call: ruby/install 1.2.31
     with:
       ruby-version: 4.0.5
 
   - key: test--headed-and-headless-chrome-works--install-chrome
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       chrome-version: stable
       install-chromedriver: true
 
   - key: verify--headed-chrome-works
+    if: ${{ init.base-config != "6e590fe8cb5122675c1998821470722bc58dab3f53cc992c18d3b3382f03a31e" }}
     use:
       [
         test--headed-and-headless-chrome-works--install-chrome,
@@ -169,6 +200,7 @@ tasks:
       xvfb-run ruby selenium.rb | tee /dev/stderr | grep "Example Domain"
 
   - key: verify--headless-chrome-works
+    if: ${{ init.base-config != "6e590fe8cb5122675c1998821470722bc58dab3f53cc992c18d3b3382f03a31e" }}
     use:
       [
         test--headed-and-headless-chrome-works--install-chrome,
@@ -205,17 +237,22 @@ tasks:
       ruby selenium.rb | tee /dev/stderr | grep "Example Domain"
 
   - key: test--testcafe-finds-chrome--install-node
+    # Skipped on the `config: none` base (root, no sudo): this depends on the
+    # published nodejs/install, which is not yet root-without-sudo aware.
+    if: ${{ init.base-config != "6e590fe8cb5122675c1998821470722bc58dab3f53cc992c18d3b3382f03a31e" }}
     call: nodejs/install 1.1.10
     with:
       node-version: 22.12.0
 
   - key: test--testcafe-finds-chrome--install-chrome
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       chrome-version: 136.0.7086.0
       install-chromedriver: true
 
   - key: verify--testcafe-finds-chrome
+    if: ${{ init.base-config != "6e590fe8cb5122675c1998821470722bc58dab3f53cc992c18d3b3382f03a31e" }}
     use:
       [
         test--testcafe-finds-chrome--install-chrome,

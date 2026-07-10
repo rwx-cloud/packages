@@ -4,7 +4,25 @@ base:
   arch: ${{ init.base-arch }}
 
 tasks:
+  - key: system-packages
+    run: |
+      # On bases with `config: none` the RWX tooling (curl, sudo, ...) is not
+      # installed and the run executes as root. The package installs gnupg and
+      # xz-utils itself, but needs curl to download Node, so ensure it is
+      # present.
+      if ! command -v curl >/dev/null 2>&1; then
+        if command -v apt-get >/dev/null 2>&1; then
+          apt-get -y update
+          apt-get -y install curl ca-certificates
+          apt-get -y clean
+        else
+          echo "Unsupported package manager; need curl installed" >&2
+          exit 1
+        fi
+      fi
+
   - key: test-version
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       node-version: 20.8.0
@@ -17,7 +35,7 @@ tasks:
     run: echo 20.13.1 > .node-version
 
   - key: test-version-file
-    use: test-version-file-write-file
+    use: [test-version-file-write-file, system-packages]
     call: ${{ init.package-digest }}
     with:
       node-version-file: .node-version
@@ -29,6 +47,7 @@ tasks:
     run: node --version | grep '20\.13\.1'
 
   - key: install-22-18-0
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       node-version: "22.18.0"

@@ -4,7 +4,25 @@ base:
   arch: ${{ init.base-arch }}
 
 tasks:
+  - key: system-packages
+    run: |
+      # On bases with `config: none` the RWX tooling (curl, sudo, ...) is not
+      # installed and the run executes as root. The package needs curl to
+      # download the scanner, gpg to verify its signature, and unzip to
+      # extract it, so ensure all are present.
+      if ! command -v curl >/dev/null 2>&1 || ! command -v gpg >/dev/null 2>&1 || ! command -v unzip >/dev/null 2>&1; then
+        if command -v apt-get >/dev/null 2>&1; then
+          apt-get -y update
+          apt-get -y install curl ca-certificates gnupg unzip
+          apt-get -y clean
+        else
+          echo "Unsupported package manager; need curl, gpg and unzip installed" >&2
+          exit 1
+        fi
+      fi
+
   - key: test--install-oldest-sonar-scanner
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       sonar-scanner-version: "5.0.0.2966"
@@ -14,6 +32,7 @@ tasks:
     run: sonar-scanner --version | grep '5.0.0.2966'
 
   - key: test--install-newest-sonar-scanner
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       sonar-scanner-version: "6.2.1.4610"

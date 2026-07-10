@@ -32,9 +32,9 @@ fi
 
 ### Prepare gpg and tar dependencies
 
-sudo apt-get update
-sudo apt-get install gnupg xz-utils
-sudo apt-get clean
+rwx_maybe_sudo apt-get update
+rwx_maybe_sudo apt-get install -y gnupg xz-utils
+rwx_maybe_sudo apt-get clean
 
 curl -fsSLo "/tmp/nodejs-keyring.kbx" "https://github.com/nodejs/release-keys/raw/501819767eb4fdde7b7b0206ad1015e6dab00c34/gpg/pubring.kbx"
 
@@ -75,8 +75,8 @@ function cleanup {
 trap cleanup EXIT
 
 echo "Creating ${install_dir}"
-sudo mkdir -p "$install_dir"
-sudo chown "$(id -un):$(id -gn)" "$install_dir"
+rwx_maybe_sudo mkdir -p "$install_dir"
+rwx_maybe_sudo chown "$(id -un):$(id -gn)" "$install_dir"
 cd "$source_dir"
 
 echo "Fetching and verifying SHASUMS256.txt.asc"

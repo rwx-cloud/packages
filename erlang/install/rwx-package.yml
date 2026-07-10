@@ -1,5 +1,5 @@
 name: erlang/install
-version: 1.1.3
+version: 1.1.4
 description: Install Erlang, a programming language used to build massively scalable soft real-time systems with requirements on high availability
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/erlang/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -12,25 +12,25 @@ parameters:
 tasks:
   - key: install
     run: |
-      source "$RWX_PACKAGE_PATH/mint-utils.sh"
-      if [ "$(mint_os_name)" != "ubuntu" ]; then
-        echo "Unsupported operating system \`$(mint_os_name)\`" | tee "$(mktemp "$RWX_ERRORS/error-XXXX")"
+      source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+      if [ "$(rwx_os_name)" != "ubuntu" ]; then
+        echo "Unsupported operating system \`$(rwx_os_name)\`" | tee "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
-      if mint_os_version_gte 24.04; then
+      if rwx_os_version_gte 24.04; then
         ncurses_package="libncurses6"
       else
         ncurses_package="libncurses5"
       fi
 
-      sudo apt-get update
-      sudo apt-get install libsctp1 "$ncurses_package"
-      sudo apt-get clean
+      rwx_maybe_sudo apt-get update
+      rwx_maybe_sudo apt-get install -y libsctp1 "$ncurses_package"
+      rwx_maybe_sudo apt-get clean
 
-      OTP_OS=$(mint_os_name)
-      OTP_OS_VERSION=$(mint_os_version)
-      OTP_ARCH=$(mint_arch_amd)
+      OTP_OS=$(rwx_os_name)
+      OTP_OS_VERSION=$(rwx_os_version)
+      OTP_ARCH=$(rwx_arch_amd)
       if [ "$OTP_ARCH" == "aarch64" ]; then
         OTP_ARCH="arm64"
       fi
@@ -67,8 +67,8 @@ tasks:
       fi
 
       ERL_ROOT="/usr/lib/erlang"
-      sudo mkdir -p "$ERL_ROOT"
-      sudo chown "$(id -u):$(id -g)" "$ERL_ROOT"
+      rwx_maybe_sudo mkdir -p "$ERL_ROOT"
+      rwx_maybe_sudo chown "$(id -u):$(id -g)" "$ERL_ROOT"
       tar -xzf "${archive_path}" -C "${ERL_ROOT}" --strip-components=1
 
       "${ERL_ROOT}/Install" -minimal "${ERL_ROOT}"

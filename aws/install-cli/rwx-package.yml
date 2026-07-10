@@ -1,5 +1,5 @@
 name: aws/install-cli
-version: 1.0.11
+version: 1.0.12
 description: Install the AWS CLI
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/aws/install-cli
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -13,35 +13,37 @@ tasks:
   - key: install-unzip-if-necessary
     run: |
       if ! command -v unzip &> /dev/null; then
-        source "$RWX_PACKAGE_PATH/mint-utils.sh"
-        if ! mint_os_package_manager_in apt; then
-          echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+        source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+        if ! rwx_os_package_manager_in apt; then
+          echo "Unsupported operating system or package manager \`$(rwx_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
           exit 1
         fi
 
-        sudo apt-get update
-        sudo apt-get install unzip
-        sudo apt-get clean
+        rwx_maybe_sudo apt-get update
+        rwx_maybe_sudo apt-get install -y unzip
+        rwx_maybe_sudo apt-get clean
       fi
     filter: []
   - key: install-gpg-if-necessary
     run: |
       if ! command -v gpg &> /dev/null; then
-        source "$RWX_PACKAGE_PATH/mint-utils.sh"
-        if ! mint_os_package_manager_in apt; then
-          echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+        source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+        if ! rwx_os_package_manager_in apt; then
+          echo "Unsupported operating system or package manager \`$(rwx_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
           exit 1
         fi
 
-        sudo apt-get update
-        sudo apt-get install gnupg
-        sudo apt-get clean
+        rwx_maybe_sudo apt-get update
+        rwx_maybe_sudo apt-get install -y gnupg
+        rwx_maybe_sudo apt-get clean
       fi
     filter: []
   - key: install-cli
     use: [install-gpg-if-necessary, install-unzip-if-necessary]
     run: |
       set -ueo pipefail
+
+      source "$RWX_PACKAGE_PATH/rwx-utils.sh"
 
       tmp="$(mktemp -d)"
       cd "$tmp"
@@ -130,7 +132,7 @@ tasks:
       gpg --verify awscliv2.sig awscliv2.zip
 
       unzip awscliv2.zip
-      sudo ./aws/install
+      rwx_maybe_sudo ./aws/install
       rm -rf "$tmp"
       aws --version
     filter: []

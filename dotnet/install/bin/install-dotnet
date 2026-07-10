@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -ueo pipefail
 
+source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+
 if [[ -z "${GLOBAL_JSON_FILE}" && -z "${DOTNET_CHANNEL}" && -z "${DOTNET_CHANNELS}" ]]; then
   cat << EOF > "$(mktemp "$RWX_ERRORS/error-XXXX")"
 Invalid parameters: set \`global-json-file\`, \`dotnet-channel\`, or \`dotnet-channels\`.
@@ -26,8 +28,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
-sudo mkdir -p "$DOTNET_INSTALL_DIR"
-sudo chown "$(id -un):$(id -gn)" "$DOTNET_INSTALL_DIR"
+rwx_maybe_sudo mkdir -p "$DOTNET_INSTALL_DIR"
+rwx_maybe_sudo chown "$(id -un):$(id -gn)" "$DOTNET_INSTALL_DIR"
 curl -Lsfo "$DOTNET_INSTALL_SCRIPT_PATH" https://dot.net/v1/dotnet-install.sh
 chmod +x "$DOTNET_INSTALL_SCRIPT_PATH"
 

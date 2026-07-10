@@ -1,5 +1,5 @@
 name: elixir-lang/install
-version: 1.1.4
+version: 1.1.5
 description: Install Elixir, a dynamic, functional language for building scalable and maintainable applications.
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/elixir-lang/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -12,6 +12,8 @@ parameters:
 tasks:
   - key: install
     run: |
+      source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+
       set +e
       erlang_major_version=$(erl -eval 'erlang:display(list_to_integer(erlang:system_info(otp_release))), halt().' -noshell | tr -d '\r\n')
       erlang_exit=$?
@@ -71,8 +73,8 @@ tasks:
       fi
 
       ELIXIR_ROOT="/opt/elixir/${ELIXIR_VERSION}"
-      sudo mkdir -p "$ELIXIR_ROOT"
-      sudo unzip -q "${archive_path}" -d "${ELIXIR_ROOT}"
+      rwx_maybe_sudo mkdir -p "$ELIXIR_ROOT"
+      rwx_maybe_sudo unzip -q "${archive_path}" -d "${ELIXIR_ROOT}"
 
       echo "${ELIXIR_ROOT}/bin" > "$RWX_ENV/PATH"
       export PATH="${ELIXIR_ROOT}/bin:${PATH}"

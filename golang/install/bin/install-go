@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -ueo pipefail
 
+source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+
 if [ "$GO_VERSION" = "" ]; then
   >&2 echo "GO_VERSION was not found."
   exit 2
@@ -25,7 +27,7 @@ if [ "${GO_VERSION}" == "latest" ]; then
 fi
 
 source_dir="$(mktemp -d)"
-sudo mkdir -p /opt/go
+rwx_maybe_sudo mkdir -p /opt/go
 install_dir="/opt/go/v${target_version}"
 
 if [ -d "${install_dir}" ]; then
@@ -56,8 +58,8 @@ else
 fi
 
 echo "Extracting to ${install_dir}"
-sudo mkdir -p "$install_dir"
-sudo tar -C "$install_dir" --strip-components=1 -xzf "${source_dir}/${filename}"
+rwx_maybe_sudo mkdir -p "$install_dir"
+rwx_maybe_sudo tar -C "$install_dir" --strip-components=1 -xzf "${source_dir}/${filename}"
 
 echo "Adding ${install_dir}/bin to PATH"
 install_dir_bin="${install_dir}/bin"
