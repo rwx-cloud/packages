@@ -14,7 +14,7 @@ tasks:
     with:
       workspace-id: ${{ vaults.rwx_packages_namespace_login_testing.vars.NAMESPACE_WORKSPACE }}
 
-  - key: test--defaults--assert
+  - key: test--static-token--assert
     use: [install-cli, test--defaults]
     run: |
       set +e
@@ -26,7 +26,7 @@ tasks:
     env:
       NAMESPACE_OIDC_TOKEN: ${{ vaults.rwx_packages_namespace_login_testing.oidc.namespace-token }}
 
-  - key: test--token-path--assert
+  - key: test--dynamic-token--assert
     use: [install-cli, test--defaults]
     run: |
       set +e
@@ -37,3 +37,12 @@ tasks:
       fi
     env:
       NAMESPACE_OIDC_TOKEN_PATH: ${{ vaults.rwx_packages_namespace_login_testing.oidc.namespace-token.path }}
+
+  - key: test--mutually-exclusive-tokens--assert
+    use: [install-cli, test--defaults]
+    run: |
+      hook="$(find "$RWX_HOOKS_BEFORE_TASK" -name 'namespace-login--*.sh')"
+      NAMESPACE_OIDC_TOKEN=static \
+      NAMESPACE_OIDC_TOKEN_PATH=/tmp/dynamic \
+        bash "$hook" || true
+      grep -R -q "Only one of NAMESPACE_OIDC_TOKEN or NAMESPACE_OIDC_TOKEN_PATH may be set" "$RWX_ERRORS"

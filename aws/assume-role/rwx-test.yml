@@ -12,13 +12,13 @@ tasks:
       region: us-east-2
       role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-assume }}
 
-  - key: test--defaults--assert
+  - key: test--static-token--assert
     use: [install-cli, test--defaults]
     run: aws sts get-caller-identity &> /dev/null # avoid leaking account/role info
     env:
       AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
 
-  - key: test--default-token-path--assert
+  - key: test--dynamic-token--assert
     use: [install-cli, test--defaults]
     run: |
       test "$(aws configure get web_identity_token_file)" = "$AWS_OIDC_TOKEN_PATH"
@@ -51,23 +51,47 @@ tasks:
     env:
       AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
 
-  - key: test--custom-profile
+  - key: test--custom-static-profile
     call: ${{ init.package-digest }}
     with:
       region: us-east-2
       role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-assume }}
       profile-name: custom
       oidc-token-env-var: AWS_OIDC_TOKEN_2
-      oidc-token-path-env-var: AWS_OIDC_TOKEN_2_PATH
-  - key: test--multiple-profiles--assert
-    use: [install-cli, test--defaults, test--custom-profile]
+  - key: test--multiple-static-profiles--assert
+    use: [install-cli, test--defaults, test--custom-static-profile]
     run:
       - aws sts get-caller-identity &> /dev/null # avoid leaking account/role info
-      - test "$(aws configure get web_identity_token_file --profile custom)" = "$AWS_OIDC_TOKEN_2_PATH"
       - aws sts get-caller-identity --profile custom &> /dev/null # avoid leaking account/role info
     env:
       AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
-      AWS_OIDC_TOKEN_2_PATH: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token.path }}
+      AWS_OIDC_TOKEN_2: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}
+
+  - key: test--custom-dynamic-profile
+    call: ${{ init.package-digest }}
+    with:
+      region: us-east-2
+      role-to-assume: ${{ vaults.rwx_packages_aws_assume_role_testing.secrets.role-to-assume }}
+      profile-name: dynamic
+      oidc-token-path-env-var: CUSTOM_AWS_OIDC_TOKEN_PATH
+  - key: test--custom-dynamic-profile--assert
+    use: [install-cli, test--custom-dynamic-profile]
+    run: |
+      test "$(aws configure get web_identity_token_file --profile dynamic)" = "$CUSTOM_AWS_OIDC_TOKEN_PATH"
+      aws sts get-caller-identity --profile dynamic &> /dev/null # avoid leaking account/role info
+    env:
+      CUSTOM_AWS_OIDC_TOKEN_PATH: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token.path }}
+
+  - key: test--mutually-exclusive-tokens--assert
+    use: [install-cli, test--defaults]
+    run: |
+      AWS_SKIP_AUTH="" \
+      AWS_OIDC_TOKEN=static \
+      AWS_OIDC_TOKEN_PATH=/tmp/dynamic \
+        bash "$RWX_HOOKS_BEFORE_TASK/aws-assume-role--assume-default.sh" || true
+      grep -R -q "Only one of AWS_OIDC_TOKEN or AWS_OIDC_TOKEN_PATH may be set" "$RWX_ERRORS"
+    env:
+      AWS_SKIP_AUTH: true
 
   - key: test--defaults--role-chain
     call: ${{ init.package-digest }}
