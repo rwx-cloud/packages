@@ -7,7 +7,7 @@ Install one or more .NET SDK versions.
 ```yaml
 tasks:
   - key: dotnet
-    call: dotnet/install 1.0.0
+    call: dotnet/install 1.0.1
     with:
       dotnet-channel: "8.0"
 ```
@@ -18,7 +18,7 @@ tasks:
 tasks:
   - key: dotnet
     use: code
-    call: dotnet/install 1.0.0
+    call: dotnet/install 1.0.1
     with:
       global-json-file: global.json
     filter:
@@ -30,7 +30,7 @@ tasks:
 ```yaml
 tasks:
   - key: dotnet
-    call: dotnet/install 1.0.0
+    call: dotnet/install 1.0.1
     with:
       dotnet-channels: '["8.0", "9.0", "10.0"]'
       dotnet-quality: preview

@@ -1,5 +1,5 @@
 name: azure/install-cli
-version: 1.0.10
+version: 1.0.11
 description: Install the Azure CLI
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/azure/install-cli
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -14,9 +14,9 @@ tasks:
     run: |
       # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt#option-2-step-by-step-installation-instructions
 
-      source "$RWX_PACKAGE_PATH/mint-utils.sh"
-      if ! mint_os_package_manager_in apt; then
-        echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+      source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+      if ! rwx_os_package_manager_in apt; then
+        echo "Unsupported operating system or package manager \`$(rwx_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
@@ -24,15 +24,15 @@ tasks:
       echo ""
 
       # Install required deps
-      sudo apt-get update
-      sudo apt-get install apt-transport-https ca-certificates curl gnupg lsb-release
-      sudo apt-get clean
+      rwx_maybe_sudo apt-get update
+      rwx_maybe_sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+      rwx_maybe_sudo apt-get clean
 
       # Add MSFT keyring
-      sudo mkdir -p /etc/apt/keyrings
+      rwx_maybe_sudo mkdir -p /etc/apt/keyrings
       curl -sLS https://packages.microsoft.com/keys/microsoft.asc |
-        gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
-      sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
+        gpg --dearmor | rwx_maybe_sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
+      rwx_maybe_sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
 
       # Add apt source
       AZ_DIST=$(lsb_release -cs)
@@ -41,10 +41,10 @@ tasks:
       Suites: ${AZ_DIST}
       Components: main
       Architectures: $(dpkg --print-architecture)
-      Signed-by: /etc/apt/keyrings/microsoft.gpg" | sudo tee /etc/apt/sources.list.d/azure-cli.sources
+      Signed-by: /etc/apt/keyrings/microsoft.gpg" | rwx_maybe_sudo tee /etc/apt/sources.list.d/azure-cli.sources
 
       # Fetch from apt source
-      sudo apt-get update
+      rwx_maybe_sudo apt-get update
 
       # Find known versions
       dist=$(lsb_release -cs)
@@ -70,8 +70,8 @@ tasks:
       echo ""
       echo "Installing Azure CLI v${version}"
       echo ""
-      sudo apt-get install azure-cli=${version}-1~${dist}
-      sudo apt-get clean
+      rwx_maybe_sudo apt-get install -y azure-cli=${version}-1~${dist}
+      rwx_maybe_sudo apt-get clean
 
       echo ""
       echo "Installed Azure CLI:"

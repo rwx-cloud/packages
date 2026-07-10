@@ -3,7 +3,25 @@ base:
   config: ${{ init.base-config }}
 
 tasks:
+  - key: system-packages
+    run: |
+      # On bases with `config: none` the RWX tooling (curl, sudo, ...) is not
+      # installed and the run executes as root. The package downloads the OTP
+      # builds listing and archive with curl but does not install curl itself,
+      # so ensure it is present.
+      if ! command -v curl >/dev/null 2>&1; then
+        if command -v apt-get >/dev/null 2>&1; then
+          apt-get -y update
+          apt-get -y install curl ca-certificates
+          apt-get -y clean
+        else
+          echo "Unsupported package manager; need curl installed" >&2
+          exit 1
+        fi
+      fi
+
   - key: install-26-2-3
+    use: system-packages
     call: ${{ init.package-digest }}
     if: ${{ init.base-image != "ubuntu:24.04" }}
     with:
@@ -17,6 +35,7 @@ tasks:
       erl -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), "releases", erlang:system_info(otp_release), "OTP_VERSION"])), io:fwrite(Version), halt().' -noshell | tee /dev/stderr | grep "^26\.2\.3$"
 
   - key: install-28-1
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       erlang-version: '28.1'

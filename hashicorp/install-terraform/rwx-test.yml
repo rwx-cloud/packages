@@ -4,7 +4,25 @@ base:
   arch: ${{ init.base-arch }}
 
 tasks:
+  - key: system-packages
+    run: |
+      # On bases with `config: none` the RWX tooling (curl, sudo, ...) is not
+      # installed and the run executes as root. The package downloads the apt
+      # signing key with curl and processes it with gpg, but installs neither,
+      # so ensure they are present.
+      if ! command -v curl >/dev/null 2>&1 || ! command -v gpg >/dev/null 2>&1; then
+        if command -v apt-get >/dev/null 2>&1; then
+          apt-get -y update
+          apt-get -y install curl ca-certificates gnupg
+          apt-get -y clean
+        else
+          echo "Unsupported package manager; need curl and gpg installed" >&2
+          exit 1
+        fi
+      fi
+
   - key: test-default
+    use: system-packages
     call: ${{ init.package-digest }}
 
   - key: test-default--assert
@@ -15,6 +33,7 @@ tasks:
       echo "$output" | grep -E 'Terraform v[0-9]'
 
   - key: test-specified
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       terraform-version: 1.7.3

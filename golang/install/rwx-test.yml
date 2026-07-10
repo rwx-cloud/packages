@@ -4,7 +4,25 @@ base:
   arch: ${{ init.base-arch }}
 
 tasks:
+  - key: system-packages
+    run: |
+      # On bases with `config: none` the RWX tooling (curl, sudo, ...) is not
+      # installed and the run executes as root. The package uses curl and jq to
+      # resolve and download Go, and `go install` may shell out to git, so
+      # ensure they are present.
+      if ! command -v curl >/dev/null 2>&1 || ! command -v jq >/dev/null 2>&1 || ! command -v git >/dev/null 2>&1; then
+        if command -v apt-get >/dev/null 2>&1; then
+          apt-get -y update
+          apt-get -y install curl ca-certificates jq git
+          apt-get -y clean
+        else
+          echo "Unsupported package manager; need curl, jq, and git installed" >&2
+          exit 1
+        fi
+      fi
+
   - key: install-1-20
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       go-version: "1.20"
@@ -14,6 +32,7 @@ tasks:
     run: go version | grep 1.20
 
   - key: install-old-version
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       go-version: "1.8"
@@ -23,6 +42,7 @@ tasks:
     run: go version | grep 1.8
 
   - key: install-patch-version
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       go-version: "1.20.14"
@@ -32,6 +52,7 @@ tasks:
     run: go version | grep 1.20.14
 
   - key: install-1-23-4
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       go-version: "1.23.4"

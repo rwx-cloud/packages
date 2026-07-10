@@ -4,7 +4,24 @@ base:
   arch: ${{ init.base-arch }}
 
 tasks:
+  - key: system-packages
+    run: |
+      # On bases with `config: none` the RWX tooling is not installed and the
+      # run executes as root. The package adds an HTTPS apt source and installs
+      # twingate from it, so ensure ca-certificates is present for apt over TLS.
+      if ! dpkg -s ca-certificates >/dev/null 2>&1; then
+        if command -v apt-get >/dev/null 2>&1; then
+          apt-get -y update
+          apt-get -y install ca-certificates
+          apt-get -y clean
+        else
+          echo "Unsupported package manager; need ca-certificates installed" >&2
+          exit 1
+        fi
+      fi
+
   - key: test-default
+    use: system-packages
     call: ${{ init.package-digest }}
     with:
       twingate-service-key:  ${{ vaults.mint_leaves_twingate_install_testing.secrets.twingate-service-key }}
@@ -13,6 +30,14 @@ tasks:
     use: test-default
     background-processes:
       - key: twingate
-        run: sudo twingate start
+        run: |
+          if [ "$(id -u)" -eq 0 ]; then
+            twingate start
+          elif command -v sudo >/dev/null 2>&1; then
+            sudo twingate start
+          else
+            echo "Error: need root privileges but 'sudo' not found" >&2
+            exit 1
+          fi
         ready-check: twingate status | grep online
     run: twingate status | grep online

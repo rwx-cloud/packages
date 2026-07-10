@@ -1,5 +1,5 @@
 name: github/install-cli
-version: 1.0.10
+version: 1.0.11
 description: Install the GitHub CLI, gh. It is GitHub on the command line.
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/install-cli
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -7,17 +7,17 @@ issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 tasks:
   - key: install
     run: |
-      source "$RWX_PACKAGE_PATH/mint-utils.sh"
-      if ! mint_os_package_manager_in apt; then
-        echo "Unsupported operating system or package manager \`$(mint_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+      source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+      if ! rwx_os_package_manager_in apt; then
+        echo "Unsupported operating system or package manager \`$(rwx_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
-      sudo mkdir -p -m 755 /etc/apt/keyrings
-      curl --fail-with-body https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
-      sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
-      echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list
-      sudo apt-get update
-      sudo apt-get install gh
-      sudo apt-get clean
+      rwx_maybe_sudo mkdir -p -m 755 /etc/apt/keyrings
+      curl --fail-with-body https://cli.github.com/packages/githubcli-archive-keyring.gpg | rwx_maybe_sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+      rwx_maybe_sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | rwx_maybe_sudo tee /etc/apt/sources.list.d/github-cli.list
+      rwx_maybe_sudo apt-get update
+      rwx_maybe_sudo apt-get install -y gh
+      rwx_maybe_sudo apt-get clean
       gh --version

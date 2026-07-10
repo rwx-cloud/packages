@@ -1,5 +1,5 @@
 name: dotnet/install
-version: 1.0.0
+version: 1.0.1
 description: Install the .NET SDK
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/dotnet/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -20,11 +20,12 @@ parameters:
 
 tasks:
   - key: install-libicu-dev
-    run: | 
+    run: |
       if ! dpkg -s libicu-dev >/dev/null 2>&1; then
-        sudo apt-get update
-        sudo apt-get install -y --no-install-recommends libicu-dev
-        sudo apt-get clean
+        source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+        rwx_maybe_sudo apt-get update
+        rwx_maybe_sudo apt-get install -y --no-install-recommends libicu-dev
+        rwx_maybe_sudo apt-get clean
       fi
  
   - key: install-dotnet
