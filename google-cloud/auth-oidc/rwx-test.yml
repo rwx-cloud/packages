@@ -18,7 +18,22 @@ tasks:
       gcloud auth list --filter="status:ACTIVE" --format="value(account)" | \
         grep -q "workloadIdentityPools/${POOL_NAME}/subject"
     env:
-      GCP_OIDC_TOKEN: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
+      GCP_OIDC_TOKEN_PATH: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp.path }}
+      POOL_NAME: mint-sample-identity-pool
+
+  - key: test--custom-token-path-env-var
+    use: install-cli
+    call: ${{ init.package-digest }}
+    with:
+      workload-identity-provider: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      oidc-token-path-env-var: CUSTOM_GCP_OIDC_TOKEN_PATH
+  - key: test--custom-token-path-env-var--assert
+    use: test--custom-token-path-env-var
+    run: |
+      gcloud auth list --filter="status:ACTIVE" --format="value(account)" | \
+        grep -q "workloadIdentityPools/${POOL_NAME}/subject"
+    env:
+      CUSTOM_GCP_OIDC_TOKEN_PATH: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp.path }}
       POOL_NAME: mint-sample-identity-pool
 
   - key: test--service-account
