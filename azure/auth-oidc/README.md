@@ -22,7 +22,7 @@ tasks:
       subscription-id: ${{ vaults.your-vault.secrets.your-azure-subscription-id }}
 ```
 
-The package accepts either `oidc-token-path` or `oidc-token`. Azure CLI only accepts token contents, not a token-file source. When `oidc-token-path` is used, the package reads the current token once during `az login`. Azure CLI will not pick up later rotations.
+The package accepts either `oidc-token-path` or `oidc-token`, but not both. Azure CLI only accepts token contents, not a token-file source. When `oidc-token-path` is used, the package reads the current token once during `az login`. Azure CLI will not pick up later rotations.
 
 To authenticate without a subscription (when managing tenant-level resources):
 

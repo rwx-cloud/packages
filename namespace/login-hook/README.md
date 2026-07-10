@@ -2,7 +2,7 @@
 
 Configure an [RWX hook](https://www.rwx.com/docs/mint/hooks) to log in to [Namespace](https://namespace.so/).
 
-Any task that depends on this package and specifies an OIDC token file path in `NAMESPACE_OIDC_TOKEN_PATH` or token contents in `NAMESPACE_OIDC_TOKEN` will log in to Namespace for the duration of the task.
+Any task that depends on this package and specifies an OIDC token file path in `NAMESPACE_OIDC_TOKEN_PATH` or token contents in `NAMESPACE_OIDC_TOKEN` will log in to Namespace for the duration of the task. Setting both variables is an error.
 
 Namespace CLI only accepts token contents, not a token-file source. When `NAMESPACE_OIDC_TOKEN_PATH` is used, the login hook reads the current token once before the task and exchanges it for Namespace credentials. Namespace will not pick up later rotations during the same task.
 

@@ -35,7 +35,7 @@ tasks:
       GCP_OIDC_TOKEN_PATH: ${{ vaults.your-vault.oidc.gcp.path }}
 ```
 
-The package accepts either the token file path in `GCP_OIDC_TOKEN_PATH` or the token contents in `GCP_OIDC_TOKEN`. Token files are refreshed during long-running tasks and remain the credential source for Application Default Credentials, so prefer `GCP_OIDC_TOKEN_PATH` when it is available. Use the `oidc-token-path-env-var` and `oidc-token-env-var` parameters to customize the environment variable names.
+The package accepts either the token file path in `GCP_OIDC_TOKEN_PATH` or the token contents in `GCP_OIDC_TOKEN`, but not both. Token files are refreshed during long-running tasks and remain the credential source for Application Default Credentials, so prefer `GCP_OIDC_TOKEN_PATH` when it is available. Use the `oidc-token-path-env-var` and `oidc-token-env-var` parameters to customize the environment variable names.
 
 To authenticate with Google Cloud using OIDC and a Service Account:
 

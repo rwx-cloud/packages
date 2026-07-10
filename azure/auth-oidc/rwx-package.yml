@@ -36,6 +36,11 @@ tasks:
         printf '%s\n' "$message" > "$tmpfile"
       }
 
+      if [[ -n "$OIDC_TOKEN" && -n "$OIDC_TOKEN_PATH" ]]; then
+        log_error "Only one of \`oidc-token\` or \`oidc-token-path\` may be provided."
+        exit 1
+      fi
+
       if ! command -v az &> /dev/null; then
         log_error "The Azure CLI (az) must be installed. To install it, you can use the \`azure/install-cli\` package."
         exit 1

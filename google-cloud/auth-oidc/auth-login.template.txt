@@ -15,6 +15,11 @@ GCP_OIDC_TOKEN="${%{{OIDC_TOKEN_ENV_VAR}}:-}"
 GCP_OIDC_TOKEN_PATH="${%{{OIDC_TOKEN_PATH_ENV_VAR}}:-}"
 GCP_SKIP_AUTH="${GCP_SKIP_AUTH:-}"
 
+if [ -n "$GCP_OIDC_TOKEN" ] && [ -n "$GCP_OIDC_TOKEN_PATH" ]; then
+  log_error "Only one of %{{OIDC_TOKEN_ENV_VAR}} or %{{OIDC_TOKEN_PATH_ENV_VAR}} may be set."
+  exit 1
+fi
+
 if [ -z "$GCP_SKIP_AUTH" ] && [ -z "$GCP_OIDC_TOKEN" ] && [ -z "$GCP_OIDC_TOKEN_PATH" ]; then
   log_error "One of the upstream dependencies from this task's \`use\` configuration is a \`google-cloud/auth-oidc\` task which configures a hook to authenticate with Google Cloud.
 

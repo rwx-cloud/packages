@@ -33,6 +33,11 @@ tasks:
       declare -n _NAMESPACE_OIDC_TOKEN_VALUE="$_NAMESPACE_OIDC_TOKEN_ENV_VAR"
       declare -n _NAMESPACE_OIDC_TOKEN_PATH="$_NAMESPACE_OIDC_TOKEN_PATH_ENV_VAR"
 
+      if [ -n "${_NAMESPACE_OIDC_TOKEN_VALUE-}" ] && [ -n "${_NAMESPACE_OIDC_TOKEN_PATH-}" ]; then
+        log_error "Only one of ${{ params.oidc-token-env-name }} or ${{ params.oidc-token-path-env-name }} may be set."
+        exit 1
+      fi
+
       if [ -z "${_NAMESPACE_OIDC_TOKEN_VALUE-}" ] && [ -z "${_NAMESPACE_OIDC_TOKEN_PATH-}" ]; then
         echo "Skipping Namespace login because neither \$${{ params.oidc-token-env-name }} nor \$${{ params.oidc-token-path-env-name }} was provided."
         exit 0
@@ -71,6 +76,11 @@ tasks:
       _NAMESPACE_OIDC_TOKEN_PATH_ENV_VAR="${{ params.oidc-token-path-env-name }}"
       declare -n _NAMESPACE_OIDC_TOKEN_VALUE="$_NAMESPACE_OIDC_TOKEN_ENV_VAR"
       declare -n _NAMESPACE_OIDC_TOKEN_PATH="$_NAMESPACE_OIDC_TOKEN_PATH_ENV_VAR"
+
+      if [ -n "${_NAMESPACE_OIDC_TOKEN_VALUE-}" ] && [ -n "${_NAMESPACE_OIDC_TOKEN_PATH-}" ]; then
+        log_error "Only one of ${{ params.oidc-token-env-name }} or ${{ params.oidc-token-path-env-name }} may be set."
+        exit 1
+      fi
 
       if [ -z "${_NAMESPACE_OIDC_TOKEN_VALUE-}" ] && [ -z "${_NAMESPACE_OIDC_TOKEN_PATH-}" ]; then
         echo "Skipping Namespace logout because neither \$${{ params.oidc-token-env-name }} nor \$${{ params.oidc-token-path-env-name }} was provided."

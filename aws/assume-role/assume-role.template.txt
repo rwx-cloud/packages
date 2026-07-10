@@ -15,6 +15,11 @@ AWS_OIDC_TOKEN="${%{{OIDC_TOKEN_ENV_VAR}}:-}"
 AWS_OIDC_TOKEN_PATH="${%{{OIDC_TOKEN_PATH_ENV_VAR}}:-}"
 AWS_SKIP_AUTH="${AWS_SKIP_AUTH:-}"
 
+if [ -n "$AWS_OIDC_TOKEN" ] && [ -n "$AWS_OIDC_TOKEN_PATH" ]; then
+  log_error "Only one of %{{OIDC_TOKEN_ENV_VAR}} or %{{OIDC_TOKEN_PATH_ENV_VAR}} may be set."
+  exit 1
+fi
+
 if [ -z "$AWS_SKIP_AUTH" ] && [ -z "$AWS_OIDC_TOKEN" ] && [ -z "$AWS_OIDC_TOKEN_PATH" ]; then
   log_error "One of the upstream dependencies from this task's \`use\` configuration is an \`aws/assume-role\` task which configures a hook to authenticate into AWS.
 
