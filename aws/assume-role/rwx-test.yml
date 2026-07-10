@@ -20,7 +20,9 @@ tasks:
 
   - key: test--default-token-path--assert
     use: [install-cli, test--defaults]
-    run: aws sts get-caller-identity &> /dev/null # avoid leaking account/role info
+    run: |
+      test "$(aws configure get web_identity_token_file)" = "$AWS_OIDC_TOKEN_PATH"
+      aws sts get-caller-identity &> /dev/null # avoid leaking account/role info
     env:
       AWS_OIDC_TOKEN_PATH: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token.path }}
 
@@ -61,6 +63,7 @@ tasks:
     use: [install-cli, test--defaults, test--custom-profile]
     run:
       - aws sts get-caller-identity &> /dev/null # avoid leaking account/role info
+      - test "$(aws configure get web_identity_token_file --profile custom)" = "$AWS_OIDC_TOKEN_2_PATH"
       - aws sts get-caller-identity --profile custom &> /dev/null # avoid leaking account/role info
     env:
       AWS_OIDC_TOKEN: ${{ vaults.rwx_packages_aws_assume_role_testing.oidc.aws_token }}

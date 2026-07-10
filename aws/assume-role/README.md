@@ -20,7 +20,7 @@ tasks:
       AWS_OIDC_TOKEN_PATH: ${{ vaults.your-vault.oidc.your-token.path }}
 ```
 
-The package accepts either the token file path in `AWS_OIDC_TOKEN_PATH` or the token contents in `AWS_OIDC_TOKEN`. Token files are refreshed during long-running tasks, so prefer `AWS_OIDC_TOKEN_PATH` when it is available. Use the `oidc-token-path-env-var` and `oidc-token-env-var` parameters to customize the environment variable names.
+The package accepts either the token file path in `AWS_OIDC_TOKEN_PATH` or the token contents in `AWS_OIDC_TOKEN`. In path mode, the package configures an AWS web identity profile so the CLI and compatible SDKs reread the rotating token file when their temporary credentials expire. Prefer `AWS_OIDC_TOKEN_PATH` when it is available. Use the `oidc-token-path-env-var` and `oidc-token-env-var` parameters to customize the environment variable names.
 
 If for some reason you need to opt-out of role assumption, your task can set specify the environment variable `AWS_SKIP_AUTH` to true.
 

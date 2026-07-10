@@ -21,18 +21,3 @@ tasks:
     run: az account show | grep "${TENANT_ID}"
     env:
       TENANT_ID: ${{ vaults.mint_leaves_azure_auth_testing.secrets.AZURE_TENANT_ID }}
-
-  - key: test--authenticate-with-token-path
-    use: install-cli
-    call: ${{ init.package-digest }}
-    with:
-      oidc-token-path: ${{ vaults.mint_leaves_azure_auth_testing.oidc.azure.path }}
-      client-id: ${{ vaults.mint_leaves_azure_auth_testing.secrets.AZURE_CLIENT_ID }}
-      subscription-id: ${{ vaults.mint_leaves_azure_auth_testing.secrets.AZURE_SUBSCRIPTION_ID }}
-      tenant-id: ${{ vaults.mint_leaves_azure_auth_testing.secrets.AZURE_TENANT_ID }}
-
-  - key: test--authenticate-with-token-path--assert
-    use: test--authenticate-with-token-path
-    run: az account show | grep "${TENANT_ID}"
-    env:
-      TENANT_ID: ${{ vaults.mint_leaves_azure_auth_testing.secrets.AZURE_TENANT_ID }}

@@ -37,19 +37,6 @@ if ! command -v aws &> /dev/null; then
   exit 1
 fi
 
-if [ -n "$AWS_OIDC_TOKEN_PATH" ]; then
-  if [ ! -r "$AWS_OIDC_TOKEN_PATH" ]; then
-    log_error "The OIDC token file at \`$AWS_OIDC_TOKEN_PATH\` is not readable."
-    exit 1
-  fi
-  AWS_OIDC_TOKEN="$(<"$AWS_OIDC_TOKEN_PATH")"
-fi
-
-if [ -z "$AWS_OIDC_TOKEN" ]; then
-  log_error "The AWS OIDC token is empty."
-  exit 1
-fi
-
 # These variables are filled in with parameters to the leaf
 REGION="%{{REGION}}"
 ROLE_TO_ASSUME="%{{ROLE_TO_ASSUME}}"
@@ -63,6 +50,25 @@ if [[ -z "$role_session_name" ]]; then
 fi
 
 unset AWS_PROFILE || true
+
+if [ -n "$AWS_OIDC_TOKEN_PATH" ]; then
+  if [ ! -r "$AWS_OIDC_TOKEN_PATH" ]; then
+    log_error "The OIDC token file at \`$AWS_OIDC_TOKEN_PATH\` is not readable."
+    exit 1
+  fi
+
+  aws configure set region "$REGION" --profile "$PROFILE_NAME"
+  aws configure set role_arn "$ROLE_TO_ASSUME" --profile "$PROFILE_NAME"
+  aws configure set role_session_name "$role_session_name" --profile "$PROFILE_NAME"
+  aws configure set duration_seconds "$ROLE_DURATION_SECONDS" --profile "$PROFILE_NAME"
+  aws configure set web_identity_token_file "$AWS_OIDC_TOKEN_PATH" --profile "$PROFILE_NAME"
+  exit 0
+fi
+
+if [ -z "$AWS_OIDC_TOKEN" ]; then
+  log_error "The AWS OIDC token is empty."
+  exit 1
+fi
 
 sts_result=$(
   aws sts assume-role-with-web-identity \

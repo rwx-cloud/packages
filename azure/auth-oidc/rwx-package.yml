@@ -1,5 +1,5 @@
 name: azure/auth-oidc
-version: 1.0.7
+version: 1.0.6
 description: Authenticate the Azure CLI via OIDC
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/azure/auth-oidc
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -7,10 +7,7 @@ issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 parameters:
   oidc-token:
     description: "The OIDC token that will be exchanged for temporary credentials (e.g. vaults.your-vault.oidc.your-token)"
-    required: false
-  oidc-token-path:
-    description: "The path to the OIDC token file that will be exchanged for temporary credentials (e.g. vaults.your-vault.oidc.your-token.path)"
-    required: false
+    required: true
   client-id:
     description: "The client id of a service principal or a user-assigned managed identity"
     required: true
@@ -29,28 +26,10 @@ parameters:
 tasks:
   - key: auth-oidc
     run: |
-      log_error() {
-        local message="$1"
-        local tmpfile
-        tmpfile=$(mktemp "$RWX_ERRORS/error-XXXX")
-        printf '%s\n' "$message" > "$tmpfile"
-      }
-
       if ! command -v az &> /dev/null; then
-        log_error "The Azure CLI (az) must be installed. To install it, you can use the \`azure/install-cli\` package."
-        exit 1
-      fi
-
-      if [[ -n "$OIDC_TOKEN_PATH" ]]; then
-        if [[ ! -r "$OIDC_TOKEN_PATH" ]]; then
-          log_error "The OIDC token file at \`$OIDC_TOKEN_PATH\` is not readable."
-          exit 1
-        fi
-        OIDC_TOKEN="$(<"$OIDC_TOKEN_PATH")"
-      fi
-
-      if [[ -z "$OIDC_TOKEN" ]]; then
-        log_error "Either \`oidc-token\` or \`oidc-token-path\` must be provided."
+        cat << 'EOF' > $(mktemp "$RWX_ERRORS/error-XXXX")
+      The Azure CLI (az) must be installed. To install it, you can use the `azure/install-cli` leaf.
+      EOF
         exit 1
       fi
 
@@ -67,7 +46,6 @@ tasks:
       fi
     env:
       OIDC_TOKEN: ${{ params.oidc-token }}
-      OIDC_TOKEN_PATH: ${{ params.oidc-token-path }}
       CLIENT_ID: ${{ params.client-id }}
       TENANT_ID: ${{ params.tenant-id }}
       SUBSCRIPTION_ID: ${{ params.subscription-id }}

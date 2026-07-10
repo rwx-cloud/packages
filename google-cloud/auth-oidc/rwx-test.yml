@@ -15,6 +15,7 @@ tasks:
   - key: test--direct-workload--assert
     use: test--direct-workload
     run: |
+      test "$(jq -r '.credential_source.file' "$HOME/.config/gcloud/application_default_credentials.json")" = "$GCP_OIDC_TOKEN_PATH"
       gcloud auth list --filter="status:ACTIVE" --format="value(account)" | \
         grep -q "workloadIdentityPools/${POOL_NAME}/subject"
     env:
