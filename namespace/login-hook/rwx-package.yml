@@ -1,5 +1,5 @@
 name: namespace/login-hook
-version: 1.0.2
+version: 1.0.3
 description: RWX hook to log in to Namespace
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/namespace/login-hook
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -11,6 +11,9 @@ parameters:
   oidc-token-env-name:
     description: "The environment variable name that contains the Namespace OIDC token."
     default: NAMESPACE_OIDC_TOKEN
+  oidc-token-path-env-name:
+    description: "The environment variable name that contains the path to the Namespace OIDC token file."
+    default: NAMESPACE_OIDC_TOKEN_PATH
 
 tasks:
   - key: produce-login-hooks
@@ -26,11 +29,27 @@ tasks:
       set -ueo pipefail
 
       _NAMESPACE_OIDC_TOKEN_ENV_VAR="${{ params.oidc-token-env-name }}"
-      declare -n _NAMESPACE_OIDC_TOKEN="$_NAMESPACE_OIDC_TOKEN_ENV_VAR"
+      _NAMESPACE_OIDC_TOKEN_PATH_ENV_VAR="${{ params.oidc-token-path-env-name }}"
+      declare -n _NAMESPACE_OIDC_TOKEN_VALUE="$_NAMESPACE_OIDC_TOKEN_ENV_VAR"
+      declare -n _NAMESPACE_OIDC_TOKEN_PATH="$_NAMESPACE_OIDC_TOKEN_PATH_ENV_VAR"
 
-      if [ -z "${_NAMESPACE_OIDC_TOKEN-}" ]; then
-        echo "Skipping Namespace login because \$${{ params.oidc-token-env-name }} was not provided."
+      if [ -z "${_NAMESPACE_OIDC_TOKEN_VALUE-}" ] && [ -z "${_NAMESPACE_OIDC_TOKEN_PATH-}" ]; then
+        echo "Skipping Namespace login because neither \$${{ params.oidc-token-env-name }} nor \$${{ params.oidc-token-path-env-name }} was provided."
         exit 0
+      fi
+
+      _NAMESPACE_OIDC_TOKEN="${_NAMESPACE_OIDC_TOKEN_VALUE-}"
+      if [ -n "${_NAMESPACE_OIDC_TOKEN_PATH-}" ]; then
+        if [ ! -r "$_NAMESPACE_OIDC_TOKEN_PATH" ]; then
+          log_error "The OIDC token file at \`$_NAMESPACE_OIDC_TOKEN_PATH\` is not readable."
+          exit 1
+        fi
+        _NAMESPACE_OIDC_TOKEN="$(<"$_NAMESPACE_OIDC_TOKEN_PATH")"
+      fi
+
+      if [ -z "$_NAMESPACE_OIDC_TOKEN" ]; then
+        log_error "The Namespace OIDC token is empty."
+        exit 1
       fi
 
       if ! command -v nsc &> /dev/null; then
@@ -41,7 +60,7 @@ tasks:
       echo "Logging in to Namespace with Workspace: ${{ params.workspace-id }}"
       nsc auth exchange-oidc-token \
         --tenant_id "${{ params.workspace-id }}" \
-        --token $_NAMESPACE_OIDC_TOKEN
+        --token "$_NAMESPACE_OIDC_TOKEN"
       EOF
 
       cat <<'EOF' > "$AFTER_HOOK"
@@ -49,10 +68,12 @@ tasks:
       set -ueo pipefail
 
       _NAMESPACE_OIDC_TOKEN_ENV_VAR="${{ params.oidc-token-env-name }}"
-      declare -n _NAMESPACE_OIDC_TOKEN="$_NAMESPACE_OIDC_TOKEN_ENV_VAR"
+      _NAMESPACE_OIDC_TOKEN_PATH_ENV_VAR="${{ params.oidc-token-path-env-name }}"
+      declare -n _NAMESPACE_OIDC_TOKEN_VALUE="$_NAMESPACE_OIDC_TOKEN_ENV_VAR"
+      declare -n _NAMESPACE_OIDC_TOKEN_PATH="$_NAMESPACE_OIDC_TOKEN_PATH_ENV_VAR"
 
-      if [ -z "${_NAMESPACE_OIDC_TOKEN-}" ]; then
-        echo "Skipping Namespace logout \$${{ params.oidc-token-env-name }} was not provided."
+      if [ -z "${_NAMESPACE_OIDC_TOKEN_VALUE-}" ] && [ -z "${_NAMESPACE_OIDC_TOKEN_PATH-}" ]; then
+        echo "Skipping Namespace logout because neither \$${{ params.oidc-token-env-name }} nor \$${{ params.oidc-token-path-env-name }} was provided."
         exit 0
       fi
 

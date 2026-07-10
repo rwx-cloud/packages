@@ -14,13 +14,15 @@ tasks:
 
   - key: azure-auth
     use: azure-cli
-    call: azure/auth-oidc 1.0.6
+    call: azure/auth-oidc 1.0.7
     with:
-      oidc-token: ${{ vaults.your-vault.oidc.your-token }}
+      oidc-token-path: ${{ vaults.your-vault.oidc.your-token.path }}
       client-id: ${{ vaults.your-vault.secrets.your-azure-client-id }}
       tenant-id: ${{ vaults.your-vault.secrets.your-azure-tenant-id }}
       subscription-id: ${{ vaults.your-vault.secrets.your-azure-subscription-id }}
 ```
+
+The package accepts either `oidc-token-path` or `oidc-token`. Token files are refreshed during long-running tasks, so prefer `oidc-token-path` when it is available.
 
 To authenticate without a subscription (when managing tenant-level resources):
 
@@ -31,7 +33,7 @@ tasks:
 
   - key: azure-auth
     use: azure-cli
-    call: azure/auth-oidc 1.0.6
+    call: azure/auth-oidc 1.0.7
     with:
       oidc-token: ${{ vaults.your-vault.oidc.your-token }}
       client-id: ${{ vaults.your-vault.secrets.your-azure-client-id }}
