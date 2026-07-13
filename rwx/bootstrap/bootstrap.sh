@@ -15,8 +15,14 @@ docker export "$containerId" | sudo tar -x -C image -f - -p
 
 printf '%s\n' root | tee ${RWX_IMAGE}/user
 
-. image/etc/os-release
-printf '%s\n' "${ID} ${VERSION_ID}" | tee ${RWX_IMAGE}/os
+if [ -f image/etc/os-release ]; then
+  . image/etc/os-release
+  printf '%s\n' "${ID} ${VERSION_ID}" | tee ${RWX_IMAGE}/os
+else
+  imageName=$(docker container inspect "$containerId" | jq -r ".[0].Config.Image")
+  imageId=$(docker container inspect "$containerId" | jq -r ".[0].Image")
+  printf '%s\n' "${imageName} ${imageId}" | tee ${RWX_IMAGE}/os
+fi
 
 if [ -f image/bin/bash ]; then
   printf '%s\n' "/bin/bash -l -e -o pipefail" | tee ${RWX_IMAGE}/shell

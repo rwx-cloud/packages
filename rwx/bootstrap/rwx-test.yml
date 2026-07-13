@@ -21,6 +21,20 @@ tasks:
       test "$VERSION_ID" = "3.22.2"
       test "$PRETTY_NAME" = "Alpine Linux v3.22"
 
+  - key: nix
+    call: ${{ init.package-digest }}
+    with:
+      image: nixpkgs/nix-flakes:latest
+
+  - key: nix-test
+    use: nix
+    run: |
+      # nixpkgs/nix-flakes is a Nix-built image with no /etc/os-release.
+      # Bootstrapping it must still succeed (the os value falls back to the
+      # image name and ID) rather than aborting when os-release is absent.
+      test ! -f image/etc/os-release
+      test -d image/nix/store
+
   - key: redis
     call: ${{ init.package-digest }}
     with:
