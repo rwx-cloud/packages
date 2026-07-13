@@ -46,7 +46,7 @@ tasks:
 
   - key: node
     use: [checkout, tool-versions]
-    call: nodejs/install 1.1.14
+    call: nodejs/install 1.1.15
     with:
       node-version: ${{ tasks.tool-versions.values.nodejs }}
     filter:
