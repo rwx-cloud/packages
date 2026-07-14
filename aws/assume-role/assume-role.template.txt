@@ -12,12 +12,18 @@ EOF
 }
 
 AWS_OIDC_TOKEN="${%{{OIDC_TOKEN_ENV_VAR}}:-}"
+AWS_OIDC_TOKEN_PATH="${%{{OIDC_TOKEN_PATH_ENV_VAR}}:-}"
 AWS_SKIP_AUTH="${AWS_SKIP_AUTH:-}"
 
-if [ -z "$AWS_SKIP_AUTH" ] && [ -z "$AWS_OIDC_TOKEN" ]; then
+if [ -n "$AWS_OIDC_TOKEN" ] && [ -n "$AWS_OIDC_TOKEN_PATH" ]; then
+  log_error "Only one of %{{OIDC_TOKEN_ENV_VAR}} or %{{OIDC_TOKEN_PATH_ENV_VAR}} may be set."
+  exit 1
+fi
+
+if [ -z "$AWS_SKIP_AUTH" ] && [ -z "$AWS_OIDC_TOKEN" ] && [ -z "$AWS_OIDC_TOKEN_PATH" ]; then
   log_error "One of the upstream dependencies from this task's \`use\` configuration is an \`aws/assume-role\` task which configures a hook to authenticate into AWS.
 
-If this task should be authenticating into AWS, set the \`AWS_OIDC_TOKEN\` environment variable.
+If this task should be authenticating into AWS, set the \`%{{OIDC_TOKEN_ENV_VAR}}\` environment variable to the token or the \`%{{OIDC_TOKEN_PATH_ENV_VAR}}\` environment variable to its file path.
 
 If this task should not be authenticating into AWS, remove the dependency from \`use\`, or set the \`AWS_SKIP_AUTH\` environment variable to true.
 
@@ -49,6 +55,25 @@ if [[ -z "$role_session_name" ]]; then
 fi
 
 unset AWS_PROFILE || true
+
+if [ -n "$AWS_OIDC_TOKEN_PATH" ]; then
+  if [ ! -r "$AWS_OIDC_TOKEN_PATH" ]; then
+    log_error "The OIDC token file at \`$AWS_OIDC_TOKEN_PATH\` is not readable."
+    exit 1
+  fi
+
+  aws configure set region "$REGION" --profile "$PROFILE_NAME"
+  aws configure set role_arn "$ROLE_TO_ASSUME" --profile "$PROFILE_NAME"
+  aws configure set role_session_name "$role_session_name" --profile "$PROFILE_NAME"
+  aws configure set duration_seconds "$ROLE_DURATION_SECONDS" --profile "$PROFILE_NAME"
+  aws configure set web_identity_token_file "$AWS_OIDC_TOKEN_PATH" --profile "$PROFILE_NAME"
+  exit 0
+fi
+
+if [ -z "$AWS_OIDC_TOKEN" ]; then
+  log_error "The AWS OIDC token is empty."
+  exit 1
+fi
 
 sts_result=$(
   aws sts assume-role-with-web-identity \

@@ -14,7 +14,7 @@ tasks:
     with:
       workspace-id: ${{ vaults.rwx_packages_namespace_login_testing.vars.NAMESPACE_WORKSPACE }}
 
-  - key: test--defaults--assert
+  - key: test--static-token--assert
     use: [install-cli, test--defaults]
     run: |
       set +e
@@ -25,3 +25,15 @@ tasks:
       fi
     env:
       NAMESPACE_OIDC_TOKEN: ${{ vaults.rwx_packages_namespace_login_testing.oidc.namespace-token }}
+
+  - key: test--dynamic-token--assert
+    use: [install-cli, test--defaults]
+    run: |
+      set +e
+      nsc workspace describe
+      if [ $? -ne 0 ]; then
+        >&2 echo "Expected to be logged into Namespace"
+        exit 1
+      fi
+    env:
+      NAMESPACE_OIDC_TOKEN_PATH: ${{ vaults.rwx_packages_namespace_login_testing.oidc.namespace-token.path }}

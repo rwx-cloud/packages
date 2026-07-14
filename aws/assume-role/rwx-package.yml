@@ -1,5 +1,5 @@
 name: aws/assume-role
-version: 2.0.9
+version: 2.0.10
 description: Assume an AWS role
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/aws/assume-role
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -23,6 +23,9 @@ parameters:
   oidc-token-env-var:
     description: "The environment variable that contains the OIDC token."
     default: "AWS_OIDC_TOKEN"
+  oidc-token-path-env-var:
+    description: "The environment variable that contains the path to the OIDC token file."
+    default: "AWS_OIDC_TOKEN_PATH"
   role-chaining:
     description: "Enable role chaining."
     default: false
@@ -47,6 +50,7 @@ tasks:
           -v ROLE_SESSION_NAME="${{ params.role-session-name }}" \
           -v PROFILE_NAME="${{ params.profile-name }}" \
           -v OIDC_TOKEN_ENV_VAR="${{ params.oidc-token-env-var }}" \
+          -v OIDC_TOKEN_PATH_ENV_VAR="${{ params.oidc-token-path-env-var }}" \
         '{
             gsub("%{{REGION}}", REGION);
             gsub("%{{ROLE_TO_ASSUME}}", ROLE_TO_ASSUME);
@@ -54,6 +58,7 @@ tasks:
             gsub("%{{ROLE_SESSION_NAME}}", ROLE_SESSION_NAME);
             gsub("%{{PROFILE_NAME}}", PROFILE_NAME);
             gsub("%{{OIDC_TOKEN_ENV_VAR}}", OIDC_TOKEN_ENV_VAR);
+            gsub("%{{OIDC_TOKEN_PATH_ENV_VAR}}", OIDC_TOKEN_PATH_ENV_VAR);
             print
         }' "$BEFORE_HOOK_TEMPLATE" > $BEFORE_HOOK
 

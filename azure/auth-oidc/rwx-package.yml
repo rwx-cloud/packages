@@ -1,13 +1,10 @@
 name: azure/auth-oidc
-version: 1.0.6
+version: 2.0.0
 description: Authenticate the Azure CLI via OIDC
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/azure/auth-oidc
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
 
 parameters:
-  oidc-token:
-    description: "The OIDC token that will be exchanged for temporary credentials (e.g. vaults.your-vault.oidc.your-token)"
-    required: true
   client-id:
     description: "The client id of a service principal or a user-assigned managed identity"
     required: true
@@ -19,35 +16,55 @@ parameters:
     required: false
     default: ""
   allow-no-subscription:
-    description: "Whether it is permissable to have no subscriptions associated to the client id (for use in managing tenant-level resources)"
+    description: "Whether it is permissible to have no subscriptions associated to the client id (for use in managing tenant-level resources)"
     required: false
     default: "false"
+  oidc-token-env-var:
+    description: "The environment variable that contains the OIDC token."
+    default: "AZURE_OIDC_TOKEN"
+  oidc-token-path-env-var:
+    description: "The environment variable that contains the path to the OIDC token file."
+    default: "AZURE_OIDC_TOKEN_PATH"
 
 tasks:
-  - key: auth-oidc
+  - key: produce-auth-hooks
     run: |
-      if ! command -v az &> /dev/null; then
-        cat << 'EOF' > $(mktemp "$RWX_ERRORS/error-XXXX")
-      The Azure CLI (az) must be installed. To install it, you can use the `azure/install-cli` leaf.
+      set -ueo pipefail
+
+      BEFORE_HOOK_TEMPLATE="$RWX_PACKAGES_PATH/auth-login.template.txt"
+      BEFORE_HOOK="$RWX_HOOKS_BEFORE_TASK/azure-auth-oidc-login.sh"
+      AFTER_HOOK="$RWX_HOOKS_AFTER_TASK/azure-auth-oidc-login.sh"
+
+      awk \
+        -v CLIENT_ID="${{ params.client-id }}" \
+        -v TENANT_ID="${{ params.tenant-id }}" \
+        -v SUBSCRIPTION_ID="${{ params.subscription-id }}" \
+        -v ALLOW_NO_SUBSCRIPTION="${{ params.allow-no-subscription }}" \
+        -v OIDC_TOKEN_ENV_VAR="${{ params.oidc-token-env-var }}" \
+        -v OIDC_TOKEN_PATH_ENV_VAR="${{ params.oidc-token-path-env-var }}" \
+      '{
+          gsub("%{{CLIENT_ID}}", CLIENT_ID);
+          gsub("%{{TENANT_ID}}", TENANT_ID);
+          gsub("%{{SUBSCRIPTION_ID}}", SUBSCRIPTION_ID);
+          gsub("%{{ALLOW_NO_SUBSCRIPTION}}", ALLOW_NO_SUBSCRIPTION);
+          gsub("%{{OIDC_TOKEN_ENV_VAR}}", OIDC_TOKEN_ENV_VAR);
+          gsub("%{{OIDC_TOKEN_PATH_ENV_VAR}}", OIDC_TOKEN_PATH_ENV_VAR);
+          print
+      }' "$BEFORE_HOOK_TEMPLATE" > "$BEFORE_HOOK"
+
+      bash -n "$BEFORE_HOOK" || { echo "Generated before hook script has syntax errors."; exit 1; }
+
+      cat <<'EOF' > "$AFTER_HOOK"
+      #!/bin/bash
+      set -ueo pipefail
+
+      if [ -n "${AZURE_SKIP_AUTH:-}" ]; then
+        exit 0
+      fi
+
+      echo "Logging out of Azure"
+      az logout
       EOF
-        exit 1
-      fi
 
-      extra_args=()
-
-      if [[ "${ALLOW_NO_SUBSCRIPTION}" != "false" ]]; then
-        extra_args+=("--allow-no-subscriptions")
-      fi
-
-      az login --service-principal --username "${CLIENT_ID}" --tenant "${TENANT_ID}" --federated-token "${OIDC_TOKEN}" "${extra_args[@]}"
-
-      if [[ -n "${SUBSCRIPTION_ID}" ]]; then
-        az account set --subscription "${SUBSCRIPTION_ID}"
-      fi
-    env:
-      OIDC_TOKEN: ${{ params.oidc-token }}
-      CLIENT_ID: ${{ params.client-id }}
-      TENANT_ID: ${{ params.tenant-id }}
-      SUBSCRIPTION_ID: ${{ params.subscription-id }}
-      ALLOW_NO_SUBSCRIPTION: ${{ params.allow-no-subscription }}
-    cache: false
+      chmod +x "$BEFORE_HOOK"
+      chmod +x "$AFTER_HOOK"

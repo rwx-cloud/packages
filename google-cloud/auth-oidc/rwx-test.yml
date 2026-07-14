@@ -7,28 +7,44 @@ tasks:
   - key: install-cli
     call: google-cloud/install-cli 1.1.6
 
-  - key: test--direct-workload
+  - key: test--dynamic-direct-workload
     use: install-cli
     call: ${{ init.package-digest }}
     with:
       workload-identity-provider: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-  - key: test--direct-workload--assert
-    use: test--direct-workload
+  - key: test--dynamic-direct-workload--assert
+    use: test--dynamic-direct-workload
+    run: |
+      test "$(jq -r '.credential_source.file' "$HOME/.config/gcloud/application_default_credentials.json")" = "$GCP_OIDC_TOKEN_PATH"
+      gcloud auth list --filter="status:ACTIVE" --format="value(account)" | \
+        grep -q "workloadIdentityPools/${POOL_NAME}/subject"
+    env:
+      GCP_OIDC_TOKEN_PATH: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp.path }}
+      POOL_NAME: mint-sample-identity-pool
+
+  - key: test--custom-dynamic-token-env-var
+    use: install-cli
+    call: ${{ init.package-digest }}
+    with:
+      workload-identity-provider: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      oidc-token-path-env-var: CUSTOM_GCP_OIDC_TOKEN_PATH
+  - key: test--custom-dynamic-token-env-var--assert
+    use: test--custom-dynamic-token-env-var
     run: |
       gcloud auth list --filter="status:ACTIVE" --format="value(account)" | \
         grep -q "workloadIdentityPools/${POOL_NAME}/subject"
     env:
-      GCP_OIDC_TOKEN: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
+      CUSTOM_GCP_OIDC_TOKEN_PATH: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp.path }}
       POOL_NAME: mint-sample-identity-pool
 
-  - key: test--service-account
+  - key: test--static-service-account
     use: install-cli
     call: ${{ init.package-digest }}
     with:
       workload-identity-provider: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       service-account: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}
-  - key: test--service-account--assert
-    use: test--service-account
+  - key: test--static-service-account--assert
+    use: test--static-service-account
     run: |
       gcloud auth list --filter="status:ACTIVE" --format="value(account)" | \
         grep -q "$SERVICE_ACCOUNT"
@@ -51,8 +67,8 @@ tasks:
       GCP_OIDC_TOKEN: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
       SERVICE_ACCOUNT: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}
 
-  - key: test--service-account--assert-second-use
-    use: test--service-account
+  - key: test--static-service-account--assert-second-use
+    use: test--static-service-account
     run: |
       gcloud auth list --filter="status:ACTIVE" --format="value(account)" | \
         grep -q "$SERVICE_ACCOUNT"
@@ -60,8 +76,8 @@ tasks:
       GCP_OIDC_TOKEN: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
       SERVICE_ACCOUNT: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}
 
-  - key: test--service-account--assert-application-default-credentials
-    use: test--service-account
+  - key: test--static-service-account--assert-application-default-credentials
+    use: test--static-service-account
     run: |
       application_default_credentials_file="$HOME/.config/gcloud/application_default_credentials.json"
 
@@ -76,8 +92,8 @@ tasks:
       GCP_OIDC_TOKEN: ${{ vaults.mint_leaves_google_cloud_auth_testing.oidc.gcp }}
       SERVICE_ACCOUNT: ${{ vaults.mint_leaves_google_cloud_auth_testing.secrets.GCP_SERVICE_ACCOUNT }}
 
-  - key: test--service-account--assert-unauthed
-    use: test--service-account
+  - key: test--static-service-account--assert-unauthed
+    use: test--static-service-account
     run: |
       active_accounts=$(gcloud auth list --filter="status:ACTIVE" --format="value(account)")
       if [ -n "$active_accounts" ]; then
