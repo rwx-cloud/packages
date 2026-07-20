@@ -2,14 +2,13 @@
 
 To install & setup the latest version of Twingate:
 
- ```yaml
- tasks:
-   - key: twingate
-     call: twingate/setup 1.0.12
-     with:
-       twingate-service-key: ${{ secrets.twingate-service-key }}
- ```
-
+```yaml
+tasks:
+  - key: twingate
+    call: twingate/setup 1.0.13
+    with:
+      twingate-service-key: ${{ secrets.twingate-service-key }}
+```
 
 In the task that needs to connect to Twingate:
 
