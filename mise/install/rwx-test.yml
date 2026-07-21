@@ -1,0 +1,73 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  # Install tools from a mise.toml (node + python)
+  - key: write-mise-toml
+    run: |
+      cat > mise.toml <<EOF
+      [tools]
+      node = "22"
+      python = "3.12"
+      EOF
+
+  - key: mise-toml
+    use: write-mise-toml
+    call: ${{ init.package-digest }}
+
+  - key: mise-toml--assert-node
+    use: mise-toml
+    run: node --version | grep "v22"
+
+  - key: mise-toml--assert-python
+    use: mise-toml
+    run: python --version | grep "3.12"
+
+  # Install tools from a .tool-versions file (asdf-compatible migration path)
+  - key: write-tool-versions
+    run: |
+      cat > .tool-versions <<EOF
+      node 22
+      python 3.12
+      EOF
+
+  - key: tool-versions
+    use: write-tool-versions
+    call: ${{ init.package-digest }}
+
+  - key: tool-versions--assert
+    use: tool-versions
+    run: |
+      node --version | grep "v22"
+      python --version | grep "3.12"
+
+  # Ruby via precompiled binaries (ruby-compile: false)
+  - key: write-ruby-toml
+    run: |
+      cat > mise.toml <<EOF
+      [tools]
+      ruby = "3.3"
+      EOF
+
+  - key: ruby
+    use: write-ruby-toml
+    call: ${{ init.package-digest }}
+    with:
+      ruby-compile: "false"
+
+  - key: ruby--assert
+    use: ruby
+    run: ruby --version | grep "3.3"
+
+  # Pin a specific mise version (CLI only)
+  - key: mise-version
+    call: ${{ init.package-digest }}
+    with:
+      mise-version: "2026.7.11"
+      install: "false"
+
+  - key: mise-version--assert
+    use: mise-version
+    run: mise --version | grep "2026.7.11"

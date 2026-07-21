@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -ueo pipefail
+
+source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+
+#
+# Ensure prerequisites (curl to fetch mise, git for some tool backends)
+#
+missing=""
+for cmd in curl git; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    missing="$missing $cmd"
+  fi
+done
+
+if [ -n "$missing" ]; then
+  case "$(rwx_os_package_manager)" in
+    apt)
+      rwx_maybe_sudo apt-get update
+      rwx_maybe_sudo apt-get install -y curl ca-certificates git
+      rwx_maybe_sudo apt-get clean
+      ;;
+    apk)
+      rwx_maybe_sudo apk add --no-cache curl ca-certificates git
+      ;;
+    *)
+      echo "Missing required tools:${missing}. Install them and try again." \
+        > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+      exit 1
+      ;;
+  esac
+fi
+
+#
+# Pin install locations outside $HOME so they are stable across tasks. mise
+# installs tools and generates shims under MISE_DATA_DIR; a fixed path keeps
+# downstream tasks pointed at the same installs regardless of $HOME.
+#
+install_dir="/opt/mise"
+export MISE_INSTALL_PATH="$install_dir/bin/mise"
+export MISE_DATA_DIR="$install_dir/data"
+
+rwx_maybe_sudo mkdir -p "$install_dir"
+rwx_maybe_sudo chown "$(id -un):$(id -gn)" "$install_dir"
+
+#
+# Install the mise CLI
+#
+if [ -n "$MISE_INSTALL_VERSION" ] && [ "$MISE_INSTALL_VERSION" != "latest" ]; then
+  export MISE_VERSION="$MISE_INSTALL_VERSION"
+fi
+
+echo "Installing mise to $MISE_INSTALL_PATH"
+curl -fsSL https://mise.run | sh
+
+# Make mise available to this script and to later tasks
+export PATH="$install_dir/bin:$PATH"
+echo "$install_dir/bin" >> "$RWX_ENV/PATH"
+echo "$MISE_DATA_DIR" >> "$RWX_ENV/MISE_DATA_DIR"
+
+mise --version
+
+#
+# Configure ruby.compile (precompiled binaries by default)
+#
+if [ -n "$RUBY_COMPILE" ]; then
+  echo "Setting ruby.compile=$RUBY_COMPILE"
+  mise settings set ruby.compile "$RUBY_COMPILE"
+fi
+
+#
+# Install the tools declared in the project's mise config
+#
+if [ "$RUN_MISE_INSTALL" = "true" ]; then
+  if [ -n "$WORKING_DIRECTORY" ]; then
+    cd "$WORKING_DIRECTORY"
+  fi
+
+  # Trust the config non-interactively so `mise install` and the shims can read
+  # it. The trust record persists in MISE_DATA_DIR for downstream tasks.
+  mise trust --yes || true
+
+  echo "Installing tools from mise config"
+  mise install
+
+  # Expose the installed tools to later tasks by adding each tool's bin
+  # directory to PATH. This is more reliable than shims, which depend on the
+  # config being trusted and discoverable at exec time in every later task.
+  mise bin-paths >> "$RWX_ENV/PATH"
+
+  mise ls
+else
+  echo "Skipping \`mise install\` (install=false). mise is available on PATH."
+fi
