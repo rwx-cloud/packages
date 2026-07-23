@@ -14,9 +14,6 @@ parameters:
   working-directory:
     description: "Directory to run `mise install` in (where mise.toml/.tool-versions lives). Defaults to the checkout root."
     required: false
-  ruby-compile:
-    description: "mise ruby.compile setting. 'false' uses precompiled binaries (fast, with source fallback); 'true' always compiles from source; leave empty for mise's default."
-    default: "false"
 
 tasks:
   - key: install
@@ -25,4 +22,3 @@ tasks:
       MISE_INSTALL_VERSION: ${{ params.mise-version }}
       RUN_MISE_INSTALL: ${{ params.install }}
       WORKING_DIRECTORY: ${{ params.working-directory }}
-      RUBY_COMPILE: ${{ params.ruby-compile }}

@@ -65,12 +65,11 @@ path_entries="$install_dir/bin"
 mise --version
 
 #
-# Configure ruby.compile (precompiled binaries by default)
+# Use precompiled Ruby binaries instead of compiling from source. mise falls
+# back to compiling from source when no prebuilt binary is available.
 #
-if [ -n "$RUBY_COMPILE" ]; then
-  echo "Setting ruby.compile=$RUBY_COMPILE"
-  mise settings set ruby.compile "$RUBY_COMPILE"
-fi
+echo "Setting ruby.compile=false"
+mise settings set ruby.compile false
 
 #
 # Install the tools declared in the project's mise config

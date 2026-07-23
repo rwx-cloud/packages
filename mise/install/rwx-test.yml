@@ -54,8 +54,6 @@ tasks:
   - key: ruby
     use: write-ruby-toml
     call: ${{ init.package-digest }}
-    with:
-      ruby-compile: "false"
 
   - key: ruby--assert
     use: ruby

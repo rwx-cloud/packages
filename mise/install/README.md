@@ -32,7 +32,6 @@ define environment variables and tasks alongside your tool versions.
 | `mise-version`      | `latest`   | Version of mise to install (e.g. `2026.7.11`), or `latest`. |
 | `install`           | `true`     | Run `mise install` to install the tools from the project config. Set to `false` to install only the mise CLI. |
 | `working-directory` | (checkout) | Directory to run `mise install` in (where the mise config lives). Useful for monorepos. |
-| `ruby-compile`      | `false`    | Ruby install strategy (see below). |
 
 ### Pin a mise version
 
@@ -71,19 +70,10 @@ tasks:
 
 - **Python** is installed from **precompiled binaries** by default
   (python-build-standalone) — no source compilation, so installs take seconds.
-- **Ruby** currently compiles from source by default in mise. This package sets
-  `ruby.compile=false` by default so mise uses **precompiled Ruby binaries**
-  (available for linux x86_64 and arm64) and only falls back to compiling from
-  source when a prebuilt binary is unavailable. Set `ruby-compile: "true"` to
-  always compile from source, or leave it empty to use mise's own default.
-
-```yaml
-tasks:
-  - key: tools
-    call: mise/install 1.0.0
-    with:
-      ruby-compile: "true"
-```
+- **Ruby** compiles from source by default in mise. This package sets
+  `ruby.compile=false` so mise uses **precompiled Ruby binaries** (available for
+  linux x86_64 and arm64) and only falls back to compiling from source when a
+  prebuilt binary is unavailable.
 
 ## Platform support
 
