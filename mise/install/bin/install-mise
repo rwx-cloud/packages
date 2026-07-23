@@ -53,10 +53,14 @@ fi
 echo "Installing mise to $MISE_INSTALL_PATH"
 curl -fsSL https://mise.run | sh
 
-# Make mise available to this script and to later tasks
+# Make mise available to this script immediately.
 export PATH="$install_dir/bin:$PATH"
-echo "$install_dir/bin" >> "$RWX_ENV/PATH"
 echo "$MISE_DATA_DIR" >> "$RWX_ENV/MISE_DATA_DIR"
+
+# Accumulate the directories to expose to later tasks. RWX treats the contents
+# of $RWX_ENV/PATH as a single value, so multiple directories must be written
+# as one ':'-joined line (a newline-separated list does not work).
+path_entries="$install_dir/bin"
 
 mise --version
 
@@ -86,9 +90,16 @@ if [ "$RUN_MISE_INSTALL" = "true" ]; then
   # Expose the installed tools to later tasks by adding each tool's bin
   # directory to PATH. This is more reliable than shims, which depend on the
   # config being trusted and discoverable at exec time in every later task.
-  mise bin-paths >> "$RWX_ENV/PATH"
+  tool_bin_paths="$(mise bin-paths | paste -sd: -)"
+  echo "Adding tool bin paths to PATH: $tool_bin_paths"
+  if [ -n "$tool_bin_paths" ]; then
+    path_entries="$path_entries:$tool_bin_paths"
+  fi
 
   mise ls
 else
   echo "Skipping \`mise install\` (install=false). mise is available on PATH."
 fi
+
+# Expose the accumulated directories to later tasks as a single ':'-joined line.
+echo "$path_entries" >> "$RWX_ENV/PATH"
