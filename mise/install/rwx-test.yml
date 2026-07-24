@@ -1,0 +1,62 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: write-mise-toml
+    run: |
+      cat > mise.toml <<EOF
+      [tools]
+      node = "22"
+      python = "3.12"
+      EOF
+
+  - key: mise-toml
+    use: write-mise-toml
+    call: ${{ init.package-digest }}
+
+  - key: mise-toml--assert-node
+    use: mise-toml
+    run: node --version | grep "v22"
+
+  - key: mise-toml--assert-python
+    use: mise-toml
+    run: python --version | grep "3.12"
+
+  - key: mise-toml--assert-values
+    use: mise-toml
+    run: |
+      echo "node=$NODE_VERSION python=$PYTHON_VERSION"
+      echo "$NODE_VERSION" | grep -E '^22\.'
+      echo "$PYTHON_VERSION" | grep -E '^3\.12\.'
+    env:
+      NODE_VERSION: ${{ tasks.mise-toml.values.node }}
+      PYTHON_VERSION: ${{ tasks.mise-toml.values.python }}
+
+  - key: write-tool-versions
+    run: |
+      cat > .tool-versions <<EOF
+      node 22
+      python 3.12
+      EOF
+
+  - key: tool-versions
+    use: write-tool-versions
+    call: ${{ init.package-digest }}
+
+  - key: tool-versions--assert
+    use: tool-versions
+    run: |
+      node --version | grep "v22"
+      python --version | grep "3.12"
+
+  - key: mise-version
+    call: ${{ init.package-digest }}
+    with:
+      mise-version: "2026.7.11"
+      install: "false"
+
+  - key: mise-version--assert
+    use: mise-version
+    run: mise --version | grep "2026.7.11"
