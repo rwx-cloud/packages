@@ -1,0 +1,27 @@
+name: mise/install
+version: 1.0.0
+description: Install mise (mise-en-place) and the tools defined in its config
+source_code_url: https://github.com/rwx-cloud/packages/tree/main/mise/install
+issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+
+parameters:
+  mise-version:
+    description: "Version of mise to install (e.g. 2026.7.11), or 'latest'"
+    default: "latest"
+  install:
+    description: "Run `mise install` to install the tools from the project config"
+    default: "true"
+  working-directory:
+    description: "Directory to run `mise install` in (where mise.toml/.tool-versions lives). Defaults to the RWX workspace."
+    required: false
+
+outputs:
+  values-from: [install]
+
+tasks:
+  - key: install
+    run: $RWX_PACKAGE_PATH/bin/install-mise
+    env:
+      MISE_INSTALL_VERSION: ${{ params.mise-version }}
+      RUN_MISE_INSTALL: ${{ params.install }}
+      WORKING_DIRECTORY: ${{ params.working-directory }}
