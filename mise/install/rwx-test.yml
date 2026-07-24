@@ -24,6 +24,16 @@ tasks:
     use: mise-toml
     run: python --version | grep "3.12"
 
+  - key: mise-toml--assert-values
+    use: mise-toml
+    run: |
+      echo "node=$NODE_VERSION python=$PYTHON_VERSION"
+      echo "$NODE_VERSION" | grep -E '^22\.'
+      echo "$PYTHON_VERSION" | grep -E '^3\.12\.'
+    env:
+      NODE_VERSION: ${{ tasks.mise-toml.values.node }}
+      PYTHON_VERSION: ${{ tasks.mise-toml.values.python }}
+
   - key: write-tool-versions
     run: |
       cat > .tool-versions <<EOF

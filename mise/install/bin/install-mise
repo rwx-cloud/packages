@@ -86,6 +86,14 @@ if [ "$RUN_MISE_INSTALL" = "true" ]; then
   fi
 
   mise ls
+
+  # Export each resolved tool version as an RWX output value, so later tasks can
+  # reference e.g. ${{ tasks.<key>.values.node }} without re-parsing the config.
+  # Keys are mise's tool names (e.g. `node`, not `nodejs`).
+  mise current | while read -r tool version; do
+    [ -n "$tool" ] || continue
+    printf '%s' "$version" > "$RWX_VALUES/$tool"
+  done
 else
   echo "Skipping \`mise install\` (install=false). mise is available on PATH."
 fi

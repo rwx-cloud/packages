@@ -15,6 +15,9 @@ parameters:
     description: "Directory to run `mise install` in (where mise.toml/.tool-versions lives). Defaults to the RWX workspace."
     required: false
 
+outputs:
+  values-from: [install]
+
 tasks:
   - key: install
     run: $RWX_PACKAGE_PATH/bin/install-mise

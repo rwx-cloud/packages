@@ -55,3 +55,27 @@ tasks:
     filter:
       - services/api/mise.toml
 ```
+
+### Tool versions as output values
+
+When `mise install` runs, each resolved tool version is exported as an
+[output value](https://www.rwx.com/docs/output-values) keyed by mise's tool
+name, so later tasks can reference a version without re-parsing the config:
+
+```yaml
+tasks:
+  - key: mise
+    use: code
+    call: mise/install 1.0.0
+    filter:
+      - mise.toml
+
+  - key: print-node-version
+    use: mise
+    run: echo "node $NODE_VERSION"
+    env:
+      NODE_VERSION: ${{ tasks.mise.values.node }}
+```
+
+Values are the concrete resolved versions (for example `24.18.0` even if
+the config requested `24`).
