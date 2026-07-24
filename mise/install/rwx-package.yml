@@ -1,5 +1,5 @@
 name: mise/install
-version: 1.0.0
+version: 1.0.1
 description: Install mise (mise-en-place) and the tools defined in its config
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/mise/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues

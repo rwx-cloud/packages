@@ -10,7 +10,7 @@ tasks:
 
   - key: mise
     use: code
-    call: mise/install 1.0.0
+    call: mise/install 1.0.1
     filter:
       - mise.toml
 ```
@@ -24,7 +24,7 @@ This reads the mise config in the checkout root (`mise.toml`, `.mise.toml`, or
 tasks:
   - key: tools
     use: code
-    call: mise/install 1.0.0
+    call: mise/install 1.0.1
     with:
       mise-version: "2026.7.11"
 ```
@@ -34,7 +34,7 @@ tasks:
 ```yaml
 tasks:
   - key: mise
-    call: mise/install 1.0.0
+    call: mise/install 1.0.1
     with:
       install: "false"
 
@@ -49,7 +49,7 @@ tasks:
 tasks:
   - key: tools
     use: code
-    call: mise/install 1.0.0
+    call: mise/install 1.0.1
     with:
       working-directory: services/api
     filter:
@@ -58,7 +58,7 @@ tasks:
 
 ### Tool versions as output values
 
-When `mise install` runs, each resolved tool version is exported as an
+Each resolved tool version is exported as an
 [output value](https://www.rwx.com/docs/output-values) keyed by mise's tool
 name, so later tasks can reference a version without re-parsing the config:
 
@@ -66,7 +66,7 @@ name, so later tasks can reference a version without re-parsing the config:
 tasks:
   - key: mise
     use: code
-    call: mise/install 1.0.0
+    call: mise/install 1.0.1
     filter:
       - mise.toml
 
@@ -79,3 +79,23 @@ tasks:
 
 Values are the concrete resolved versions (for example `24.18.0` even if
 the config requested `24`).
+
+Versions are resolved from the config, so they're exported even with
+`install: false` — useful when you only need to know a version (e.g. to
+assert it matches a base image) without installing the tools:
+
+```yaml
+tasks:
+  - key: mise
+    use: code
+    call: mise/install 1.0.1
+    with:
+      install: "false"
+    filter:
+      - mise.toml
+
+  - key: check-node-version
+    run: test "$(node --version)" = "v$EXPECTED_NODE_VERSION"
+    env:
+      EXPECTED_NODE_VERSION: ${{ tasks.mise.values.node }}
+```

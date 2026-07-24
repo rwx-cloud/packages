@@ -60,3 +60,29 @@ tasks:
   - key: mise-version--assert
     use: mise-version
     run: mise --version | grep "2026.7.11"
+
+  - key: no-install
+    use: write-mise-toml
+    call: ${{ init.package-digest }}
+    with:
+      install: "false"
+
+  - key: no-install--assert-values
+    use: no-install
+    run: |
+      echo "node=$NODE_VERSION python=$PYTHON_VERSION"
+      echo "$NODE_VERSION" | grep -E '^22\.'
+      echo "$PYTHON_VERSION" | grep -E '^3\.12\.'
+    env:
+      NODE_VERSION: ${{ tasks.no-install.values.node }}
+      PYTHON_VERSION: ${{ tasks.no-install.values.python }}
+
+  - key: no-install--assert-not-installed
+    use: no-install
+    run: |
+      # install: false must not install the tools themselves
+      if command -v node >/dev/null 2>&1; then
+        echo "expected node to be absent with install: false" >&2
+        exit 1
+      fi
+      echo "tools correctly not installed"
