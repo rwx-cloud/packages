@@ -1,7 +1,26 @@
-#!/usr/bin/env bash
-set -ueo pipefail
+#!/usr/bin/env sh
+set -e
 
-source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+. "$RWX_PACKAGE_PATH/rwx-utils.sh"
+
+#
+# mise/install supports Debian-family images (Ubuntu, Debian) only. mise
+# installs language runtimes (Ruby, Python, Node, etc.) from precompiled
+# binaries that require glibc, so musl-based images such as Alpine are not
+# supported.
+#
+if ! rwx_os_package_manager_in apt; then
+  package_manager="$(rwx_os_package_manager)"
+  cat > "$(mktemp "$RWX_ERRORS/error-XXXX")" << EOF
+mise/install supports Ubuntu and Debian images only.
+
+This image uses the \`${package_manager:-unknown}\` package manager, but mise/install
+requires apt. mise installs language runtimes (Ruby, Python, Node, etc.) from
+precompiled binaries that require glibc, so musl-based images such as Alpine are
+not supported.
+EOF
+  exit 1
+fi
 
 #
 # Ensure prerequisites (curl to fetch mise, git for some tool backends)
@@ -14,21 +33,9 @@ for cmd in curl git; do
 done
 
 if [ -n "$missing" ]; then
-  case "$(rwx_os_package_manager)" in
-    apt)
-      rwx_maybe_sudo apt-get update
-      rwx_maybe_sudo apt-get install -y curl ca-certificates git
-      rwx_maybe_sudo apt-get clean
-      ;;
-    apk)
-      rwx_maybe_sudo apk add --no-cache curl ca-certificates git
-      ;;
-    *)
-      echo "Missing required tools:${missing}. Install them and try again." \
-        > "$(mktemp "$RWX_ERRORS/error-XXXX")"
-      exit 1
-      ;;
-  esac
+  rwx_maybe_sudo apt-get update
+  rwx_maybe_sudo apt-get install -y curl ca-certificates git
+  rwx_maybe_sudo apt-get clean
 fi
 
 install_dir="/opt/mise"

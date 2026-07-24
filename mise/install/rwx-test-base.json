@@ -15,7 +15,7 @@
     "arch": "x86_64"
   },
   {
-    "image": "alpine:3.22",
+    "image": "debian:12",
     "config": "rwx/base 1.1.1",
     "arch": "x86_64"
   }
