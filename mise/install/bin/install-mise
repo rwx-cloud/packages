@@ -23,10 +23,11 @@ EOF
 fi
 
 #
-# Ensure prerequisites (curl to fetch mise, git for some tool backends)
+# Ensure prerequisites (curl to fetch mise, git for some tool backends, jq to
+# parse mise's JSON output when exporting resolved versions as output values)
 #
 missing=""
-for cmd in curl git; do
+for cmd in curl git jq; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
     missing="$missing $cmd"
   fi
@@ -34,7 +35,7 @@ done
 
 if [ -n "$missing" ]; then
   rwx_maybe_sudo apt-get update
-  rwx_maybe_sudo apt-get install -y curl ca-certificates git
+  rwx_maybe_sudo apt-get install -y curl ca-certificates git jq
   rwx_maybe_sudo apt-get clean
 fi
 
@@ -66,13 +67,17 @@ mise --version
 echo "Setting ruby.compile=false"
 mise settings set ruby.compile false
 
+# Work from the directory holding the mise config so both `mise install` and
+# version resolution read the right config.
+if [ -n "$WORKING_DIRECTORY" ]; then
+  cd "$WORKING_DIRECTORY"
+fi
+
+# Trust the config so mise will read it, whether we're installing tools or only
+# resolving their versions.
+mise trust --yes || true
+
 if [ "$RUN_MISE_INSTALL" = "true" ]; then
-  if [ -n "$WORKING_DIRECTORY" ]; then
-    cd "$WORKING_DIRECTORY"
-  fi
-
-  mise trust --yes || true
-
   echo "Installing tools from mise config"
   mise install
 
@@ -86,16 +91,20 @@ if [ "$RUN_MISE_INSTALL" = "true" ]; then
   fi
 
   mise ls
-
-  # Export each resolved tool version as an RWX output value, so later tasks can
-  # reference e.g. ${{ tasks.<key>.values.node }} without re-parsing the config.
-  # Keys are mise's tool names (e.g. `node`, not `nodejs`).
-  mise current | while read -r tool version; do
-    [ -n "$tool" ] || continue
-    printf '%s' "$version" > "$RWX_VALUES/$tool"
-  done
 else
   echo "Skipping \`mise install\` (install=false). mise is available on PATH."
 fi
+
+# Export each resolved tool version as an RWX output value, so later tasks can
+# reference e.g. ${{ tasks.<key>.values.node }} without re-parsing the config.
+# Keys are mise's tool names (e.g. `node`, not `nodejs`). `mise ls --current`
+# resolves concrete versions from the config even when the tools aren't
+# installed, so values are exported whether or not `install` ran.
+mise ls --current --json \
+  | jq -r 'to_entries[] | .key as $tool | .value[] | select(.version != null) | "\($tool) \(.version)"' \
+  | while read -r tool version; do
+      [ -n "$tool" ] || continue
+      printf '%s' "$version" > "$RWX_VALUES/$tool"
+    done
 
 echo "$path_entries" > "$RWX_ENV/PATH"
