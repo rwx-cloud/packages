@@ -31,11 +31,6 @@ if [ -n "$missing" ]; then
   esac
 fi
 
-#
-# Pin install locations outside $HOME so they are stable across tasks. mise
-# installs tools and generates shims under MISE_DATA_DIR; a fixed path keeps
-# downstream tasks pointed at the same installs regardless of $HOME.
-#
 install_dir="/opt/mise"
 export MISE_INSTALL_PATH="$install_dir/bin/mise"
 export MISE_DATA_DIR="$install_dir/data"
@@ -57,30 +52,18 @@ curl -fsSL https://mise.run | sh
 export PATH="$install_dir/bin:$PATH"
 echo "$MISE_DATA_DIR" >> "$RWX_ENV/MISE_DATA_DIR"
 
-# Accumulate the directories to expose to later tasks. RWX treats the contents
-# of $RWX_ENV/PATH as a single value, so multiple directories must be written
-# as one ':'-joined line (a newline-separated list does not work).
 path_entries="$install_dir/bin"
 
 mise --version
 
-#
-# Use precompiled Ruby binaries instead of compiling from source. mise falls
-# back to compiling from source when no prebuilt binary is available.
-#
 echo "Setting ruby.compile=false"
 mise settings set ruby.compile false
 
-#
-# Install the tools declared in the project's mise config
-#
 if [ "$RUN_MISE_INSTALL" = "true" ]; then
   if [ -n "$WORKING_DIRECTORY" ]; then
     cd "$WORKING_DIRECTORY"
   fi
 
-  # Trust the config non-interactively so `mise install` and the shims can read
-  # it. The trust record persists in MISE_DATA_DIR for downstream tasks.
   mise trust --yes || true
 
   echo "Installing tools from mise config"
@@ -100,5 +83,4 @@ else
   echo "Skipping \`mise install\` (install=false). mise is available on PATH."
 fi
 
-# Expose the accumulated directories to later tasks as a single ':'-joined line.
-echo "$path_entries" >> "$RWX_ENV/PATH"
+echo "$path_entries" > "$RWX_ENV/PATH"

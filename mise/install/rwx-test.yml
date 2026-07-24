@@ -4,7 +4,6 @@ base:
   arch: ${{ init.base-arch }}
 
 tasks:
-  # Install tools from a mise.toml (node + python)
   - key: write-mise-toml
     run: |
       cat > mise.toml <<EOF
@@ -25,7 +24,6 @@ tasks:
     use: mise-toml
     run: python --version | grep "3.12"
 
-  # Install tools from a .tool-versions file (asdf-compatible migration path)
   - key: write-tool-versions
     run: |
       cat > .tool-versions <<EOF
@@ -43,23 +41,6 @@ tasks:
       node --version | grep "v22"
       python --version | grep "3.12"
 
-  # Ruby via precompiled binaries (ruby-compile: false)
-  - key: write-ruby-toml
-    run: |
-      cat > mise.toml <<EOF
-      [tools]
-      ruby = "3.3"
-      EOF
-
-  - key: ruby
-    use: write-ruby-toml
-    call: ${{ init.package-digest }}
-
-  - key: ruby--assert
-    use: ruby
-    run: ruby --version | grep "3.3"
-
-  # Pin a specific mise version (CLI only)
   - key: mise-version
     call: ${{ init.package-digest }}
     with:

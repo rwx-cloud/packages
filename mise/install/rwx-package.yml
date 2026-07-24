@@ -12,7 +12,7 @@ parameters:
     description: "Run `mise install` to install the tools from the project config"
     default: "true"
   working-directory:
-    description: "Directory to run `mise install` in (where mise.toml/.tool-versions lives). Defaults to the checkout root."
+    description: "Directory to run `mise install` in (where mise.toml/.tool-versions lives). Defaults to the RWX workspace."
     required: false
 
 tasks:
