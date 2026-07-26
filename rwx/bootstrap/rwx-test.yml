@@ -7,7 +7,27 @@ base:
   arch: ${{ init.base-arch }}
 
 tasks:
+  # In a real run this package executes on the minimal bootstrap base layer,
+  # which ships crane, jq and tar. The test bases do not, so install crane here
+  # to stand in for that layer; jq and tar already come from rwx/base.
+  - key: crane
+    run: |
+      case "$(uname -m)" in
+        x86_64) crane_arch=x86_64 ;;
+        aarch64 | arm64) crane_arch=arm64 ;;
+        *) echo "unsupported architecture $(uname -m)" >&2; exit 1 ;;
+      esac
+
+      curl -fsSL -o /tmp/crane.tgz \
+        "https://github.com/google/go-containerregistry/releases/download/v${CRANE_VERSION}/go-containerregistry_Linux_${crane_arch}.tar.gz"
+      sudo tar -xzf /tmp/crane.tgz -C /usr/local/bin crane
+      rm /tmp/crane.tgz
+      crane version
+    env:
+      CRANE_VERSION: 0.20.6
+
   - key: alpine
+    use: crane
     call: ${{ init.package-digest }}
     with:
       image: public.ecr.aws/docker/library/alpine:3.22.2
@@ -22,6 +42,7 @@ tasks:
       test "$PRETTY_NAME" = "Alpine Linux v3.22"
 
   - key: nix
+    use: crane
     call: ${{ init.package-digest }}
     with:
       image: nixpkgs/nix-flakes:latest
@@ -36,6 +57,7 @@ tasks:
       test -d image/nix/store
 
   - key: redis
+    use: crane
     call: ${{ init.package-digest }}
     with:
       image: public.ecr.aws/docker/library/redis:8.2.2-alpine3.22
