@@ -10,8 +10,6 @@ parameters:
     required: true
 
 tasks:
-  # No `docker: true`: the image is pulled and unpacked with crane, so no
-  # container runtime is started. The base layer must provide crane, jq and tar.
   - key: bootstrap
     run: $RWX_PACKAGE_PATH/bootstrap.sh
     env:

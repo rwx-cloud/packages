@@ -8,10 +8,6 @@ SCRIPT_DIR=$(dirname "$0")
 cat "${SCRIPT_DIR}/rwx-package.yml" | awk 'NF == 0 { exit } { print }'
 echo ""
 
-# The image is pulled and unpacked without a container runtime, so the base layer
-# this runs on provides crane, jq and tar rather than dockerd. The docker CLI
-# cannot stand in for crane here: it is only an Engine API client, so pull,
-# create and export all require a reachable daemon.
 for tool in crane jq tar; do
   if ! command -v "$tool" > /dev/null 2>&1; then
     echo "Error: \`${tool}\` is required to bootstrap a base image but is not in PATH." >&2
