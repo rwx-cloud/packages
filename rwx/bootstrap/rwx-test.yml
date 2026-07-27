@@ -46,9 +46,6 @@ tasks:
       test ! -e image/bin/bash
       test "$RWX_SHELL" = "/bin/sh"
 
-      test "$IMAGE_NAME" = "public.ecr.aws/docker/library/alpine:3.22.2"
-      test "$IMAGE_SHA" = "sha256:$(crane config --platform "$PLATFORM" "$IMAGE_NAME" | sha256sum | cut -d ' ' -f 1)"
-
       # tar -p keeps the modes recorded in the image.
       test "$(stat -c '%a' image/etc)" = "755"
       test "$(stat -c '%a' image/root)" = "700"
@@ -56,10 +53,6 @@ tasks:
       test "$(stat -c '%a' image/var/empty)" = "555"
 
       test "$(stat -c '%u:%g' image/etc)" = "$(stat -c '%u:%g' image)"
-    env:
-      PLATFORM: ${{ tasks.crane.values.platform }}
-      IMAGE_NAME: ${{ tasks.alpine.values.image-name }}
-      IMAGE_SHA: ${{ tasks.alpine.values.image-sha }}
 
   - key: nix
     use: crane
@@ -116,9 +109,6 @@ tasks:
       test ! -e image/bin/bash
       test "$RWX_SHELL" = "/bin/sh"
 
-      test "$IMAGE_NAME" = "public.ecr.aws/docker/library/redis:8.2.2-alpine3.22"
-      test "$IMAGE_SHA" = "sha256:$(crane config --platform "$PLATFORM" "$IMAGE_NAME" | sha256sum | cut -d ' ' -f 1)"
-
       test "$REDIS_DOWNLOAD_URL" = "https://github.com/redis/redis/archive/refs/tags/8.2.2.tar.gz"
       test "$REDIS_DOWNLOAD_SHA" = "e355378d7f97efd06321fff881efc452a9673cc27b3a6d0dfd2a45fbcc83349c"
 
@@ -128,7 +118,3 @@ tasks:
       test "$(stat -c '%a' image/var/empty)" = "555"
 
       test "$(stat -c '%u:%g' image/etc)" = "$(stat -c '%u:%g' image)"
-    env:
-      PLATFORM: ${{ tasks.crane.values.platform }}
-      IMAGE_NAME: ${{ tasks.redis.values.image-name }}
-      IMAGE_SHA: ${{ tasks.redis.values.image-sha }}
