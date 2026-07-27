@@ -13,8 +13,8 @@ tasks:
   - key: crane
     run: |
       case "$(uname -m)" in
-        x86_64) crane_arch=x86_64 ;;
-        aarch64 | arm64) crane_arch=arm64 ;;
+        x86_64) crane_arch=x86_64; platform=linux/amd64 ;;
+        aarch64 | arm64) crane_arch=arm64; platform=linux/arm64 ;;
         *) echo "unsupported architecture $(uname -m)" >&2; exit 1 ;;
       esac
 
@@ -23,6 +23,7 @@ tasks:
       sudo tar -xzf /tmp/crane.tgz -C /usr/local/bin crane
       rm /tmp/crane.tgz
       crane version
+      printf '%s' "$platform" | tee $RWX_VALUES/platform
     env:
       CRANE_VERSION: 0.20.6
 
@@ -41,6 +42,25 @@ tasks:
       test "$VERSION_ID" = "3.22.2"
       test "$PRETTY_NAME" = "Alpine Linux v3.22"
 
+      test "$(id -u)" = "0"
+      test ! -e image/bin/bash
+      test "$RWX_SHELL" = "/bin/sh"
+
+      test "$IMAGE_NAME" = "public.ecr.aws/docker/library/alpine:3.22.2"
+      test "$IMAGE_SHA" = "sha256:$(crane config --platform "$PLATFORM" "$IMAGE_NAME" | sha256sum | cut -d ' ' -f 1)"
+
+      # tar -p keeps the modes recorded in the image.
+      test "$(stat -c '%a' image/etc)" = "755"
+      test "$(stat -c '%a' image/root)" = "700"
+      test "$(stat -c '%a' image/tmp)" = "1777"
+      test "$(stat -c '%a' image/var/empty)" = "555"
+
+      test "$(stat -c '%u:%g' image/etc)" = "$(stat -c '%u:%g' image)"
+    env:
+      PLATFORM: ${{ tasks.crane.values.platform }}
+      IMAGE_NAME: ${{ tasks.alpine.values.image-name }}
+      IMAGE_SHA: ${{ tasks.alpine.values.image-sha }}
+
   - key: nix
     use: crane
     call: ${{ init.package-digest }}
@@ -54,14 +74,61 @@ tasks:
       test ! -f image/etc/os-release
       test -d image/nix/store
 
+      test "$(id -u)" = "0"
+      test -x image/bin/bash
+      test "$RWX_SHELL" = "/bin/bash"
+
+      test "$IMAGE_NAME" = "nixpkgs/nix-flakes:latest"
+      printf '%s\n' "$IMAGE_SHA" | grep -Eq '^sha256:[0-9a-f]{64}$'
+
+      # Config.Env, exported through $RWX_ENV and prepended to the task's env.
+      test "$ENV" = "/etc/profile.d/nix.sh"
+      test "$BASH_ENV" = "/etc/profile.d/nix.sh"
+      test "$NIX_BUILD_SHELL" = "/bin/bash"
+      test "$PAGER" = "cat"
+      test "$USER" = "root"
+      case "$NIX_PATH" in nixpkgs=/nix/store/*) ;; *) exit 1 ;; esac
+      case "$SSL_CERT_FILE" in /nix/store/*/ca-bundle.crt) ;; *) exit 1 ;; esac
+      # This image lists PATH twice; the last entry wins, the same as docker.
+      case "$PATH" in /root/.nix-profile/bin:/usr/bin:/bin:*) ;; *) exit 1 ;; esac
+
+      # Nix store paths are dr-xr-xr-x
+      test "$(stat -c '%a' image/etc)" = "555"
+      read_only=$(find image/nix/store -mindepth 1 -maxdepth 1 -type d ! -perm -u+w -print -quit)
+      test -n "$read_only"
+      test "$(stat -c '%a' "$read_only")" = "555"
+      test -n "$(ls -A "$read_only")"
+      test "$(stat -c '%u:%g' image/etc)" = "$(stat -c '%u:%g' image)"
+    env:
+      IMAGE_NAME: ${{ tasks.nix.values.image-name }}
+      IMAGE_SHA: ${{ tasks.nix.values.image-sha }}
+
   - key: redis
     use: crane
     call: ${{ init.package-digest }}
     with:
       image: public.ecr.aws/docker/library/redis:8.2.2-alpine3.22
 
-  - key: test-env
+  - key: redis-test
     use: redis
     run: |
-      test -n "$REDIS_DOWNLOAD_URL"
-      test -n "$REDIS_DOWNLOAD_SHA"
+      test "$(id -u)" = "0"
+      test ! -e image/bin/bash
+      test "$RWX_SHELL" = "/bin/sh"
+
+      test "$IMAGE_NAME" = "public.ecr.aws/docker/library/redis:8.2.2-alpine3.22"
+      test "$IMAGE_SHA" = "sha256:$(crane config --platform "$PLATFORM" "$IMAGE_NAME" | sha256sum | cut -d ' ' -f 1)"
+
+      test "$REDIS_DOWNLOAD_URL" = "https://github.com/redis/redis/archive/refs/tags/8.2.2.tar.gz"
+      test "$REDIS_DOWNLOAD_SHA" = "e355378d7f97efd06321fff881efc452a9673cc27b3a6d0dfd2a45fbcc83349c"
+
+      # tar -p keeps the modes recorded in the image, setgid included.
+      test "$(stat -c '%a' image/home/redis)" = "2755"
+      test "$(stat -c '%a' image/data)" = "755"
+      test "$(stat -c '%a' image/var/empty)" = "555"
+
+      test "$(stat -c '%u:%g' image/etc)" = "$(stat -c '%u:%g' image)"
+    env:
+      PLATFORM: ${{ tasks.crane.values.platform }}
+      IMAGE_NAME: ${{ tasks.redis.values.image-name }}
+      IMAGE_SHA: ${{ tasks.redis.values.image-sha }}
