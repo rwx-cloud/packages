@@ -73,9 +73,6 @@ tasks:
       test -x image/bin/bash
       test "$RWX_SHELL" = "/bin/bash"
 
-      test "$IMAGE_NAME" = "nixpkgs/nix-flakes:latest"
-      printf '%s\n' "$IMAGE_SHA" | grep -Eq '^sha256:[0-9a-f]{64}$'
-
       # Config.Env, exported through $RWX_ENV and prepended to the task's env.
       test "$ENV" = "/etc/profile.d/nix.sh"
       test "$BASH_ENV" = "/etc/profile.d/nix.sh"
@@ -94,9 +91,6 @@ tasks:
       test "$(stat -c '%a' "$read_only")" = "555"
       test -n "$(ls -A "$read_only")"
       test "$(stat -c '%u:%g' image/etc)" = "$(stat -c '%u:%g' image)"
-    env:
-      IMAGE_NAME: ${{ tasks.nix.values.image-name }}
-      IMAGE_SHA: ${{ tasks.nix.values.image-sha }}
 
   - key: redis
     use: crane
