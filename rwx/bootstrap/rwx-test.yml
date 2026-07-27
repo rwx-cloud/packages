@@ -24,6 +24,8 @@ tasks:
       rm /tmp/crane.tgz
       crane version
       printf '%s' "$platform" | tee $RWX_VALUES/platform
+
+      echo "root" | tee "${RWX_IMAGE}/user"
     env:
       CRANE_VERSION: 0.20.6
 

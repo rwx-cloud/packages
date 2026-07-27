@@ -29,14 +29,8 @@ IMAGE_CONFIG=$(mktemp)
 trap 'rm -f "${IMAGE_CONFIG}"' EXIT
 
 mkdir image
-# --delay-directory-restore holds off applying directory permissions until the
-# whole archive is extracted. Without it, images containing read-only directories
-# (Nix store paths are dr-xr-xr-x) fail with "Cannot mkdir: Permission denied"
-# once tar tries to write children into a directory it already made read-only.
-# root is unaffected either way, so this only matters when the layer runs as a
-# non-root user, but it costs nothing there: as root the result is identical.
 crane export --platform "${PLATFORM}" "${IMAGE}" - \
-  | tar -x -C image -f - -p --delay-directory-restore
+  | tar -x -C image -f - -p
 
 # The image config carries the env, entrypoint and command. Its digest is the
 # image ID that `docker container inspect` reported as `.Image`.
