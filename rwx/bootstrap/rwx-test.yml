@@ -7,7 +7,30 @@ base:
   arch: ${{ init.base-arch }}
 
 tasks:
+  # In a real run this package executes on the minimal bootstrap base layer,
+  # which ships crane, jq and tar. The test bases do not, so install crane here
+  # to stand in for that layer; jq and tar already come from rwx/base.
+  - key: crane
+    run: |
+      case "$(uname -m)" in
+        x86_64) crane_arch=x86_64; platform=linux/amd64 ;;
+        aarch64 | arm64) crane_arch=arm64; platform=linux/arm64 ;;
+        *) echo "unsupported architecture $(uname -m)" >&2; exit 1 ;;
+      esac
+
+      curl -fsSL -o /tmp/crane.tgz \
+        "https://github.com/google/go-containerregistry/releases/download/v${CRANE_VERSION}/go-containerregistry_Linux_${crane_arch}.tar.gz"
+      sudo tar -xzf /tmp/crane.tgz -C /usr/local/bin crane
+      rm /tmp/crane.tgz
+      crane version
+      printf '%s' "$platform" | tee $RWX_VALUES/platform
+
+      echo "root" | tee "${RWX_IMAGE}/user"
+    env:
+      CRANE_VERSION: 0.20.6
+
   - key: alpine
+    use: crane
     call: ${{ init.package-digest }}
     with:
       image: public.ecr.aws/docker/library/alpine:3.22.2
@@ -21,7 +44,20 @@ tasks:
       test "$VERSION_ID" = "3.22.2"
       test "$PRETTY_NAME" = "Alpine Linux v3.22"
 
+      test "$(id -u)" = "0"
+      test ! -e image/bin/bash
+      test "$RWX_SHELL" = "/bin/sh"
+
+      # tar -p keeps the modes recorded in the image.
+      test "$(stat -c '%a' image/etc)" = "755"
+      test "$(stat -c '%a' image/root)" = "700"
+      test "$(stat -c '%a' image/tmp)" = "1777"
+      test "$(stat -c '%a' image/var/empty)" = "555"
+
+      test "$(stat -c '%u:%g' image/etc)" = "$(stat -c '%u:%g' image)"
+
   - key: nix
+    use: crane
     call: ${{ init.package-digest }}
     with:
       image: nixpkgs/nix-flakes:latest
@@ -30,18 +66,51 @@ tasks:
     use: nix
     run: |
       # nixpkgs/nix-flakes is a Nix-built image with no /etc/os-release.
-      # Bootstrapping it must still succeed (the os value falls back to the
-      # image name and ID) rather than aborting when os-release is absent.
       test ! -f image/etc/os-release
       test -d image/nix/store
 
+      test "$(id -u)" = "0"
+      test -x image/bin/bash
+      test "$RWX_SHELL" = "/bin/bash"
+
+      # Config.Env, exported through $RWX_ENV and prepended to the task's env.
+      test "$ENV" = "/etc/profile.d/nix.sh"
+      test "$BASH_ENV" = "/etc/profile.d/nix.sh"
+      test "$NIX_BUILD_SHELL" = "/bin/bash"
+      test "$PAGER" = "cat"
+      test "$USER" = "root"
+      case "$NIX_PATH" in nixpkgs=/nix/store/*) ;; *) exit 1 ;; esac
+      case "$SSL_CERT_FILE" in /nix/store/*/ca-bundle.crt) ;; *) exit 1 ;; esac
+      # This image lists PATH twice; the last entry wins, the same as docker.
+      case "$PATH" in /root/.nix-profile/bin:/usr/bin:/bin:*) ;; *) exit 1 ;; esac
+
+      # Nix store paths are dr-xr-xr-x
+      test "$(stat -c '%a' image/etc)" = "555"
+      read_only=$(find image/nix/store -mindepth 1 -maxdepth 1 -type d ! -perm -u+w -print -quit)
+      test -n "$read_only"
+      test "$(stat -c '%a' "$read_only")" = "555"
+      test -n "$(ls -A "$read_only")"
+      test "$(stat -c '%u:%g' image/etc)" = "$(stat -c '%u:%g' image)"
+
   - key: redis
+    use: crane
     call: ${{ init.package-digest }}
     with:
       image: public.ecr.aws/docker/library/redis:8.2.2-alpine3.22
 
-  - key: test-env
+  - key: redis-test
     use: redis
     run: |
-      test -n "$REDIS_DOWNLOAD_URL"
-      test -n "$REDIS_DOWNLOAD_SHA"
+      test "$(id -u)" = "0"
+      test ! -e image/bin/bash
+      test "$RWX_SHELL" = "/bin/sh"
+
+      test "$REDIS_DOWNLOAD_URL" = "https://github.com/redis/redis/archive/refs/tags/8.2.2.tar.gz"
+      test "$REDIS_DOWNLOAD_SHA" = "e355378d7f97efd06321fff881efc452a9673cc27b3a6d0dfd2a45fbcc83349c"
+
+      # tar -p keeps the modes recorded in the image, setgid included.
+      test "$(stat -c '%a' image/home/redis)" = "2755"
+      test "$(stat -c '%a' image/data)" = "755"
+      test "$(stat -c '%a' image/var/empty)" = "555"
+
+      test "$(stat -c '%u:%g' image/etc)" = "$(stat -c '%u:%g' image)"
