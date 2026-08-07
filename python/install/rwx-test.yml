@@ -13,7 +13,7 @@ tasks:
     use: install-3-14-7
     run: |
       python --version | grep 'Python 3\.14\.7'
-      pip --version | grep 'pip 26\.2 '
+      pip --version | grep 'pip 26\.2\.1 '
 
   - key: install-3-14-7--test-pip-install
     use: install-3-14-7
