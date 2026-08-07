@@ -44,10 +44,10 @@ tasks:
       # Install system dependencies
       #
       os_packages="ca-certificates libexpat1 libsqlite3-0 media-types readline-common tzdata"
-      if rwx_os_version_lte 22.04; then
-        os_packages+=" libmpdec3 libreadline8 libssl3"
-      else
+      if rwx_os_version_gte 24.04; then
         os_packages+=" libreadline8t64 libssl3t64 openssl"
+      else
+        os_packages+=" libmpdec3 libreadline8 libssl3"
       fi
 
       sudo apt-get update
