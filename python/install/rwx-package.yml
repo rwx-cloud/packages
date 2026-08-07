@@ -19,14 +19,14 @@ tasks:
   - key: install-python
     run: |
       set -u
-      source "$RWX_PACKAGE_PATH/mint-utils.sh"
+      source "$RWX_PACKAGE_PATH/rwx-utils.sh"
 
       #
       # Check OS support
       #
-      source "$RWX_PACKAGE_PATH/mint-utils.sh"
-      if ! mint_os_name_in ubuntu; then
-        echo "Unsupported operating system \`$(mint_os_name)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+      source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+      if ! rwx_os_name_in ubuntu; then
+        echo "Unsupported operating system \`$(rwx_os_name)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
@@ -44,7 +44,7 @@ tasks:
       # Install system dependencies
       #
       os_packages="ca-certificates libexpat1 libsqlite3-0 media-types readline-common tzdata"
-      if mint_os_version_lte 22.04; then
+      if rwx_os_version_lte 22.04; then
         os_packages+=" libmpdec3 libreadline8 libssl3"
       else
         os_packages+=" libreadline8t64 libssl3t64 openssl"
@@ -60,8 +60,8 @@ tasks:
       # Find the prebuilt Python
       echo "Looking for Python $PYTHON_VERSION..."
       escaped_version=$(echo "$PYTHON_VERSION" | sed "s/\./\\\\./g") # 3.2.2 => 3\.2\.2
-      escaped_os=$(mint_os_name_version | sed "s/\./\\\\./g")
-      escaped_arch=$(mint_arch)
+      escaped_os=$(rwx_os_name_version | sed "s/\./\\\\./g")
+      escaped_arch=$(rwx_arch)
       if [ "$escaped_arch" = "aarch64" ]; then
         escaped_arch="arm64"
       fi
