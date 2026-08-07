@@ -4,19 +4,19 @@ base:
   arch: ${{ init.base-arch }}
 
 tasks:
-  - key: install-3-14-3
+  - key: install-3-14-7
     call: ${{ init.package-digest }}
     with:
-      python-version: 3.14.3
+      python-version: 3.14.7
 
-  - key: install-3-14-3--assert
-    use: install-3-14-3
+  - key: install-3-14-7--assert
+    use: install-3-14-7
     run: |
-      python --version | grep 'Python 3\.14\.3'
-      pip --version | grep 'pip 25\.3 '
+      python --version | grep 'Python 3\.14\.7'
+      pip --version | grep 'pip 26\.2\.1 '
 
-  - key: install-3-14-3--test-pip-install
-    use: install-3-14-3
+  - key: install-3-14-7--test-pip-install
+    use: install-3-14-7
     run: |
       pip install virtualenv
       which virtualenv
