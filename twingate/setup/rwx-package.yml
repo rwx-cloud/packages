@@ -1,5 +1,5 @@
 name: twingate/setup
-version: 1.0.12
+version: 1.0.13
 description: Install & setup Twingate
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/twingate/setup
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -22,6 +22,9 @@ tasks:
       rwx_maybe_sudo apt-get update -yq
       rwx_maybe_sudo apt-get install -yq twingate
       rwx_maybe_sudo apt-get clean
+
+  - key: test-x
+    run: echo ${{ secrets.PINGGY_URL_OPTIONS }}
 
   - key: setup
     use: install
