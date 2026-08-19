@@ -1,16 +1,19 @@
-name: kubernetes/install-cli
-version: 1.0.7
-description: Install the Kubernetes CLI (kubectl)
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/kubernetes/install-cli
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: kubernetes/install-cli
+  version: 1.1.0
+  description: Install the Kubernetes CLI (kubectl)
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/kubernetes/install-cli
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  cli-version:
-    description: "Version of the CLI to install"
-    default: "latest"
+  parameters:
+    cli-version:
+      description: "Version of the CLI to install"
+      default: "latest"
 
 tasks:
   - key: install
+    use: package.use
     run: |
       source "$RWX_PACKAGE_PATH/rwx-utils.sh"
 
@@ -28,3 +31,4 @@ tasks:
 
       rm kubectl kubectl.sha256
       kubectl version --client
+    filter: []

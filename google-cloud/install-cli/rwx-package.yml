@@ -1,19 +1,22 @@
-name: google-cloud/install-cli
-version: 1.1.8
-description: Install the Google Cloud SDK CLI
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/install-cli
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: google-cloud/install-cli
+  version: 1.2.0
+  description: Install the Google Cloud SDK CLI
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/install-cli
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  cli-version:
-    description: "Version of the CLI to install"
-    default: "latest"
-  components:
-    description: "Optional space-separated list of CLI components to install"
-    default: ""
+  parameters:
+    cli-version:
+      description: "Version of the CLI to install"
+      default: "latest"
+    components:
+      description: "Optional space-separated list of CLI components to install"
+      default: ""
 
 tasks:
   - key: install-cli
+    use: package.use
     run: |
       source "$RWX_PACKAGE_PATH/rwx-utils.sh"
       if [ "$(rwx_os_name)" != "ubuntu" ]; then
@@ -76,3 +79,4 @@ tasks:
       echo
       echo "Cleaning Google Cloud SDK backup"
       rm -rf "${install_dir}/google-cloud-sdk/.install/.backup"
+    filter: []

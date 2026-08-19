@@ -1,11 +1,14 @@
-name: github/install-cli
-version: 1.0.11
-description: Install the GitHub CLI, gh. It is GitHub on the command line.
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/install-cli
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: github/install-cli
+  version: 1.1.0
+  description: Install the GitHub CLI, gh. It is GitHub on the command line.
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/install-cli
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
 tasks:
   - key: install
+    use: package.use
     run: |
       source "$RWX_PACKAGE_PATH/rwx-utils.sh"
       if ! rwx_os_package_manager_in apt; then
@@ -21,3 +24,4 @@ tasks:
       rwx_maybe_sudo apt-get install -y gh
       rwx_maybe_sudo apt-get clean
       gh --version
+    filter: []

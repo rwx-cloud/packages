@@ -1,22 +1,24 @@
-name: python/install
-version: 2.0.0
-description: Install Python, a programming language that lets you work quickly and integrate systems more effectively
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/python/install
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: python/install
+  version: 2.0.1
+  description: Install Python, a programming language that lets you work quickly and integrate systems more effectively
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/python/install
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  python-version:
-    description: "Version of Python to install"
-    required: true
-  pip-version:
-    description: "Version of pip to install"
-    required: false
-  setuptools-version:
-    description: "Version of setuptools to install"
-    required: false
-  ensure-github-attestations:
-    description: "Verify GitHub artifact attestations for the precompiled binary before installing it"
-    default: "true"
+  parameters:
+    python-version:
+      description: "Version of Python to install"
+      required: true
+    pip-version:
+      description: "Version of pip to install"
+      required: false
+    setuptools-version:
+      description: "Version of setuptools to install"
+      required: false
+    ensure-github-attestations:
+      description: "Verify GitHub artifact attestations for the precompiled binary before installing it"
+      default: true
 
 tasks:
   - key: install-python

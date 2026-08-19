@@ -1,31 +1,33 @@
-name: google-cloud/auth-oidc
-version: 2.0.2
-description: Authenticate to Google Cloud with OIDC and Workload Identity Federation
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/auth-oidc
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: google-cloud/auth-oidc
+  version: 2.1.0
+  description: Authenticate to Google Cloud with OIDC and Workload Identity Federation
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/auth-oidc
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  workload-identity-provider:
-    description: "The full identifier of the Workload Identity Provider"
-    required: true
-  service-account:
-    description: "The identifier of the Google Cloud service account which will be impersonated by the generated OIDC"
-    required: false
-  service-account-token-lifetime-seconds:
-    description: "Lifetime duration of the service account access token in seconds"
-    required: false
-  audience:
-    description: "The generated token's `aud` parameter, defaults to the value of `workload-identity-provider`"
-    required: false
-  project-id:
-    description: "The default project to select once authenticated"
-    required: false
-  oidc-token-env-var:
-    description: "The environment variable that contains the OIDC token."
-    default: "GCP_OIDC_TOKEN"
-  oidc-token-path-env-var:
-    description: "The environment variable that contains the path to the OIDC token file."
-    default: "GCP_OIDC_TOKEN_PATH"
+  parameters:
+    workload-identity-provider:
+      description: "The full identifier of the Workload Identity Provider"
+      required: true
+    service-account:
+      description: "The identifier of the Google Cloud service account which will be impersonated by the generated OIDC"
+      required: false
+    service-account-token-lifetime-seconds:
+      description: "Lifetime duration of the service account access token in seconds"
+      required: false
+    audience:
+      description: "The generated token's `aud` parameter, defaults to the value of `workload-identity-provider`"
+      required: false
+    project-id:
+      description: "The default project to select once authenticated"
+      required: false
+    oidc-token-env-var:
+      description: "The environment variable that contains the OIDC token."
+      default: "GCP_OIDC_TOKEN"
+    oidc-token-path-env-var:
+      description: "The environment variable that contains the path to the OIDC token file."
+      default: "GCP_OIDC_TOKEN_PATH"
 
 tasks:
   - key: produce-auth-hooks

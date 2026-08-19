@@ -1,16 +1,19 @@
-name: aws/install-cli
-version: 1.0.12
-description: Install the AWS CLI
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/aws/install-cli
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: aws/install-cli
+  version: 1.1.0
+  description: Install the AWS CLI
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/aws/install-cli
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  cli-version:
-    description: "Version of the CLI to install"
-    required: false
+  parameters:
+    cli-version:
+      description: "Version of the CLI to install"
+      required: false
 
 tasks:
   - key: install-unzip-if-necessary
+    use: package.use
     run: |
       if ! command -v unzip &> /dev/null; then
         source "$RWX_PACKAGE_PATH/rwx-utils.sh"
@@ -25,6 +28,7 @@ tasks:
       fi
     filter: []
   - key: install-gpg-if-necessary
+    use: package.use
     run: |
       if ! command -v gpg &> /dev/null; then
         source "$RWX_PACKAGE_PATH/rwx-utils.sh"

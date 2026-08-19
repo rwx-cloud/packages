@@ -17,7 +17,7 @@ tasks:
     call: namespace/install-cli 1.0.0
 
   - key: namespace-login
-    call: namespace/login-hook 1.0.3
+    call: namespace/login-hook 1.1.0
     with:
       workspace-id: my-namespace-workspace-id
 
@@ -40,13 +40,13 @@ tasks:
     call: namespace/install-cli 1.0.0
 
   - key: namespace-login-to-workspace-a
-    call: namespace/login-hook 1.0.3
+    call: namespace/login-hook 1.1.0
     with:
       workspace-id: my-namespace-workspace-id
       oidc-token-env-name: NAMESPACE_OIDC_TOKEN_A
 
   - key: namespace-login-to-workspace-b
-    call: namespace/login-hook 1.0.3
+    call: namespace/login-hook 1.1.0
     with:
       workspace-id: my-namespace-workspace-id
       oidc-token-env-name: NAMESPACE_OIDC_TOKEN_B

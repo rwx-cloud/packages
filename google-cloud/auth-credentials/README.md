@@ -11,7 +11,7 @@ tasks:
     call: google-cloud/install-cli 1.1.6
 
   - key: gcloud-auth
-    call: google-cloud/auth-credentials 2.0.0
+    call: google-cloud/auth-credentials 2.1.0
 
   - key: task-that-needs-gcloud
     use: [install-gcloud, gcloud-auth]
@@ -30,7 +30,7 @@ tasks:
     call: google-cloud/install-cli 1.1.6
 
   - key: gcloud-auth
-    call: google-cloud/auth-credentials 2.0.0
+    call: google-cloud/auth-credentials 2.1.0
     with:
       project-id: identifier-of-my-project
 
@@ -51,7 +51,7 @@ tasks:
     call: google-cloud/install-cli 1.1.6
 
   - key: gcloud-auth
-    call: google-cloud/auth-credentials 2.0.0
+    call: google-cloud/auth-credentials 2.1.0
 
   - key: task-that-does-not-need-gcloud
     use: [install-gcloud, gcloud-auth]
@@ -87,7 +87,7 @@ tasks:
     call: google-cloud/install-cli 1.1.6
 
   - key: gcloud-auth
-    call: google-cloud/auth-credentials 2.0.0
+    call: google-cloud/auth-credentials 2.1.0
 
   - key: your-task
     use: [install-gcloud, gcloud-auth]

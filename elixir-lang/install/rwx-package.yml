@@ -1,16 +1,19 @@
-name: elixir-lang/install
-version: 1.1.5
-description: Install Elixir, a dynamic, functional language for building scalable and maintainable applications.
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/elixir-lang/install
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: elixir-lang/install
+  version: 1.2.0
+  description: Install Elixir, a dynamic, functional language for building scalable and maintainable applications.
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/elixir-lang/install
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  elixir-version:
-    description: "Version of Elixir to install"
-    required: true
+  parameters:
+    elixir-version:
+      description: "Version of Elixir to install"
+      required: true
 
 tasks:
   - key: install
+    use: [package.use]
     run: |
       source "$RWX_PACKAGE_PATH/rwx-utils.sh"
 
@@ -82,5 +85,6 @@ tasks:
       elixir --version | tee /dev/stderr | grep "^Elixir ${ELIXIR_VERSION}"
 
       echo "Installed Elixir v${ELIXIR_VERSION} to ${ELIXIR_ROOT}"
+    filter: []
     env:
       ELIXIR_VERSION: ${{ params.elixir-version }}

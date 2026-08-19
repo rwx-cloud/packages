@@ -1,25 +1,28 @@
-name: dotnet/install
-version: 1.0.1
-description: Install the .NET SDK
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/dotnet/install
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: dotnet/install
+  version: 1.1.0
+  description: Install the .NET SDK
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/dotnet/install
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  dotnet-channel:
-    description: "Single .NET SDK channel/version to install, eg. 8.0"
-    required: false
-  dotnet-channels:
-    description: "Array-style list of .NET SDK channels/versions to install in one call, eg. [\"8.0\", \"9.0\"]"
-    required: false
-  dotnet-quality:
-    description: "Optional .NET SDK quality, eg. ga, preview, daily"
-    required: false
-  global-json-file:
-    description: "Path to a global.json file used to determine the SDK version"
-    required: false
+  parameters:
+    dotnet-channel:
+      description: "Single .NET SDK channel/version to install, eg. 8.0"
+      required: false
+    dotnet-channels:
+      description: 'Array-style list of .NET SDK channels/versions to install in one call, eg. ["8.0", "9.0"]'
+      required: false
+    dotnet-quality:
+      description: "Optional .NET SDK quality, eg. ga, preview, daily"
+      required: false
+    global-json-file:
+      description: "Path to a global.json file used to determine the SDK version"
+      required: false
 
 tasks:
   - key: install-libicu-dev
+    use: package.use
     run: |
       if ! dpkg -s libicu-dev >/dev/null 2>&1; then
         source "$RWX_PACKAGE_PATH/rwx-utils.sh"
@@ -27,7 +30,8 @@ tasks:
         rwx_maybe_sudo apt-get install -y --no-install-recommends libicu-dev
         rwx_maybe_sudo apt-get clean
       fi
- 
+    filter: []
+
   - key: install-dotnet
     use: install-libicu-dev
     run: |
@@ -38,6 +42,8 @@ tasks:
       fi
 
       $RWX_PACKAGE_PATH/bin/install-dotnet
+    filter:
+      - '${{ params.global-json-file == "" ? "___NOMATCH" : params.global-json-file }}'
     env:
       DOTNET_CHANNEL: ${{ params.dotnet-channel }}
       DOTNET_CHANNELS: ${{ params.dotnet-channels }}

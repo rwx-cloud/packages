@@ -1,16 +1,18 @@
-name: google-cloud/auth-credentials
-version: 2.0.0
-description: Authenticate to Google Cloud with credentials JSON
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/auth-credentials
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: google-cloud/auth-credentials
+  version: 2.1.0
+  description: Authenticate to Google Cloud with credentials JSON
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/google-cloud/auth-credentials
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  project-id:
-    description: "The default project to select once authenticated"
-    required: false
-  credentials-json-env-var:
-    description: "The environment variable that contains the credentials JSON."
-    default: "GCP_CREDENTIALS_JSON"
+  parameters:
+    project-id:
+      description: "The default project to select once authenticated"
+      required: false
+    credentials-json-env-var:
+      description: "The environment variable that contains the credentials JSON."
+      default: "GCP_CREDENTIALS_JSON"
 
 tasks:
   - key: produce-auth-hooks

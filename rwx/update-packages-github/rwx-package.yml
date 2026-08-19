@@ -1,46 +1,48 @@
-name: rwx/update-packages-github
-version: 2.0.3
-description: Update RWX packages for GitHub repositories
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/update-packages-github
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: rwx/update-packages-github
+  version: 2.1.0
+  description: Update RWX packages for GitHub repositories
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/update-packages-github
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  repository:
-    description: "GitHub HTTPS repository URL"
-    required: true
-  ref:
-    description: "The ref to check out of the git repository"
-    required: true
-  github-token:
-    description: "The GitHub token to a private app"
-    required: true
-  allow-major-version-change:
-    description: "Allow updating across major versions"
-    default: false
-  branch-prefix:
-    description: "Branch prefix for opened pull requests"
-    default: "rwx-update-"
-  label:
-    description: "Label for opened pull requests"
-    default: ""
-  label-color:
-    description: "Label color if not yet created"
-    default: "298F21"
-  rwx-file:
-    description: "Scope updates to a specific file or single glob pattern of files"
-  enable-auto-merge:
-    description: "Enable auto-merge on the pull request (requires repository auto-merge support)"
-    default: false
+  parameters:
+    repository:
+      description: "GitHub HTTPS repository URL"
+      required: true
+    ref:
+      description: "The ref to check out of the git repository"
+      required: true
+    github-token:
+      description: "The GitHub token to a private app"
+      required: true
+    allow-major-version-change:
+      description: "Allow updating across major versions"
+      default: false
+    branch-prefix:
+      description: "Branch prefix for opened pull requests"
+      default: "rwx-update-"
+    label:
+      description: "Label for opened pull requests"
+      default: ""
+    label-color:
+      description: "Label color if not yet created"
+      default: "298F21"
+    rwx-file:
+      description: "Scope updates to a specific file or single glob pattern of files"
+    enable-auto-merge:
+      description: "Enable auto-merge on the pull request (requires repository auto-merge support)"
+      default: false
 
 tasks:
   - key: rwx-cli
-    call: rwx/install-cli 4.0.4
+    call: rwx/install-cli 4.0.5
 
   - key: gh-cli
-    call: github/install-cli 1.0.10
+    call: github/install-cli 1.0.11
 
   - key: code
-    call: git/clone 2.0.7
+    call: git/clone 2.0.8
     with:
       repository: ${{ params.repository }}
       ref: ${{ params.ref }}

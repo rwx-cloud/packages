@@ -1,19 +1,21 @@
-name: namespace/login-hook
-version: 1.0.3
-description: RWX hook to log in to Namespace
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/namespace/login-hook
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: namespace/login-hook
+  version: 1.1.0
+  description: RWX hook to log in to Namespace
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/namespace/login-hook
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  workspace-id:
-    description: "The Namespace workspace identifier."
-    required: true
-  oidc-token-env-name:
-    description: "The environment variable name that contains the Namespace OIDC token."
-    default: NAMESPACE_OIDC_TOKEN
-  oidc-token-path-env-name:
-    description: "The environment variable name that contains the path to the Namespace OIDC token file."
-    default: NAMESPACE_OIDC_TOKEN_PATH
+  parameters:
+    workspace-id:
+      description: "The Namespace workspace identifier."
+      required: true
+    oidc-token-env-name:
+      description: "The environment variable name that contains the Namespace OIDC token."
+      default: NAMESPACE_OIDC_TOKEN
+    oidc-token-path-env-name:
+      description: "The environment variable name that contains the path to the Namespace OIDC token file."
+      default: NAMESPACE_OIDC_TOKEN_PATH
 
 tasks:
   - key: produce-login-hooks

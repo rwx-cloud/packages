@@ -82,7 +82,7 @@ tasks:
       case "$NIX_PATH" in nixpkgs=/nix/store/*) ;; *) exit 1 ;; esac
       case "$SSL_CERT_FILE" in /nix/store/*/ca-bundle.crt) ;; *) exit 1 ;; esac
       # This image lists PATH twice; the last entry wins, the same as docker.
-      case "$PATH" in /root/.nix-profile/bin:/usr/bin:/bin:*) ;; *) exit 1 ;; esac
+      case "$PATH" in /opt/rwx/bin:/root/.nix-profile/bin:/usr/bin:/bin:*) ;; *) exit 1 ;; esac
 
       # Nix store paths are dr-xr-xr-x
       test "$(stat -c '%a' image/etc)" = "555"

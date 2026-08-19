@@ -12,7 +12,7 @@ tasks:
     call: azure/install-cli 1.0.8
 
   - key: azure-auth
-    call: azure/auth-oidc 2.0.0
+    call: azure/auth-oidc 2.1.0
     with:
       client-id: ${{ vaults.your-vault.secrets.your-azure-client-id }}
       tenant-id: ${{ vaults.your-vault.secrets.your-azure-tenant-id }}
@@ -37,7 +37,7 @@ tasks:
     call: azure/install-cli 1.0.8
 
   - key: azure-auth
-    call: azure/auth-oidc 2.0.0
+    call: azure/auth-oidc 2.1.0
     with:
       client-id: ${{ vaults.your-vault.secrets.your-azure-client-id }}
       tenant-id: ${{ vaults.your-vault.secrets.your-azure-tenant-id }}
@@ -78,7 +78,7 @@ tasks:
     call: azure/install-cli 1.0.8
 
   - key: azure-auth
-    call: azure/auth-oidc 2.0.0
+    call: azure/auth-oidc 2.1.0
     with:
       client-id: ${{ vaults.your-vault.secrets.your-azure-client-id }}
       tenant-id: ${{ vaults.your-vault.secrets.your-azure-tenant-id }}

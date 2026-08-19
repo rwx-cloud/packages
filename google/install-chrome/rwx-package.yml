@@ -1,35 +1,38 @@
-name: google/install-chrome
-version: 2.1.12
-description: Install Google Chrome, the official web browser from Google
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/google/install-chrome
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: google/install-chrome
+  version: 2.2.0
+  description: Install Google Chrome, the official web browser from Google
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/google/install-chrome
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  chrome-version:
-    description: "Version of Chrome to install."
-    required: true
-  install-chromedriver:
-    description: "Whether a compatible Chromedriver should be installed."
-    required: false
-    default: false
-  chrome-directory:
-    description: "The directory where Chrome will be installed."
-    required: false
-    default: /opt/chrome
-  chromedriver-directory:
-    description: "The directory where Chromedriver will be installed."
-    required: false
-    default: /opt/chromedriver
-  add-to-path:
-    description: "Whether Chrome and (optionally) Chromedriver should be included in PATH."
-    required: false
-    default: true
+  parameters:
+    chrome-version:
+      description: "Version of Chrome to install."
+      required: true
+    install-chromedriver:
+      description: "Whether a compatible Chromedriver should be installed."
+      required: false
+      default: false
+    chrome-directory:
+      description: "The directory where Chrome will be installed."
+      required: false
+      default: /opt/chrome
+    chromedriver-directory:
+      description: "The directory where Chromedriver will be installed."
+      required: false
+      default: /opt/chromedriver
+    add-to-path:
+      description: "Whether Chrome and (optionally) Chromedriver should be included in PATH."
+      required: false
+      default: true
 
-outputs:
-  values-from: [install]
+  outputs:
+    values-from: [install]
 
 tasks:
   - key: resolve-chrome-version
+    use: package.use
     run: |
       source "$RWX_PACKAGE_PATH/rwx-utils.sh"
       if ! rwx_os_name_in ubuntu; then
@@ -79,10 +82,12 @@ tasks:
       fi
     env:
       CHROME_VERSION: ${{ params.chrome-version }}
+    filter: []
     cache:
       ttl: 1 day
 
   - key: install
+    use: package.use
     run: |
       source "$RWX_PACKAGE_PATH/rwx-utils.sh"
       os_packages=""
@@ -167,6 +172,7 @@ tasks:
 
       rm -f chrome.zip
       rm -f chromedriver.zip
+    filter: []
     env:
       ADD_TO_PATH: ${{ params.add-to-path }}
       CHROME_DIRECTORY: ${{ params.chrome-directory }}

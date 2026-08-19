@@ -1,46 +1,49 @@
-name: git/clone
-version: 2.0.8
-description: Clone git repositories over ssh or http, with support for Git Large File Storage (LFS)
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/git/clone
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: git/clone
+  version: 2.1.0
+  description: Clone git repositories over ssh or http, with support for Git Large File Storage (LFS)
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/git/clone
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  github-token:
-    description: "Token to clone from GitHub over HTTPS"
-    required: false
-  lfs:
-    description: Whether to download Git-LFS files
-    default: false
-  path:
-    description: "The relative path within the workspace into which the repository will be cloned"
-    default: "./"
-  preserve-git-dir:
-    description: "Whether or not to preserve the .git directory. Set to true if you want to perform git operations like committing after cloning. Preserving the .git directory will decrease the likelihood of cache hits when a file filter is not specified."
-    default: false
-  ref:
-    description: "The ref to check out of the git repository"
-    required: true
-  meta-ref:
-    description: "Optional override for RWX_GIT_REF. This value is used as-is (for example refs/heads/main, refs/tags/v1.0.0, or main)."
-    required: false
-  repository:
-    description: "The url of a git repository."
-    required: true
-  ssh-key:
-    description: "The ssh key to use if cloning over ssh"
-    required: false
-  fetch-full-depth:
-    description: "Whether to use a full-depth fetch instead of a shallow fetch. This defaults to `false`, including when `preserve-git-dir` is `true`. Typically, leaving this as `false` results in better cloning performance within RWX. However, for certain large repositories or workflows that require full history, a full-depth fetch may be preferable."
-    default: false
-  submodules:
-    description: Whether to clone submodules
-    default: true
-  tool-cache-key-prefix:
-    description: Optional prefix for the tool cache key
-    default: git-clone
+  parameters:
+    github-token:
+      description: "Token to clone from GitHub over HTTPS"
+      required: false
+    lfs:
+      description: Whether to download Git-LFS files
+      default: false
+    path:
+      description: "The relative path within the workspace into which the repository will be cloned"
+      default: "./"
+    preserve-git-dir:
+      description: "Whether or not to preserve the .git directory. Set to true if you want to perform git operations like committing after cloning. Preserving the .git directory will decrease the likelihood of cache hits when a file filter is not specified."
+      default: false
+    ref:
+      description: "The ref to check out of the git repository"
+      required: true
+    meta-ref:
+      description: "Optional override for RWX_GIT_REF. This value is used as-is (for example refs/heads/main, refs/tags/v1.0.0, or main)."
+      required: false
+    repository:
+      description: "The url of a git repository."
+      required: true
+    ssh-key:
+      description: "The ssh key to use if cloning over ssh"
+      required: false
+    fetch-full-depth:
+      description: "Whether to use a full-depth fetch instead of a shallow fetch. This defaults to `false`, including when `preserve-git-dir` is `true`. Typically, leaving this as `false` results in better cloning performance within RWX. However, for certain large repositories or workflows that require full history, a full-depth fetch may be preferable."
+      default: false
+    submodules:
+      description: Whether to clone submodules
+      default: true
+    tool-cache-key-prefix:
+      description: Optional prefix for the tool cache key
+      default: git-clone
 
 tasks:
   - key: setup
+    use: [package.use]
     run: |
       . "$RWX_PACKAGE_PATH/rwx-utils.sh"
       if ! rwx_os_package_manager_in apt apk; then
@@ -155,6 +158,7 @@ tasks:
         echo "Setting credential.helper to clone using github-token"
         printf '%s' '!sh -c "echo username=x-access-token && echo password=${GITHUB_TOKEN}"' > "$RWX_VALUES/credential-helper"
       fi
+    filter: []
     env:
       GIT_SSH_KEY: ${{ params.ssh-key }}
       CHECKOUT_REPOSITORY: ${{ params.repository }}
@@ -181,6 +185,7 @@ tasks:
       SUBMODULES: ${{ params.submodules }}
       TOOL_CACHE_KEY_PREFIX: ${{ params.tool-cache-key-prefix }}
     filter:
+      workspace: []
       ${{ run.dir }}: [.patches]
     cache: ${{ params.ref =~ '^[0-9a-f]{40}$' }}
 
@@ -215,6 +220,7 @@ tasks:
     use: [setup, install-lfs]
     run: $RWX_PACKAGE_PATH/bin/git-clone
     tool-cache: ${{ tasks.get-latest-sha-for-ref.values.tool-cache-key }}
+    filter: []
     env:
       GIT_LFS_SKIP_SMUDGE: 1
       GIT_SSH_KEY:

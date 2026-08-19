@@ -11,7 +11,7 @@ tasks:
   # ... `code` task using git/clone omitted for brevity
 
   - key: sonar-scanner
-    call: sonarsource/install-sonar-scanner 1.0.5
+    call: sonarsource/install-sonar-scanner 1.1.0
     with:
       sonar-scanner-version: "6.2.1.4610"
 
