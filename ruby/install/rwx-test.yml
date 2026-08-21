@@ -5,14 +5,7 @@ base:
 
 tasks:
   - key: ruby-version
-    run: |
-      if [ "${BASE}" = "os" ]; then
-        echo "4.0.0" | tee "${RWX_VALUES}/ruby-version"
-      else
-        echo "4.0.3" | tee "${RWX_VALUES}/ruby-version"
-      fi
-    env:
-      BASE: ${{ init.base-kind }}
+    run: echo "3.4.10" | tee "${RWX_VALUES}/ruby-version"
 
   - key: specify-version
     call: ${{ init.package-digest }}
@@ -44,6 +37,7 @@ tasks:
     call: ${{ init.package-digest }}
     with:
       ruby-version-file: .ruby-version
+      ensure-github-attestations: "false"
 
   - key: prefixed-ruby-version-file--assert
     use: prefixed-ruby-version-file

@@ -1,5 +1,5 @@
 name: ruby/install
-version: 1.2.33
+version: 2.0.0
 description: Install Ruby, a dynamic programming language with a focus on simplicity and productivity
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/ruby/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -11,6 +11,9 @@ parameters:
   ruby-version-file:
     description: "File containing version of Ruby to install, commonly .ruby-version"
     required: false
+  ensure-github-attestations:
+    description: "Verify GitHub artifact attestations for the precompiled binary before installing it"
+    default: "true"
 
 tasks:
   - key: install-ruby
@@ -47,100 +50,81 @@ tasks:
       fi
 
       #
-      # Install system packages
+      # Ensure prerequisites for installing mise
       #
-      tmp_dir=$(mktemp -d)
-
-      sudo apt-get update
-      sudo apt-get install --no-upgrade -y make xz-utils build-essential bison zlib1g-dev libyaml-dev libgdbm-dev libreadline-dev libncurses-dev libffi-dev
-
-      # Rubies before 3.1 require OpenSSL 1.x
-      if [[ "${RUBY_VERSION:0:3}" == "3.0" || "${RUBY_VERSION:0:2}" == "2." ]]; then
-        pushd "$tmp_dir"
-
-        curl -fsSLO http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
-        curl -fsSLO http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl-dev_1.1.1f-1ubuntu2_amd64.deb
-        curl -fsSLO http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/openssl_1.1.1f-1ubuntu2_amd64.deb
-
-        sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
-        sudo dpkg -i libssl-dev_1.1.1f-1ubuntu2_amd64.deb
-        sudo dpkg -i openssl_1.1.1f-1ubuntu2_amd64.deb
-        rm -f *.deb
-        popd
-      else
-        sudo apt-get install --no-upgrade -y libssl-dev
+      if ! command -v curl >/dev/null 2>&1; then
+        rwx_maybe_sudo apt-get update
+        rwx_maybe_sudo apt-get install --no-upgrade -y curl ca-certificates
+        rwx_maybe_sudo apt-get clean
       fi
 
-      rm -rf "$tmp_dir"
-      sudo apt-get clean
+      #
+      # Install mise into a temporary directory. mise resolves the Ruby
+      # version to the right precompiled binary and verifies its checksum;
+      # the Ruby install is moved out and mise is deleted afterwards, so
+      # mise itself is not persisted in the task's filesystem.
+      #
+      mise_dir=$(mktemp -d)
+      export MISE_INSTALL_PATH="$mise_dir/bin/mise"
+      export MISE_DATA_DIR="$mise_dir/data"
+      export MISE_CACHE_DIR="$mise_dir/cache"
+      export MISE_STATE_DIR="$mise_dir/state"
+      export MISE_CONFIG_DIR="$mise_dir/config"
 
-      #
-      # Install Ruby
-      #
-      # Find the prebuilt Ruby
-      echo "Looking for Ruby $RUBY_VERSION..."
-      source "$RWX_PACKAGE_PATH/rwx-utils.sh"
-      escaped_version=$(echo "$RUBY_VERSION" | sed "s/\./\\\\./g") # 3.2.2 => 3\.2\.2
-      escaped_os=$(rwx_os_name_version | sed "s/\./\\\\./g")
-      escaped_arch=$(rwx_arch)
-      if [ "$escaped_arch" = "aarch64" ]; then
-        escaped_arch="arm64"
+      curl -fsSL https://mise.run | sh
+      export PATH="$mise_dir/bin:$PATH"
+      mise --version
+
+      if [ "$ENSURE_GITHUB_ATTESTATIONS" = "false" ]; then
+        export MISE_GITHUB_ATTESTATIONS=false
       fi
 
-      if [ "$(id -u)" = "999" ]; then
-        known_rubies_file="known-rubies-os-base.csv"
-      else
-        known_rubies_file="known-rubies-image-base.csv"
-      fi
-      version_line=$(cat $RWX_PACKAGE_PATH/$known_rubies_file | { grep -E "^$escaped_version,[^,]+,[^,]+,$escaped_os,$escaped_arch" || test $? = 1; })
-      if [[ -z "$version_line" ]]; then
-        if [ "$(id -u)" = "999" ]; then
+      #
+      # Install Ruby from the mise precompiled binaries.
+      # MISE_RUBY_COMPILE=false errors out if no precompiled binary is
+      # available rather than falling back to compiling from source.
+      #
+      mise_log=$(mktemp)
+      echo "Installing Ruby $RUBY_VERSION..."
+      if ! MISE_RUBY_COMPILE=false mise install "ruby@$RUBY_VERSION" 2>&1 | tee "$mise_log"; then
+        if grep -i "error" "$mise_log" | grep -qi "attestation"; then
           cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
-      Ruby $RUBY_VERSION is not available for runs using the deprecated \`base.os\` and \`base.tag\` configuration.
-      See https://www.rwx.com/docs/base-os-to-image-migration to learn how to migrate \`base.os\` and \`base.tag\` to \`base.image\` and \`base.config\`.
+      Failed to verify the GitHub artifact attestations for the Ruby $RUBY_VERSION precompiled binary.
+      Try installing a different Ruby version, or set the \`ensure-github-attestations\` parameter to \`"false"\` to skip attestation verification.
       EOF
         else
           cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
-      Ruby $RUBY_VERSION is not available in this version of [ruby/install](https://www.rwx.com/docs/mint/packages/ruby/install) and OS.
-      Try upgrading to the most recent version of this package. If the Ruby version is still not available, [file an issue](https://github.com/rwx-cloud/packages/issues/new).
+      Failed to install Ruby $RUBY_VERSION from the [mise precompiled binaries](https://mise.jdx.dev/lang/ruby.html#precompiled-binaries).
+      [ruby/install](https://www.rwx.com/docs/mint/packages/ruby/install) supports any Ruby version with a precompiled binary available for this platform.
       EOF
         fi
         exit 3
       fi
-      echo "Found Ruby $RUBY_VERSION!"
-      sha256sum=$(echo "$version_line" | cut -d, -f2)
-      path=$(echo "$version_line" | cut -d, -f3)
+      rm -f "$mise_log"
 
-      # Download and extract the prebuilt Ruby
-      echo "Downloading Ruby $RUBY_VERSION..."
-      curl -o layer.tar -fsSL "https://mint-prebuilt-binaries20240129200014482300000001.s3.us-east-2.amazonaws.com/mint/install-ruby/$path"
-      echo "$sha256sum layer.tar" | sha256sum --check --status
-      echo "Downloaded Ruby $RUBY_VERSION!"
-
-      echo "Extracting Ruby $RUBY_VERSION..."
-
-      ## Apply whiteouts
       #
-      whiteouts=$(tar -tvf layer.tar | awk '$1 == "c---------" && $3 == "0,0"' | awk '{print $6}')
-      echo "$whiteouts" | xargs -I{} bash -c 'cd / && sudo rm -rf {}'
-
-      ## Extract archive
+      # Move Ruby to its final home and remove mise. The precompiled
+      # binaries are relocatable, so they run from any directory.
       #
-      echo "$whiteouts" > exclude.txt
-      echo "run/docker.sock" >> exclude.txt
-      echo "usr/sbin/docker-init" >> exclude.txt
-      sudo tar -C / -xf layer.tar -X exclude.txt
+      source_dir=$(realpath "$(mise where "ruby@$RUBY_VERSION")")
+      resolved_version=$(basename "$source_dir")
+      path_to_ruby_home="$HOME/.rubies/ruby-$resolved_version"
+      mkdir -p "$HOME/.rubies"
+      rm -rf "$path_to_ruby_home"
+      mv "$source_dir" "$path_to_ruby_home"
+      rm -rf "$mise_dir"
 
-      echo "Extracted Ruby $RUBY_VERSION!"
+      # mise adds a rubygems plugin that runs `mise reshim` after every
+      # `gem install`; without mise present it makes gem commands fail.
+      rm -f "$path_to_ruby_home/lib/ruby/site_ruby/rubygems_plugin.rb"
+
+      echo "Installed Ruby $resolved_version!"
 
       # Add Ruby to PATH
-      path_to_ruby="$HOME/.rubies/ruby-$RUBY_VERSION/bin"
+      path_to_ruby="$path_to_ruby_home/bin"
       echo "Adding $path_to_ruby to \$PATH"
       echo "$path_to_ruby" >> "$RWX_ENV/PATH"
-
-      # cleanup
-      rm exclude.txt
-      rm layer.tar
     env:
       RUBY_VERSION: ${{ params.ruby-version }}
       RUBY_VERSION_FILE: ${{ params.ruby-version-file }}
+      ENSURE_GITHUB_ATTESTATIONS: ${{ params.ensure-github-attestations }}
