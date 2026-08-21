@@ -10,7 +10,7 @@ If your project has a `.ruby-version` file:
 ```yaml
 tasks:
   - key: ruby
-    call: ruby/install 2.0.0
+    call: ruby/install 2.0.1
     with:
       ruby-version-file: .ruby-version
     filter: [.ruby-version]
@@ -25,7 +25,7 @@ If your project does not have a `.ruby-version` file, you can specify the versio
 ```yaml
 tasks:
   - key: ruby
-    call: ruby/install 2.0.0
+    call: ruby/install 2.0.1
     with:
       ruby-version: 3.4.10
 ```
@@ -38,7 +38,7 @@ To skip verification, set `ensure-github-attestations` to `"false"`:
 ```yaml
 tasks:
   - key: ruby
-    call: ruby/install 2.0.0
+    call: ruby/install 2.0.1
     with:
       ruby-version: 3.4.10
       ensure-github-attestations: "false"

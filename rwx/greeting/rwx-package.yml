@@ -1,13 +1,15 @@
-name: rwx/greeting
-version: 1.0.6
-description: Says hello, for testing and demonstration purposes
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/greeting
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: rwx/greeting
+  version: 1.1.0
+  description: Says hello, for testing and demonstration purposes
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/greeting
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  name:
-    description: "Name to greet"
-    required: true
+  parameters:
+    name:
+      description: "Name to greet"
+      required: true
 
 tasks:
   - key: greet

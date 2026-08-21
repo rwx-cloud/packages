@@ -1,16 +1,19 @@
-name: twingate/setup
-version: 1.0.12
-description: Install & setup Twingate
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/twingate/setup
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: twingate/setup
+  version: 1.1.0
+  description: Install & setup Twingate
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/twingate/setup
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  twingate-service-key:
-    description: "A service key for Twingate"
-    required: true
+  parameters:
+    twingate-service-key:
+      description: "A service key for Twingate"
+      required: true
 
 tasks:
   - key: install
+    use: package.use
     run: |
       source "$RWX_PACKAGE_PATH/rwx-utils.sh"
       if ! rwx_os_package_manager_in apt; then
@@ -22,11 +25,13 @@ tasks:
       rwx_maybe_sudo apt-get update -yq
       rwx_maybe_sudo apt-get install -yq twingate
       rwx_maybe_sudo apt-get clean
+    filter: []
 
   - key: setup
     use: install
     run: |
       source "$RWX_PACKAGE_PATH/rwx-utils.sh"
       echo $TWINGATE_SERVICE_KEY | rwx_maybe_sudo twingate setup --headless=-
+    filter: []
     env:
       TWINGATE_SERVICE_KEY: ${{ params.twingate-service-key }}

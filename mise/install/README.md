@@ -10,7 +10,7 @@ tasks:
 
   - key: mise
     use: code
-    call: mise/install 1.0.1
+    call: mise/install 1.1.0
     filter:
       - mise.toml
 ```
@@ -24,7 +24,7 @@ This reads the mise config in the checkout root (`mise.toml`, `.mise.toml`, or
 tasks:
   - key: tools
     use: code
-    call: mise/install 1.0.1
+    call: mise/install 1.1.0
     with:
       mise-version: "2026.7.11"
 ```
@@ -34,7 +34,7 @@ tasks:
 ```yaml
 tasks:
   - key: mise
-    call: mise/install 1.0.1
+    call: mise/install 1.1.0
     with:
       install: "false"
 
@@ -49,7 +49,7 @@ tasks:
 tasks:
   - key: tools
     use: code
-    call: mise/install 1.0.1
+    call: mise/install 1.1.0
     with:
       working-directory: services/api
     filter:
@@ -66,7 +66,7 @@ name, so later tasks can reference a version without re-parsing the config:
 tasks:
   - key: mise
     use: code
-    call: mise/install 1.0.1
+    call: mise/install 1.1.0
     filter:
       - mise.toml
 
@@ -88,7 +88,7 @@ assert it matches a base image) without installing the tools:
 tasks:
   - key: mise
     use: code
-    call: mise/install 1.0.1
+    call: mise/install 1.1.0
     with:
       install: "false"
     filter:

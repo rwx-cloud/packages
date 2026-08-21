@@ -1,22 +1,25 @@
-name: ruby/install
-version: 2.0.0
-description: Install Ruby, a dynamic programming language with a focus on simplicity and productivity
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/ruby/install
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: ruby/install
+  version: 2.0.1
+  description: Install Ruby, a dynamic programming language with a focus on simplicity and productivity
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/ruby/install
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  ruby-version:
-    description: "Version of Ruby to install"
-    required: false
-  ruby-version-file:
-    description: "File containing version of Ruby to install, commonly .ruby-version"
-    required: false
-  ensure-github-attestations:
-    description: "Verify GitHub artifact attestations for the precompiled binary before installing it"
-    default: "true"
+  parameters:
+    ruby-version:
+      description: "Version of Ruby to install"
+      required: false
+    ruby-version-file:
+      description: "File containing version of Ruby to install, commonly .ruby-version"
+      required: false
+    ensure-github-attestations:
+      description: "Verify GitHub artifact attestations for the precompiled binary before installing it"
+      default: true
 
 tasks:
   - key: install-ruby
+    use: [package.use]
     run: |
       set -u
 
@@ -124,6 +127,8 @@ tasks:
       path_to_ruby="$path_to_ruby_home/bin"
       echo "Adding $path_to_ruby to \$PATH"
       echo "$path_to_ruby" >> "$RWX_ENV/PATH"
+    filter:
+      - '${{ params.ruby-version-file == "" ? "___NOMATCH" : params.ruby-version-file }}'
     env:
       RUBY_VERSION: ${{ params.ruby-version }}
       RUBY_VERSION_FILE: ${{ params.ruby-version-file }}

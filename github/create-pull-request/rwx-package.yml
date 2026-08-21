@@ -1,38 +1,40 @@
-name: github/create-pull-request
-version: 1.0.7
-description: Creates a pull request
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/create-pull-request
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: github/create-pull-request
+  version: 1.1.0
+  description: Creates a pull request
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/create-pull-request
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  github-token:
-    description: "The GitHub token to a private app"
-    required: true
-  branch-prefix:
-    description: "Branch prefix to idenitfy existing pull request"
-    required: true
-  pull-request-title:
-    description: "The title to use for the pull request"
-    required: true
-  pull-request-body:
-    description: "The body to use for the pull request"
-    required: true
-  enable-auto-merge:
-    description: "Enable squash auto-merge on the pull request (requires repository auto-merge support)"
-    default: false
-  reviewers:
-    description: "Comma-separated list of reviewers to request (usernames and/or org/team slugs in `gh`'s native format)"
-    default: ""
+  parameters:
+    github-token:
+      description: "The GitHub token to a private app"
+      required: true
+    branch-prefix:
+      description: "Branch prefix to idenitfy existing pull request"
+      required: true
+    pull-request-title:
+      description: "The title to use for the pull request"
+      required: true
+    pull-request-body:
+      description: "The body to use for the pull request"
+      required: true
+    enable-auto-merge:
+      description: "Enable squash auto-merge on the pull request (requires repository auto-merge support)"
+      default: false
+    reviewers:
+      description: "Comma-separated list of reviewers to request (usernames and/or org/team slugs in `gh`'s native format)"
+      default: ""
 
-outputs:
-  values-from: [create-or-update-pull-request]
+  outputs:
+    values-from: [create-or-update-pull-request]
 
 tasks:
   - key: gh-cli
-    call: github/install-cli 1.0.10
+    call: github/install-cli 1.0.11
 
   - key: create-or-update-pull-request
-    use: [gh-cli]
+    use: [package.use, gh-cli]
     cache: false
     run: |
       # ensure these values are always present

@@ -1,16 +1,19 @@
-name: erlang/install
-version: 1.1.4
-description: Install Erlang, a programming language used to build massively scalable soft real-time systems with requirements on high availability
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/erlang/install
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: erlang/install
+  version: 1.2.0
+  description: Install Erlang, a programming language used to build massively scalable soft real-time systems with requirements on high availability
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/erlang/install
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  erlang-version:
-    description: "Version of Erlang to install"
-    required: true
+  parameters:
+    erlang-version:
+      description: "Version of Erlang to install"
+      required: true
 
 tasks:
   - key: install
+    use: package.use
     run: |
       source "$RWX_PACKAGE_PATH/rwx-utils.sh"
       if [ "$(rwx_os_name)" != "ubuntu" ]; then
@@ -80,5 +83,6 @@ tasks:
       erl -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), "releases", erlang:system_info(otp_release), "OTP_VERSION"])), io:fwrite(Version), halt().' -noshell | tee /dev/stderr | grep "^${ERLANG_VERSION}$"
 
       echo "Installed OTP-${ERLANG_VERSION} to ${ERL_ROOT}"
+    filter: []
     env:
       ERLANG_VERSION: ${{ params.erlang-version }}

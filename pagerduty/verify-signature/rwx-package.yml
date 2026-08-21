@@ -1,22 +1,25 @@
-name: pagerduty/verify-signature
-version: 1.0.1
-description: Verify webhook signatures from PagerDuty
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/pagerduty/verify-signature
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: pagerduty/verify-signature
+  version: 1.1.0
+  description: Verify webhook signatures from PagerDuty
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/pagerduty/verify-signature
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  body:
-    description: "The body of the incoming webook"
-    required: true
-  headers:
-    description: "The headers of the incoming webhook"
-    required: true
-  shared-secret:
-    description: "The shared secret provided to you by PagerDuty upon creating the webhook"
-    required: true
+  parameters:
+    body:
+      description: "The body of the incoming webook"
+      required: true
+    headers:
+      description: "The headers of the incoming webhook"
+      required: true
+    shared-secret:
+      description: "The shared secret provided to you by PagerDuty upon creating the webhook"
+      required: true
 
 tasks:
   - key: verify
+    use: [package.use]
     run: |
       needed=""
 
@@ -39,6 +42,7 @@ tasks:
 
       SIGNATURE=$(printf '%s' "$HEADERS" | jq -r '.["x-pagerduty-signature"]')
       printf '%s' "$BODY" | $RWX_PACKAGE_PATH/verify.sh "$SHARED_SECRET" "$SIGNATURE" "v1"
+    filter: []
     env:
       BODY: ${{ params.body }}
       HEADERS: ${{ params.headers }}

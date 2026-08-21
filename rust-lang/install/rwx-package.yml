@@ -1,16 +1,19 @@
-name: rust-lang/install
-version: 1.0.8
-description: Install Rust, a language empowering everyone to build reliable and efficient software.
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/rust-lang/install
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: rust-lang/install
+  version: 1.1.0
+  description: Install Rust, a language empowering everyone to build reliable and efficient software.
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/rust-lang/install
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  rust-version:
-    description: "Version of Rust to install"
-    required: true
+  parameters:
+    rust-version:
+      description: "Version of Rust to install"
+      required: true
 
 tasks:
   - key: install
+    use: package.use
     run: |
       source "$RWX_PACKAGE_PATH/rwx-utils.sh"
 
@@ -124,5 +127,6 @@ tasks:
       rustc --version
       cargo --version
       echo "~/.cargo/bin" > "${RWX_ENV}/PATH"
+    filter: []
     env:
       RUST_VERSION: ${{ params.rust-version }}

@@ -1,16 +1,19 @@
-name: sonarsource/install-sonar-scanner
-version: 1.0.5
-description: Install SonarSource's sonar-scanner
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/sonarsource/install-sonar-scanner
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: sonarsource/install-sonar-scanner
+  version: 1.1.0
+  description: Install SonarSource's sonar-scanner
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/sonarsource/install-sonar-scanner
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  sonar-scanner-version:
-    description: "Version of sonar-scanner to install."
-    required: true
+  parameters:
+    sonar-scanner-version:
+      description: "Version of sonar-scanner to install."
+      required: true
 
 tasks:
   - key: install
+    use: package.use
     run: |
       source "$RWX_PACKAGE_PATH/rwx-utils.sh"
 
@@ -45,5 +48,6 @@ tasks:
       echo "Installed sonar-scanner ${SONAR_SCANNER_VERSION}"
       /opt/sonar-scanner/bin/sonar-scanner --version
       echo
+    filter: []
     env:
       SONAR_SCANNER_VERSION: ${{ params.sonar-scanner-version }}

@@ -1,16 +1,19 @@
-name: depot/install-cli
-version: 1.0.5
-description: Install the Depot CLI
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/depot/install-cli
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: depot/install-cli
+  version: 1.1.0
+  description: Install the Depot CLI
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/depot/install-cli
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  cli-version:
-    description: "Version of the CLI to install"
-    default: "latest"
+  parameters:
+    cli-version:
+      description: "Version of the CLI to install"
+      default: "latest"
 
 tasks:
   - key: install
+    use: package.use
     run: |
       source "$RWX_PACKAGE_PATH/rwx-utils.sh"
 
@@ -26,3 +29,4 @@ tasks:
       rm -rf "$DEPOT_INSTALL_DIR"
       rm ./install-cli.sh
       depot --version
+    filter: []

@@ -1,19 +1,21 @@
-name: render/deploy
-version: 1.0.6
-description: Deploy to Render.com
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/render/deploy
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: render/deploy
+  version: 1.1.0
+  description: Deploy to Render.com
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/render/deploy
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  ref:
-    description: "The git ref to deploy."
-    required: true
-  render-api-key:
-    description: "API key for the Render API."
-    required: true
-  service-name:
-    description: "Name of the Render service to deploy."
-    required: true
+  parameters:
+    ref:
+      description: "The git ref to deploy."
+      required: true
+    render-api-key:
+      description: "API key for the Render API."
+      required: true
+    service-name:
+      description: "Name of the Render service to deploy."
+      required: true
 
 tasks:
   - key: locate-service

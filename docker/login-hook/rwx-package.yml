@@ -1,19 +1,21 @@
-name: docker/login-hook
-version: 1.0.5
-description: Mint hook to log in to a Docker registry
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/docker/login-hook
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: docker/login-hook
+  version: 1.1.0
+  description: Mint hook to log in to a Docker registry
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/docker/login-hook
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  username:
-    description: "The username to log in with."
-    required: true
-  password-env-name:
-    description: "The environment variable name that contains the Docker registry token or password."
-    default: DOCKER_PASSWORD
-  registry:
-    description: "The Docker registry to log in to."
-    default: docker.io
+  parameters:
+    username:
+      description: "The username to log in with."
+      required: true
+    password-env-name:
+      description: "The environment variable name that contains the Docker registry token or password."
+      default: DOCKER_PASSWORD
+    registry:
+      description: "The Docker registry to log in to."
+      default: docker.io
 
 tasks:
   - key: produce-login-hooks

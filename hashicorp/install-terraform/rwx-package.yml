@@ -1,16 +1,19 @@
-name: hashicorp/install-terraform
-version: 1.0.13
-description: Install the Terraform CLI, a tool for building, changing, and versioning infrastructure safely and efficiently
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/hashicorp/install-terraform
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: hashicorp/install-terraform
+  version: 1.1.0
+  description: Install the Terraform CLI, a tool for building, changing, and versioning infrastructure safely and efficiently
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/hashicorp/install-terraform
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  terraform-version:
-    description: "Version of Terraform to install"
-    default: "latest"
+  parameters:
+    terraform-version:
+      description: "Version of Terraform to install"
+      default: "latest"
 
 tasks:
   - key: install
+    use: package.use
     run: |
       source "$RWX_PACKAGE_PATH/rwx-utils.sh"
       if ! rwx_os_package_manager_in apt; then
@@ -34,3 +37,4 @@ tasks:
         rwx_maybe_sudo apt-get install -y terraform=${{ params.terraform-version }}-*
       fi
       rwx_maybe_sudo apt-get clean
+    filter: []

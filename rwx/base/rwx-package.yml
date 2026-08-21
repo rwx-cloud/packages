@@ -1,8 +1,10 @@
-name: rwx/base
-version: 1.1.1
-description: The default base image configuration
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/base
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: rwx/base
+  version: 1.2.0
+  description: The default base image configuration
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/base
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
 tasks:
   - key: configure

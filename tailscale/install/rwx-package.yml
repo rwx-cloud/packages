@@ -1,13 +1,15 @@
-name: tailscale/install
-version: 1.0.7
-description: Install Tailscale
-source_code_url: https://github.com/rwx-cloud/packages/tree/main/tailscale/install
-issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+package:
+  name: tailscale/install
+  version: 1.1.0
+  description: Install Tailscale
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/tailscale/install
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
 
-parameters:
-  version:
-    description: "Version to install"
-    default: "latest"
+  parameters:
+    version:
+      description: "Version to install"
+      default: "latest"
 
 tasks:
   - key: download

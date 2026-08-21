@@ -6,7 +6,7 @@ Any Python version with a precompiled binary available is supported. You'll need
 ```yaml
 tasks:
   - key: python
-    call: python/install 2.0.0
+    call: python/install 2.0.1
     with:
       python-version: 3.14.7
 ```
@@ -16,7 +16,7 @@ You can optionally specify the version of `pip` to install:
 ```yaml
 tasks:
   - key: python
-    call: python/install 2.0.0
+    call: python/install 2.0.1
     with:
       python-version: 3.14.7
       pip-version: 25.0.1
@@ -27,7 +27,7 @@ And the version of `setuptools`:
 ```yaml
 tasks:
   - key: python
-    call: python/install 2.0.0
+    call: python/install 2.0.1
     with:
       python-version: 3.14.7
       pip-version: 25.0.1
@@ -40,7 +40,7 @@ To skip verification, set `ensure-github-attestations` to `"false"`:
 ```yaml
 tasks:
   - key: python
-    call: python/install 2.0.0
+    call: python/install 2.0.1
     with:
       python-version: 3.14.7
       ensure-github-attestations: "false"
