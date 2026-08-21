@@ -13,7 +13,7 @@ tasks:
     use: install-3-14-7
     run: |
       python --version | grep 'Python 3\.14\.7'
-      pip --version | grep 'pip 26\.2\.1 '
+      pip --version | grep '(python 3\.14)'
 
   - key: install-3-14-7--test-pip-install
     use: install-3-14-7
@@ -31,7 +31,7 @@ tasks:
     use: install-3-12-13
     run: |
       python --version | grep 'Python 3\.12\.13'
-      pip --version | grep 'pip 25\.0\.1'
+      pip --version | grep '(python 3\.12)'
 
   - key: install-3-12-13--test-pip-install
     use: install-3-12-13
@@ -40,102 +40,73 @@ tasks:
       which virtualenv
       virtualenv --version
 
-  - key: install-3-11-15
+  - key: install-3-11-16
     call: ${{ init.package-digest }}
     with:
-      python-version: 3.11.15
+      python-version: 3.11.16
 
-  - key: install-3-11-15--assert
-    use: install-3-11-15
+  - key: install-3-11-16--assert
+    use: install-3-11-16
     run: |
-      python --version | grep 'Python 3\.11\.15'
-      pip --version | grep 'pip 24\.0'
+      python --version | grep 'Python 3\.11\.16'
+      pip --version | grep '(python 3\.11)'
 
-  - key: install-3-10-20
+  - key: install-3-10-21
     call: ${{ init.package-digest }}
     with:
-      python-version: 3.10.20
+      python-version: 3.10.21
 
-  - key: install-3-10-20--assert
-    use: install-3-10-20
+  - key: install-3-10-21--assert
+    use: install-3-10-21
     run: |
-      python --version | grep 'Python 3\.10\.20'
-      pip --version | grep 'pip 23\.0\.1'
+      python --version | grep 'Python 3\.10\.21'
+      pip --version | grep '(python 3\.10)'
 
   - key: install-3-9-25
-    if: ${{ init.base-image != "ubuntu:26.04" }}
     call: ${{ init.package-digest }}
     with:
       python-version: 3.9.25
 
   - key: install-3-9-25--assert
-    if: ${{ init.base-image != "ubuntu:26.04" }}
     use: install-3-9-25
     run: |
       python --version | grep 'Python 3\.9\.25'
-      pip --version | grep 'pip 23\.0\.1'
-
-  - key: install-3-8-20
-    if: ${{ init.base-image != "ubuntu:26.04" }}
-    call: ${{ init.package-digest }}
-    with:
-      python-version: 3.8.20
-
-  - key: install-3-8-20--assert
-    if: ${{ init.base-image != "ubuntu:26.04" }}
-    use: install-3-8-20
-    run: |
-      python --version | grep 'Python 3\.8\.20'
-      pip --version | grep 'pip 23\.0\.1'
-
-  - key: install-3-7-17
-    if: ${{ init.base-image != "ubuntu:26.04" }}
-    call: ${{ init.package-digest }}
-    with:
-      python-version: 3.7.17
-
-  - key: install-3-7-17--assert
-    if: ${{ init.base-image != "ubuntu:26.04" }}
-    use: install-3-7-17
-    run: |
-      python --version | grep 'Python 3\.7\.17'
-      pip --version | grep 'pip 23\.0\.1'
+      pip --version | grep '(python 3\.9)'
 
   - key: upgrade-pip
     call: ${{ init.package-digest }}
     with:
-      python-version: 3.12.6
+      python-version: 3.12.13
       pip-version: 24.1
 
   - key: upgrade-pip--assert
     use: upgrade-pip
     run: |
-      python --version | grep 'Python 3\.12\.6'
+      python --version | grep 'Python 3\.12\.13'
       pip --version | grep 'pip 24\.1'
 
   - key: upgrade-setuptools
     call: ${{ init.package-digest }}
     with:
-      python-version: 3.12.6
+      python-version: 3.12.13
       setuptools-version: 72.1.0
 
   - key: upgrade-setuptools--assert
     use: upgrade-setuptools
     run: |
-      python --version | grep 'Python 3\.12\.6'
-      pip --version | grep 'pip 24\.2'
+      python --version | grep 'Python 3\.12\.13'
       pip show setuptools | grep Version | grep '72\.1\.0'
 
   - key: upgrade-pip-and-setuptools
     call: ${{ init.package-digest }}
     with:
-      python-version: 3.12.6
+      python-version: 3.12.13
       pip-version: 24.1
       setuptools-version: 72.1.0
 
   - key: upgrade-pip-and-setuptools--assert
     use: upgrade-pip-and-setuptools
     run: |
-      python --version | grep 'Python 3\.12\.6'
+      python --version | grep 'Python 3\.12\.13'
       pip --version | grep 'pip 24\.1'
       pip show setuptools | grep Version | grep '72\.1\.0'

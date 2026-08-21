@@ -1,5 +1,5 @@
 name: python/install
-version: 1.4.7
+version: 2.0.0
 description: Install Python, a programming language that lets you work quickly and integrate systems more effectively
 source_code_url: https://github.com/rwx-cloud/packages/tree/main/python/install
 issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -19,14 +19,13 @@ tasks:
   - key: install-python
     run: |
       set -u
-      source "$RWX_PACKAGE_PATH/rwx-utils.sh"
 
       #
       # Check OS support
       #
       source "$RWX_PACKAGE_PATH/rwx-utils.sh"
-      if ! rwx_os_name_in ubuntu; then
-        echo "Unsupported operating system \`$(rwx_os_name)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
+      if ! rwx_os_package_manager_in apt; then
+        echo "Unsupported operating system or package manager \`$(rwx_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXX")"
         exit 1
       fi
 
@@ -41,79 +40,63 @@ tasks:
       fi
 
       #
-      # Install system dependencies
+      # Ensure prerequisites for installing mise
       #
-      os_packages="ca-certificates libexpat1 libsqlite3-0 media-types readline-common tzdata"
-      if rwx_os_version_gte 24.04; then
-        os_packages+=" libreadline8t64 libssl3t64 openssl"
-      else
-        os_packages+=" libmpdec3 libreadline8 libssl3"
+      if ! command -v curl >/dev/null 2>&1; then
+        rwx_maybe_sudo apt-get update
+        rwx_maybe_sudo apt-get install --no-upgrade -y curl ca-certificates
+        rwx_maybe_sudo apt-get clean
       fi
 
-      sudo apt-get update
-      sudo apt-get install --no-upgrade $os_packages
-      sudo apt-get clean
+      #
+      # Install mise into a temporary directory. mise resolves the Python
+      # version to the right precompiled binary and verifies its checksum;
+      # the Python install is moved out and mise is deleted afterwards, so
+      # mise itself is not persisted in the task's filesystem.
+      #
+      mise_dir=$(mktemp -d)
+      export MISE_INSTALL_PATH="$mise_dir/bin/mise"
+      export MISE_DATA_DIR="$mise_dir/data"
+      export MISE_CACHE_DIR="$mise_dir/cache"
+      export MISE_STATE_DIR="$mise_dir/state"
+      export MISE_CONFIG_DIR="$mise_dir/config"
+
+      curl -fsSL https://mise.run | sh
+      export PATH="$mise_dir/bin:$PATH"
+      mise --version
 
       #
-      # Install Python
+      # Install Python from the mise precompiled binaries.
+      # MISE_PYTHON_COMPILE=false errors out if no precompiled binary is
+      # available rather than falling back to compiling from source.
       #
-      # Find the prebuilt Python
-      echo "Looking for Python $PYTHON_VERSION..."
-      escaped_version=$(echo "$PYTHON_VERSION" | sed "s/\./\\\\./g") # 3.2.2 => 3\.2\.2
-      escaped_os=$(rwx_os_name_version | sed "s/\./\\\\./g")
-      escaped_arch=$(rwx_arch)
-      if [ "$escaped_arch" = "aarch64" ]; then
-        escaped_arch="arm64"
-      fi
-
-      if [ "$(id -u)" = "999" ]; then
-        known_pythons_file="known-pythons-os-base.csv"
-      else
-        known_pythons_file="known-pythons-image-base.csv"
-      fi
-      version_line=$(cat $RWX_PACKAGE_PATH/$known_pythons_file | { grep -E "^$escaped_version,[^,]+,[^,]+,$escaped_os,$escaped_arch" || test $? = 1; })
-      if [[ -z "$version_line" ]]; then
+      echo "Installing Python $PYTHON_VERSION..."
+      if ! MISE_PYTHON_COMPILE=false mise install "python@$PYTHON_VERSION"; then
         cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
-      Python $PYTHON_VERSION is not available in this version of [python/install](https://www.rwx.com/docs/mint/packages/python/install) and OS.
-      Try upgrading to the most recent version of this package. If the Python version is still not available, [file an issue](https://github.com/rwx-cloud/packages/issues/new).
+      Python $PYTHON_VERSION is not available as a [mise precompiled binary](https://mise.jdx.dev/lang/python.html#precompiled-python-binaries) for this platform.
+      [python/install](https://www.rwx.com/docs/mint/packages/python/install) supports any Python version with a precompiled binary available.
       EOF
         exit 3
       fi
-      echo "Found Python $PYTHON_VERSION!"
-      sha256sum=$(echo "$version_line" | cut -d, -f2)
-      path=$(echo "$version_line" | cut -d, -f3)
 
-      # Download and extract the prebuilt Python
-      echo "Downloading Python $PYTHON_VERSION..."
-      curl -o layer.tar -fsSL "https://mint-prebuilt-binaries20240129200014482300000001.s3.us-east-2.amazonaws.com/mint/install-python/$path"
-      echo "$sha256sum layer.tar" | sha256sum --check --status
-      echo "Downloaded Python $PYTHON_VERSION!"
-
-      echo "Extracting Python $PYTHON_VERSION..."
-
-      ## Apply whiteouts
       #
-      whiteouts=$(tar -tvf layer.tar | awk '$1 == "c---------" && $3 == "0,0"' | awk '{print $6}')
-      echo "$whiteouts" | xargs -I{} bash -c 'cd / && sudo rm -rf {}'
-
-      ## Extract archive
+      # Move Python to its final home and remove mise. The precompiled
+      # binaries are relocatable, so they run from any directory.
       #
-      echo "$whiteouts" > exclude.txt
-      echo "run/docker.sock" >> exclude.txt
-      echo "usr/sbin/docker-init" >> exclude.txt
-      sudo tar -C / -xf layer.tar -X exclude.txt
+      source_dir=$(realpath "$(mise where "python@$PYTHON_VERSION")")
+      resolved_version=$(basename "$source_dir")
+      path_to_python_home="$HOME/.pythons/python-$resolved_version"
+      mkdir -p "$HOME/.pythons"
+      rm -rf "$path_to_python_home"
+      mv "$source_dir" "$path_to_python_home"
+      rm -rf "$mise_dir"
+      echo "Installed Python $resolved_version!"
 
-      echo "Extracted Python $PYTHON_VERSION!"
-
-      # Add pip to PATH
-      echo "$HOME/.local/bin" >> "$RWX_ENV/PATH"
-
-      # Update dynamic linker cache to pick up the new Python libraries
-      sudo ldconfig
-
-      # cleanup
-      rm exclude.txt
-      rm layer.tar
+      # Add Python to PATH
+      path_to_python="$path_to_python_home/bin"
+      echo "Adding $HOME/.local/bin:$path_to_python to \$PATH"
+      export PATH="$HOME/.local/bin:$path_to_python:$PATH"
+      echo "$HOME/.local/bin:$path_to_python" >> "$RWX_ENV/PATH"
 
       if [ -n "${PIP_VERSION}" ]; then
         echo "Installing pip ${PIP_VERSION}"

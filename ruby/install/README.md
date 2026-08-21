@@ -1,6 +1,7 @@
 # ruby/install
 
-RWX currently supports Ruby versions 3.1.0 through 4.0.6 You'll either need to specify `ruby-version` or `ruby-version-file`.
+Installs Ruby from the [mise precompiled binaries](https://mise.jdx.dev/lang/ruby.html#precompiled-binaries).
+Any Ruby version with a precompiled binary available is supported. You'll either need to specify `ruby-version` or `ruby-version-file`.
 
 ## With a .ruby-version file
 
@@ -9,7 +10,7 @@ If your project has a `.ruby-version` file:
 ```yaml
 tasks:
   - key: ruby
-    call: ruby/install 1.2.33
+    call: ruby/install 2.0.0
     with:
       ruby-version-file: .ruby-version
     filter: [.ruby-version]
@@ -24,7 +25,7 @@ If your project does not have a `.ruby-version` file, you can specify the versio
 ```yaml
 tasks:
   - key: ruby
-    call: ruby/install 1.2.33
+    call: ruby/install 2.0.0
     with:
-      ruby-version: 3.4.9
+      ruby-version: 3.4.10
 ```
