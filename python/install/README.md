@@ -34,5 +34,17 @@ tasks:
       setuptools-version: 78.1.0
 ```
 
+By default, the GitHub artifact attestations of the precompiled binary are verified before it is installed.
+To skip verification, set `ensure-github-attestations` to `"false"`:
+
+```yaml
+tasks:
+  - key: python
+    call: python/install 2.0.0
+    with:
+      python-version: 3.14.7
+      ensure-github-attestations: "false"
+```
+
 If you do not specify `pip-version` or `setuptools-version`, the versions bundled with the precompiled binary will be installed.
 NOTE: Python versions 3.12.0 and greater do not install `setuptools` by default. See [docker-library/python#952](https://github.com/docker-library/python/issues/952) for more information on this decision. If you would like to install setuptools via this package, pass the `setuptools-version` parameter.

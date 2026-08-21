@@ -76,13 +76,14 @@ tasks:
   - key: upgrade-pip
     call: ${{ init.package-digest }}
     with:
-      python-version: 3.12.13
+      python-version: 3.12.6
       pip-version: 24.1
+      ensure-github-attestations: "false"
 
   - key: upgrade-pip--assert
     use: upgrade-pip
     run: |
-      python --version | grep 'Python 3\.12\.13'
+      python --version | grep 'Python 3\.12\.6'
       pip --version | grep 'pip 24\.1'
 
   - key: upgrade-setuptools

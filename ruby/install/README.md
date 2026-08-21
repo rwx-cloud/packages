@@ -29,3 +29,17 @@ tasks:
     with:
       ruby-version: 3.4.10
 ```
+
+## GitHub attestation verification
+
+By default, the GitHub artifact attestations of the precompiled binary are verified before it is installed.
+To skip verification, set `ensure-github-attestations` to `"false"`:
+
+```yaml
+tasks:
+  - key: ruby
+    call: ruby/install 2.0.0
+    with:
+      ruby-version: 3.4.10
+      ensure-github-attestations: "false"
+```

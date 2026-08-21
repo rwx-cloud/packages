@@ -14,6 +14,9 @@ parameters:
   setuptools-version:
     description: "Version of setuptools to install"
     required: false
+  ensure-github-attestations:
+    description: "Verify GitHub artifact attestations for the precompiled binary before installing it"
+    default: "true"
 
 tasks:
   - key: install-python
@@ -65,19 +68,32 @@ tasks:
       export PATH="$mise_dir/bin:$PATH"
       mise --version
 
+      if [ "$ENSURE_GITHUB_ATTESTATIONS" = "false" ]; then
+        export MISE_GITHUB_ATTESTATIONS=false
+      fi
+
       #
       # Install Python from the mise precompiled binaries.
       # MISE_PYTHON_COMPILE=false errors out if no precompiled binary is
       # available rather than falling back to compiling from source.
       #
+      mise_log=$(mktemp)
       echo "Installing Python $PYTHON_VERSION..."
-      if ! MISE_PYTHON_COMPILE=false mise install "python@$PYTHON_VERSION"; then
-        cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
-      Python $PYTHON_VERSION is not available as a [mise precompiled binary](https://mise.jdx.dev/lang/python.html#precompiled-python-binaries) for this platform.
-      [python/install](https://www.rwx.com/docs/mint/packages/python/install) supports any Python version with a precompiled binary available.
+      if ! MISE_PYTHON_COMPILE=false mise install "python@$PYTHON_VERSION" 2>&1 | tee "$mise_log"; then
+        if grep -i "error" "$mise_log" | grep -qi "attestation"; then
+          cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
+      Failed to verify the GitHub artifact attestations for the Python $PYTHON_VERSION precompiled binary.
+      Try installing a different patch version of Python, or set the \`ensure-github-attestations\` parameter to \`"false"\` to skip attestation verification.
       EOF
+        else
+          cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
+      Failed to install Python $PYTHON_VERSION from the [mise precompiled binaries](https://mise.jdx.dev/lang/python.html#precompiled-python-binaries).
+      [python/install](https://www.rwx.com/docs/mint/packages/python/install) supports any Python version with a precompiled binary available for this platform.
+      EOF
+        fi
         exit 3
       fi
+      rm -f "$mise_log"
 
       #
       # Move Python to its final home and remove mise. The precompiled
@@ -113,3 +129,4 @@ tasks:
       PIP_VERSION: ${{ params.pip-version }}
       SETUPTOOLS_VERSION: ${{ params.setuptools-version }}
       PYTHON_VERSION: ${{ params.python-version }}
+      ENSURE_GITHUB_ATTESTATIONS: ${{ params.ensure-github-attestations }}

@@ -11,6 +11,9 @@ parameters:
   ruby-version-file:
     description: "File containing version of Ruby to install, commonly .ruby-version"
     required: false
+  ensure-github-attestations:
+    description: "Verify GitHub artifact attestations for the precompiled binary before installing it"
+    default: "true"
 
 tasks:
   - key: install-ruby
@@ -72,19 +75,32 @@ tasks:
       export PATH="$mise_dir/bin:$PATH"
       mise --version
 
+      if [ "$ENSURE_GITHUB_ATTESTATIONS" = "false" ]; then
+        export MISE_GITHUB_ATTESTATIONS=false
+      fi
+
       #
       # Install Ruby from the mise precompiled binaries.
       # MISE_RUBY_COMPILE=false errors out if no precompiled binary is
       # available rather than falling back to compiling from source.
       #
+      mise_log=$(mktemp)
       echo "Installing Ruby $RUBY_VERSION..."
-      if ! MISE_RUBY_COMPILE=false mise install "ruby@$RUBY_VERSION"; then
-        cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
-      Ruby $RUBY_VERSION is not available as a [mise precompiled binary](https://mise.jdx.dev/lang/ruby.html#precompiled-binaries) for this platform.
-      [ruby/install](https://www.rwx.com/docs/mint/packages/ruby/install) supports any Ruby version with a precompiled binary available.
+      if ! MISE_RUBY_COMPILE=false mise install "ruby@$RUBY_VERSION" 2>&1 | tee "$mise_log"; then
+        if grep -i "error" "$mise_log" | grep -qi "attestation"; then
+          cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
+      Failed to verify the GitHub artifact attestations for the Ruby $RUBY_VERSION precompiled binary.
+      Try installing a different Ruby version, or set the \`ensure-github-attestations\` parameter to \`"false"\` to skip attestation verification.
       EOF
+        else
+          cat << EOF > $(mktemp "$RWX_ERRORS/error-XXXX")
+      Failed to install Ruby $RUBY_VERSION from the [mise precompiled binaries](https://mise.jdx.dev/lang/ruby.html#precompiled-binaries).
+      [ruby/install](https://www.rwx.com/docs/mint/packages/ruby/install) supports any Ruby version with a precompiled binary available for this platform.
+      EOF
+        fi
         exit 3
       fi
+      rm -f "$mise_log"
 
       #
       # Move Ruby to its final home and remove mise. The precompiled
@@ -111,3 +127,4 @@ tasks:
     env:
       RUBY_VERSION: ${{ params.ruby-version }}
       RUBY_VERSION_FILE: ${{ params.ruby-version-file }}
+      ENSURE_GITHUB_ATTESTATIONS: ${{ params.ensure-github-attestations }}
