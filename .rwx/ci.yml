@@ -27,11 +27,11 @@ tool-cache:
 
 base:
   image: ubuntu:24.04
-  config: rwx/base 1.1.1
+  config: rwx/base 1.2.0
 
 tasks:
   - key: checkout
-    call: git/clone 2.0.8
+    call: git/clone 2.1.0
     with:
       preserve-git-dir: true
       repository: https://github.com/rwx-cloud/packages.git
@@ -40,13 +40,13 @@ tasks:
 
   - key: tool-versions
     use: checkout
-    call: rwx/tool-versions 1.0.8
+    call: rwx/tool-versions 1.1.0
     filter:
       - .tool-versions
 
   - key: node
     use: [checkout, tool-versions]
-    call: nodejs/install 1.1.15
+    call: nodejs/install 1.2.0
     with:
       node-version: ${{ tasks.tool-versions.values.nodejs }}
     filter:
