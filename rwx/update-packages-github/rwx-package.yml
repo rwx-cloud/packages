@@ -1,6 +1,6 @@
 package:
   name: rwx/update-packages-github
-  version: 2.1.0
+  version: 2.2.0
   description: Update RWX packages for GitHub repositories
   source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/update-packages-github
   issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -30,6 +30,9 @@ package:
       default: "298F21"
     rwx-file:
       description: "Scope updates to a specific file or single glob pattern of files"
+    draft:
+      description: "Create or update the pull request as a draft"
+      default: false
     enable-auto-merge:
       description: "Enable auto-merge on the pull request (requires repository auto-merge support)"
       default: false
@@ -88,12 +91,22 @@ tasks:
     after: create-or-update-pr
     cache: false
     run: |
+      if [ -n "$GITHUB_PR_NUMBER" ]; then
+        is_draft="$(gh pr view "$GITHUB_PR_NUMBER" --json isDraft --jq '.isDraft')"
+        if [ "$GITHUB_DRAFT" = "true" ] && [ "$is_draft" = "false" ]; then
+          gh pr ready "$GITHUB_PR_NUMBER" --undo
+        elif [ "$GITHUB_DRAFT" = "false" ] && [ "$is_draft" = "true" ]; then
+          gh pr ready "$GITHUB_PR_NUMBER"
+        fi
+      fi
+
       if [ -n "$GITHUB_LABEL" ] && [ -n "$GITHUB_PR_NUMBER" ]; then
         gh label create "$GITHUB_LABEL" --color "$GITHUB_LABEL_COLOR" || true
         gh pr edit "$GITHUB_PR_NUMBER" --add-label "$GITHUB_LABEL"
       fi
     env:
       GITHUB_TOKEN: ${{ params.github-token }}
+      GITHUB_DRAFT: ${{ params.draft }}
       GITHUB_LABEL: ${{ params.label }}
       GITHUB_LABEL_COLOR: ${{ params.label-color }}
       GITHUB_PR_NUMBER: ${{ tasks.create-or-update-pr.values.pull-request-number }}
