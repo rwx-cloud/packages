@@ -1,6 +1,6 @@
 package:
   name: github/create-pull-request
-  version: 1.1.0
+  version: 1.2.0
   description: Creates a pull request
   source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/create-pull-request
   issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -19,6 +19,9 @@ package:
     pull-request-body:
       description: "The body to use for the pull request"
       required: true
+    draft:
+      description: "Create or keep the pull request as a draft"
+      default: false
     enable-auto-merge:
       description: "Enable squash auto-merge on the pull request (requires repository auto-merge support)"
       default: false
@@ -31,7 +34,7 @@ package:
 
 tasks:
   - key: gh-cli
-    call: github/install-cli 1.0.11
+    call: github/install-cli 1.1.0
 
   - key: create-or-update-pull-request
     use: [package.use, gh-cli]
@@ -55,7 +58,7 @@ tasks:
         exit 0
       fi
 
-      pr_list=$(gh pr list --author @me --json number,headRefName)
+      pr_list=$(gh pr list --author @me --json number,headRefName,isDraft)
       echo "$pr_list"
 
       latest_pr=$(echo "$pr_list" |  jq "[.[] | select(.headRefName | startswith(\"${BRANCH_PREFIX}-\"))] | max_by(.number)")
@@ -63,6 +66,8 @@ tasks:
 
       if [ "$latest_pr" != "null" ] && [ -n "$latest_pr" ]; then
         branch=$(echo "$latest_pr" | jq -r ".headRefName")
+        pr_number=$(echo "$latest_pr" | jq -r ".number")
+        current_is_draft=$(echo "$latest_pr" | jq -r ".isDraft")
         need_to_create_pr=false
       else
         branch="${BRANCH_PREFIX}-${RWX_RUN_ID}"
@@ -74,9 +79,18 @@ tasks:
       git push -f origin "$branch"
 
       if [ "$need_to_create_pr" = "true" ]; then
-        gh pr create --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY"
+        if [ "$DRAFT" = "true" ]; then
+          gh pr create --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY" --draft
+        else
+          gh pr create --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY"
+        fi
       else
         gh pr edit --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY"
+        if [ "$current_is_draft" = "true" ] && [ "$DRAFT" = "false" ]; then
+          gh pr ready "$pr_number"
+        elif [ "$current_is_draft" = "false" ] && [ "$DRAFT" = "true" ]; then
+          gh pr ready "$pr_number" --undo
+        fi
       fi
 
       pr_details=$(gh pr view "$branch" --json number,url)
@@ -137,5 +151,6 @@ tasks:
       GITHUB_TOKEN: ${{ params.github-token }}
       PULL_REQUEST_TITLE: ${{ params.pull-request-title }}
       PULL_REQUEST_BODY: ${{ params.pull-request-body }}
+      DRAFT: ${{ params.draft }}
       ENABLE_AUTO_MERGE: ${{ params.enable-auto-merge }}
       REVIEWERS: ${{ params.reviewers }}
