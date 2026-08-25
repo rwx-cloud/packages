@@ -20,7 +20,7 @@ To update minor versions (recommended):
 ```yaml
 tasks:
   - key: update-rwx-packages
-    call: rwx/update-packages-github 2.1.0
+    call: rwx/update-packages-github 2.2.0
     with:
       repository: https://github.com/YOUR-ORG/YOUR-REPO.git
       ref: ${{ init.commit-sha }}
@@ -32,13 +32,30 @@ Customize the label:
 ```yaml
 tasks:
   - key: update-rwx-packages
-    call: rwx/update-packages-github 2.1.0
+    call: rwx/update-packages-github 2.2.0
     with:
       repository: https://github.com/YOUR-ORG/YOUR-REPO.git
       ref: ${{ init.commit-sha }}
       github-token: ${{ vaults.your-vault.github-apps.your-github-app.token }}
       label: rwx-updates
       label-color: "298F21"
+```
+
+Create a draft pull request:
+
+By default, the pull request is ready for review. Set `draft` to `true` to create
+it as a draft. If a matching pull request is already open, the package changes
+it to the configured state.
+
+```yaml
+tasks:
+  - key: update-rwx-packages
+    call: rwx/update-packages-github 2.2.0
+    with:
+      repository: https://github.com/YOUR-ORG/YOUR-REPO.git
+      ref: ${{ init.commit-sha }}
+      github-token: ${{ vaults.your-vault.github-apps.your-github-app.token }}
+      draft: true
 ```
 
 Enable auto-merge:
@@ -51,7 +68,7 @@ Requires repository auto-merge support.
 ```yaml
 tasks:
   - key: update-rwx-packages
-    call: rwx/update-packages-github 2.1.0
+    call: rwx/update-packages-github 2.2.0
     with:
       repository: https://github.com/YOUR-ORG/YOUR-REPO.git
       ref: ${{ init.commit-sha }}

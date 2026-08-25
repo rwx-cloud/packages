@@ -1,6 +1,6 @@
 package:
   name: rwx/update-packages-github
-  version: 2.1.0
+  version: 2.2.0
   description: Update RWX packages for GitHub repositories
   source_code_url: https://github.com/rwx-cloud/packages/tree/main/rwx/update-packages-github
   issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -30,19 +30,22 @@ package:
       default: "298F21"
     rwx-file:
       description: "Scope updates to a specific file or single glob pattern of files"
+    draft:
+      description: "Create or update the pull request as a draft"
+      default: false
     enable-auto-merge:
       description: "Enable auto-merge on the pull request (requires repository auto-merge support)"
       default: false
 
 tasks:
   - key: rwx-cli
-    call: rwx/install-cli 4.0.5
+    call: rwx/install-cli 4.1.0
 
   - key: gh-cli
-    call: github/install-cli 1.0.11
+    call: github/install-cli 1.1.0
 
   - key: code
-    call: git/clone 2.0.8
+    call: git/clone 2.1.0
     with:
       repository: ${{ params.repository }}
       ref: ${{ params.ref }}
@@ -69,7 +72,7 @@ tasks:
       RWX_FILE: ${{ params.rwx-file}}
 
   - key: create-or-update-pr
-    call: github/create-pull-request 1.0.7
+    call: github/create-pull-request 1.2.0
     use: update-packages
     with:
       github-token: ${{ params.github-token }}
@@ -81,6 +84,7 @@ tasks:
         ```
         ${{ tasks.update-packages.values.update-output }}
         ```
+      draft: ${{ params.draft }}
       enable-auto-merge: ${{ params.enable-auto-merge }}
 
   - key: pull-request-options

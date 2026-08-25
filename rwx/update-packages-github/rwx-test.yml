@@ -16,6 +16,7 @@ tasks:
       label: "mint-leaves-test-${{ run.id }}"
       branch-prefix: "mint-leaves-test/${{ run.id }}/"
       rwx-file: tasks.yml
+      draft: true
 
   - key: test-create--assert
     after: test-create
@@ -29,6 +30,12 @@ tasks:
         exit 4
       fi
       printf "$PR_NUMBER" > "$RWX_VALUES/pr-number"
+
+      is_draft="$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json isDraft --jq '.isDraft')"
+      if [ "$is_draft" != "true" ]; then
+        >&2 echo "Expected PR #${PR_NUMBER} to be a draft"
+        exit 4
+      fi
 
       # Check branch name
       branch_name="$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json headRefName --jq '.headRefName')"
@@ -77,6 +84,12 @@ tasks:
     after: test-update
     use: [gh-cli]
     run: |
+      is_draft="$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json isDraft --jq '.isDraft')"
+      if [ "$is_draft" != "false" ]; then
+        >&2 echo "Expected PR #${PR_NUMBER} to be ready for review"
+        exit 4
+      fi
+
       # PR body should not have changes.
       pr_body="$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json body | jq -r '.body')"
 
@@ -105,6 +118,33 @@ tasks:
         exit 4
       fi
 
+    env:
+      GITHUB_LABEL: mint-leaves-test-${{ run.id }}
+      GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
+      PR_NUMBER: ${{ tasks.test-create--assert.values.pr-number }}
+
+  - key: test-update-to-draft
+    after: test-update--assert
+    call: ${{ init.package-digest }}
+    with:
+      repository: https://github.com/rwx-cloud/mint-update-leaves-testing.git
+      ref: main
+      github-token: ${{ github-apps.rwx-cloud-bot.token }}
+      label: "mint-leaves-test-${{ run.id }}"
+      branch-prefix: "mint-leaves-test/${{ run.id }}/"
+      rwx-file: tasks.yml
+      draft: true
+
+  - key: test-update-to-draft--assert
+    after: test-update-to-draft
+    use: [gh-cli]
+    run: |
+      is_draft="$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json isDraft --jq '.isDraft')"
+      if [ "$is_draft" != "true" ]; then
+        >&2 echo "Expected PR #${PR_NUMBER} to be a draft"
+        exit 4
+      fi
+
       gh --repo rwx-cloud/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
 
       if gh --repo rwx-cloud/mint-update-leaves-testing label list --search "$GITHUB_LABEL" | grep -qv "no labels"; then
@@ -116,7 +156,7 @@ tasks:
       PR_NUMBER: ${{ tasks.test-create--assert.values.pr-number }}
 
   - key: test-auto-merge
-    after: test-update--assert
+    after: test-update-to-draft--assert
     call: ${{ init.package-digest }}
     with:
       repository: https://github.com/rwx-cloud/mint-update-leaves-testing.git
