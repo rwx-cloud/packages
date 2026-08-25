@@ -22,6 +22,11 @@ the app additionally needs organization permission:
 - Define a task to make the desired changes
 - Use this package to create a pull request, or update an existing one identified by the `branch-prefix`.
 
+## Draft Pull Requests
+
+Set `draft: true` to create or keep the pull request as a draft. The default is
+`false`, which creates or keeps the pull request ready for review.
+
 ## Output Values
 
 | key                 | description                                                                 |
@@ -60,7 +65,7 @@ tasks:
     run: rwx packages update | tee $RWX_VALUES/update-output
 
   - key: create-pull-request
-    call: github/create-pull-request 1.1.0
+    call: github/create-pull-request 1.2.0
     use: [update-packages]
     with:
       github-token: ${{ github-apps.your-orgs-bot.token }}
@@ -73,7 +78,7 @@ tasks:
 
 ```yaml
   - key: create-pull-request
-    call: github/create-pull-request 1.1.0
+    call: github/create-pull-request 1.2.0
     use: [update-packages]
     with:
       github-token: ${{ github-apps.your-orgs-bot.token }}

@@ -37,6 +37,18 @@ tasks:
       echo "$file" | tee $RWX_VALUES/file
       touch "$file"
 
+  - key: code-change3
+    after: code-change2
+    use: code
+    cache: false
+    run: |
+      # needs to happen at least 1 second after code-change2
+      sleep 1
+      nonce=$(date +%s)
+      file="${nonce}.txt"
+      echo "$file" | tee $RWX_VALUES/file
+      touch "$file"
+
   - key: create-pr
     call: ${{ init.package-digest }}
     use: code-change
@@ -45,6 +57,7 @@ tasks:
       branch-prefix: ${{ run.id }}
       pull-request-title: "pull request title ${{ tasks.code-change.values.nonce }}"
       pull-request-body: "pull request body ${{ tasks.code-change.values.nonce }}"
+      draft: true
 
   - key: update-pr
     after: assert--create-pr
@@ -55,6 +68,18 @@ tasks:
       branch-prefix: ${{ run.id }}
       pull-request-title: "pull request title ${{ tasks.code-change.values.nonce }}"
       pull-request-body: "pull request body ${{ tasks.code-change.values.nonce }}"
+      draft: false
+
+  - key: update-pr-to-draft
+    after: assert--update-pr
+    call: ${{ init.package-digest }}
+    use: code-change3
+    with:
+      github-token: ${{ github-apps.rwx-cloud-bot.token }}
+      branch-prefix: ${{ run.id }}
+      pull-request-title: "pull request title ${{ tasks.code-change.values.nonce }}"
+      pull-request-body: "pull request body ${{ tasks.code-change.values.nonce }}"
+      draft: true
 
   - key: clone-branch-after-create
     call: git/clone 2.0.0
@@ -79,7 +104,7 @@ tasks:
       echo "Checking for added file"
       test -f ${{ tasks.code-change.values.file }}
 
-      pr_details=$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json body,title,commits)
+      pr_details=$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json body,title,commits,isDraft)
       echo "$pr_details"
 
       pr_title=$(echo "$pr_details" | jq -r '.title')
@@ -91,6 +116,12 @@ tasks:
       commit_count="$(echo "$pr_details" | jq '.commits | length')"
       if [ "$commit_count" != 1 ]; then
         echo "PR #${PR_NUMBER} has $commit_count commits, expected 1"
+        exit 1
+      fi
+
+      is_draft=$(echo "$pr_details" | jq -r '.isDraft')
+      if [ "$is_draft" != "true" ]; then
+        echo "PR #${PR_NUMBER} is ready for review, expected draft"
         exit 1
       fi
     env:
@@ -107,7 +138,7 @@ tasks:
       echo "Checking for file added in update"
       test -f ${{ tasks.code-change2.values.file }}
 
-      pr_details=$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json body,title,commits)
+      pr_details=$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json body,title,commits,isDraft)
       echo "$pr_details"
 
       pr_title=$(echo "$pr_details" | jq -r '.title')
@@ -122,14 +153,39 @@ tasks:
         exit 1
       fi
 
+      is_draft=$(echo "$pr_details" | jq -r '.isDraft')
+      if [ "$is_draft" != "false" ]; then
+        echo "PR #${PR_NUMBER} is draft, expected ready for review"
+        exit 1
+      fi
+
       echo "Checking for updated PR"
       test "${{ tasks.create-pr.values.pull-request-number }}" = "${{ tasks.update-pr.values.pull-request-number }}"
     env:
       GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
       PR_NUMBER: ${{ tasks.create-pr.values.pull-request-number }}
 
+  - key: assert--update-pr-to-draft
+    after: update-pr-to-draft
+    use: gh-cli
+    run: |
+      pr_details=$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json isDraft)
+      echo "$pr_details"
+
+      is_draft=$(echo "$pr_details" | jq -r '.isDraft')
+      if [ "$is_draft" != "true" ]; then
+        echo "PR #${PR_NUMBER} is ready for review, expected draft"
+        exit 1
+      fi
+
+      echo "Checking for updated PR"
+      test "${{ tasks.create-pr.values.pull-request-number }}" = "${{ tasks.update-pr-to-draft.values.pull-request-number }}"
+    env:
+      GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
+      PR_NUMBER: ${{ tasks.create-pr.values.pull-request-number }}
+
   - key: close-pr
-    after: assert--update-pr
+    after: assert--update-pr-to-draft
     use: gh-cli
     run: gh --repo rwx-cloud/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
     env:
@@ -137,7 +193,7 @@ tasks:
       PR_NUMBER: ${{ tasks.create-pr.values.pull-request-number }}
 
   - key: code-change-auto-merge
-    after: code-change2
+    after: code-change3
     use: code
     cache: false
     run: |
