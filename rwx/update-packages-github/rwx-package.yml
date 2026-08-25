@@ -39,13 +39,13 @@ package:
 
 tasks:
   - key: rwx-cli
-    call: rwx/install-cli 4.0.5
+    call: rwx/install-cli 4.1.0
 
   - key: gh-cli
-    call: github/install-cli 1.0.11
+    call: github/install-cli 1.1.0
 
   - key: code
-    call: git/clone 2.0.8
+    call: git/clone 2.1.0
     with:
       repository: ${{ params.repository }}
       ref: ${{ params.ref }}
