@@ -34,7 +34,7 @@ package:
 
 tasks:
   - key: gh-cli
-    call: github/install-cli 1.0.11
+    call: github/install-cli 1.1.0
 
   - key: create-or-update-pull-request
     use: [package.use, gh-cli]
