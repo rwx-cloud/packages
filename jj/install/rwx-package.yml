@@ -1,0 +1,43 @@
+package:
+  name: jj/install
+  version: 1.0.0
+  description: Install Jujutsu (jj)
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/jj/install
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
+
+  parameters:
+    version:
+      description: "Version to install (e.g. 0.44.0), or 'latest'"
+      default: "latest"
+
+tasks:
+  - key: download
+    cache:
+      ttl: 1w
+    run: |
+      set -u
+      source "$RWX_PACKAGE_PATH/rwx-utils.sh"
+
+      if [ "$VERSION" = "latest" ]; then
+        VERSION=$(curl -fsSL "https://api.github.com/repos/jj-vcs/jj/releases/latest" | jq -r .tag_name)
+      fi
+      case "$VERSION" in
+        v*) TAG="$VERSION" ;;
+        *) TAG="v$VERSION" ;;
+      esac
+
+      ARCH=$(rwx_arch)
+      TARBALL="jj-${TAG}-${ARCH}-unknown-linux-musl.tar.gz"
+
+      TMP_DIR=$(mktemp -d)
+      curl -fsSL "https://github.com/jj-vcs/jj/releases/download/${TAG}/${TARBALL}" -o "$TMP_DIR/$TARBALL"
+      tar -xf "$TMP_DIR/$TARBALL" -C "$TMP_DIR"
+
+      rwx_maybe_sudo install "$TMP_DIR/jj" /usr/local/bin
+
+      rm -rf "$TMP_DIR"
+
+      jj --version
+    env:
+      VERSION: ${{ params.version }}

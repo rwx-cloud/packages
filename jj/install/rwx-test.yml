@@ -1,0 +1,21 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: test-default
+    call: ${{ init.package-digest }}
+
+  - key: test-default--assert
+    use: test-default
+    run: jj --version
+
+  - key: test-specified
+    call: ${{ init.package-digest }}
+    with:
+      version: "0.43.0"
+
+  - key: test-specified--assert
+    use: test-specified
+    run: jj --version | grep '0\.43\.0'
