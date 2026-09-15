@@ -1,6 +1,6 @@
 package:
   name: hashicorp/install-terraform
-  version: 1.1.1
+  version: 1.1.2
   description: Install the Terraform CLI, a tool for building, changing, and versioning infrastructure safely and efficiently
   source_code_url: https://github.com/rwx-cloud/packages/tree/main/hashicorp/install-terraform
   issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -23,10 +23,18 @@ tasks:
 
       curl --fail-with-body https://apt.releases.hashicorp.com/gpg | gpg --dearmor > hashicorp-archive-keyring.gpg
       rwx_maybe_sudo mv hashicorp-archive-keyring.gpg /usr/share/keyrings
-      gpg --no-default-keyring \
+      expected_fingerprint='D55C 0D1A C78A 8D81 26CB  631C FC9C A96A CA02 6560'
+      if ! gpg --no-default-keyring \
         --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg \
         --fingerprint | \
-        grep 'D55C 0D1A C78A 8D81 26CB  631C FC9C A96A CA02 6560'
+        grep "$expected_fingerprint"; then
+        {
+          echo "Unable to verify HashiCorp's package signing key. Terraform was not installed."
+          echo "Expected fingerprint: $expected_fingerprint"
+          echo "Check for a newer version of the hashicorp/install-terraform RWX package. If you are already using the latest version, contact RWX support."
+        } | tee "$(mktemp "$RWX_ERRORS/error-XXXX")" >&2
+        exit 1
+      fi
       echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
         https://apt.releases.hashicorp.com jammy main" | \
         rwx_maybe_sudo tee /etc/apt/sources.list.d/hashicorp.list
