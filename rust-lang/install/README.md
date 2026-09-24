@@ -5,7 +5,7 @@ To install Rust:
 ```yaml
 tasks:
   - key: rust-lang
-    call: rust-lang/install 1.1.0
+    call: rust-lang/install 1.1.1
     with:
       rust-version: 1.83.0
 ```
