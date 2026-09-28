@@ -89,9 +89,7 @@ tasks:
       preserve-git-dir: true
 ```
 
-Origin uses the same HTTPS credential format as GitHub, but its installation tokens do not identify a GitHub user. With `cursor-origin-token`, this package does not look up or configure `user.name` or `user.email`. Configure those yourself if subsequent tasks need to create commits. Subsequent Git operations can authenticate by setting `CURSOR_ORIGIN_TOKEN` in the task environment.
-
-If both token parameters are supplied, `github-token` takes precedence.
+When using `cursor-origin-token`, this package does not look up or configure `user.name` or `user.email`. Configure those yourself if subsequent tasks need to create commits. Subsequent Git operations can authenticate by setting `CURSOR_ORIGIN_TOKEN` in the task environment.
 
 ### Cloning over SSH
 

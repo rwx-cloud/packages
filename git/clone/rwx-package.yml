@@ -11,7 +11,7 @@ package:
       description: "Token to clone from GitHub over HTTPS"
       required: false
     cursor-origin-token:
-      description: "Token to clone from Cursor Origin over HTTPS. Used when github-token is not set."
+      description: "Token to clone from Cursor Origin over HTTPS. Cannot be combined with github-token."
       required: false
     lfs:
       description: Whether to download Git-LFS files
@@ -48,6 +48,11 @@ tasks:
   - key: setup
     use: [package.use]
     run: |
+      if [ "$TOKENS_CONFLICT" = "true" ]; then
+        echo 'Invalid parameters: `github-token` and `cursor-origin-token` cannot both be set.' > "$RWX_ERRORS/conflicting-tokens"
+        exit 2
+      fi
+
       . "$RWX_PACKAGE_PATH/rwx-utils.sh"
       if ! rwx_os_package_manager_in apt apk; then
         echo "Unsupported operating system or package manager \`$(rwx_os_package_manager)\`" > "$(mktemp "$RWX_ERRORS/error-XXXXXX")"
@@ -163,6 +168,7 @@ tasks:
       fi
     filter: []
     env:
+      TOKENS_CONFLICT: ${{ params.github-token != '' && params.cursor-origin-token != '' }}
       GIT_SSH_KEY: ${{ params.ssh-key }}
       CHECKOUT_REPOSITORY: ${{ params.repository }}
       CHECKOUT_PATH: ${{ params.path }}
