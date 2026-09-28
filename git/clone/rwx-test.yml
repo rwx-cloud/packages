@@ -45,6 +45,34 @@ tasks:
     use: git-clone--test-github-token
     run: test -e file-in-repo.txt
 
+  # GitHub accepts the same HTTPS Basic credentials as Cursor Origin, so use
+  # our private fixture to exercise the Origin token path without an Origin secret.
+  - key: git-clone--test-cursor-origin-token
+    call: ${{ init.package-digest }}
+    use: system-packages
+    with:
+      repository: https://github.com/rwx-cloud/test-checkout-package.git
+      ref: main
+      cursor-origin-token: ${{ github['rwx-cloud'].token }}
+      preserve-git-dir: true
+      lfs: true
+      tool-cache-key-prefix: git-clone-cursor-origin-test
+
+  - key: git-clone--test-cursor-origin-token--assert
+    use: git-clone--test-cursor-origin-token
+    run: |
+      test -d .git
+      test -e file-in-repo.txt
+      test -e test-checkout-package-submodule/README.md
+      grep -q "lfs file" lfs-file.txt
+      test "$(git rev-parse HEAD)" = "e38d490f8b854325402c95bb56e5003a52e10df3"
+      test -z "$(git config --local --get user.name || true)"
+      test -z "$(git config --local --get user.email || true)"
+      git config --local --get credential.helper | grep -q 'CURSOR_ORIGIN_TOKEN'
+      git fetch
+    env:
+      CURSOR_ORIGIN_TOKEN: ${{ github['rwx-cloud'].token }}
+
   - key: git-clone--test-public-https
     call: ${{ init.package-digest }}
     use: system-packages

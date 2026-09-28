@@ -117,7 +117,11 @@ if [ "${LFS}" = "true" ]; then
     \$DYNAMIC_HEADERS
     RWX_LFS_HEADERS
     else
-      DOWNLOAD_HEADERS="\$DOWNLOAD_HEADERS -H 'Authorization: Bearer \$GITHUB_TOKEN'"
+      if [ -n "\$GITHUB_TOKEN" ]; then
+        DOWNLOAD_HEADERS="\$DOWNLOAD_HEADERS -H 'Authorization: Bearer \$GITHUB_TOKEN'"
+      else
+        DOWNLOAD_HEADERS="\$DOWNLOAD_HEADERS -u 'x-access-token:\$CURSOR_ORIGIN_TOKEN'"
+      fi
     fi
 
     while IFS= read -r file; do
@@ -164,6 +168,9 @@ if [ "${LFS}" = "true" ]; then
       cache-key: excluded
     GITHUB_TOKEN:
       value: \${{ params.github-token }}
+      cache-key: excluded
+    CURSOR_ORIGIN_TOKEN:
+      value: \${{ params.cursor-origin-token }}
       cache-key: excluded
     LFS_FILES: \${{ tasks.git-clone.values.lfs-files }}
     CHECKOUT_PATH: \${{ params.path }}
