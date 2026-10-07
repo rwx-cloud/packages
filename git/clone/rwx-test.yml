@@ -496,6 +496,42 @@ tasks:
       test "$(git rev-parse refs/rwx/git-clone/checkout)" = "$(git rev-parse HEAD)"
       test "$(git symbolic-ref -q HEAD || true)" = ""
 
+  - key: git-clone--test-blobless-full-depth
+    call: ${{ init.package-digest }}
+    use: system-packages
+    with:
+      repository: https://github.com/rwx-cloud/test-checkout-package.git
+      ref: e38d490f8b854325402c95bb56e5003a52e10df3
+      github-token: ${{ github['rwx-cloud'].token }}
+      preserve-git-dir: true
+      fetch-full-depth: true
+      blobless: true
+
+  - key: git-clone--test-blobless-full-depth--assert
+    use: git-clone--test-blobless-full-depth
+    run: |
+      test -d .git
+      ! test -f .git/shallow
+      test -e file-in-repo.txt
+      test "$(git config --local --get remote.origin.promisor)" = "true"
+      test "$(git config --local --get remote.origin.partialclonefilter)" = "blob:none"
+      test "$(git rev-parse HEAD)" = "e38d490f8b854325402c95bb56e5003a52e10df3"
+
+  - key: git-clone--test-blobless-shallow
+    call: ${{ init.package-digest }}
+    use: system-packages
+    with:
+      repository: https://github.com/rwx-cloud/test-checkout-package.git
+      ref: e38d490f8b854325402c95bb56e5003a52e10df3
+      github-token: ${{ github['rwx-cloud'].token }}
+      blobless: true
+
+  - key: git-clone--test-blobless-shallow--assert
+    use: git-clone--test-blobless-shallow
+    run: |
+      test -e file-in-repo.txt
+      test ! -d .git
+
   - key: git-clone--test-lfs-with-path
     call: ${{ init.package-digest }}
     use: system-packages

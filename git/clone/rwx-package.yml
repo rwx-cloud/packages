@@ -1,6 +1,6 @@
 package:
   name: git/clone
-  version: 2.2.0
+  version: 2.3.0
   description: Clone git repositories over ssh or http, with support for Git Large File Storage (LFS)
   source_code_url: https://github.com/rwx-cloud/packages/tree/main/git/clone
   issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -36,6 +36,9 @@ package:
       required: false
     fetch-full-depth:
       description: "Whether to use a full-depth fetch instead of a shallow fetch. This defaults to `false`, including when `preserve-git-dir` is `true`. Typically, leaving this as `false` results in better cloning performance within RWX. However, for certain large repositories or workflows that require full history, a full-depth fetch may be preferable."
+      default: false
+    blobless:
+      description: "Whether to perform a blobless fetch (`--filter=blob:none`). Commits and trees are fetched, but file contents are only downloaded for the checked-out commit; blobs for other commits are fetched lazily if a git command needs them. This is most useful with `fetch-full-depth: true` on large repositories, where it provides full history without downloading every historical version of every file. Lazy fetches require network access and credentials, so commands like `git log -p` or `git blame` in downstream tasks may fail or be slow."
       default: false
     submodules:
       description: Whether to clone submodules
@@ -194,6 +197,7 @@ tasks:
       LFS: ${{ params.lfs }}
       PRESERVE_GIT_DIR: ${{ params.preserve-git-dir }}
       FETCH_FULL_DEPTH: ${{ params.fetch-full-depth }}
+      BLOBLESS: ${{ params.blobless }}
       SUBMODULES: ${{ params.submodules }}
       TOOL_CACHE_KEY_PREFIX: ${{ params.tool-cache-key-prefix }}
     filter:
@@ -253,6 +257,7 @@ tasks:
       LFS: ${{ params.lfs }}
       CREDENTIAL_HELPER: ${{ tasks.setup.values.credential-helper }}
       FETCH_FULL_DEPTH: ${{ params.fetch-full-depth }}
+      BLOBLESS: ${{ params.blobless }}
       SUBMODULES: ${{ params.submodules }}
       PRESERVE_GIT_DIR: ${{ params.preserve-git-dir }}
 

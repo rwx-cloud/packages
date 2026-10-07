@@ -2,6 +2,7 @@ language: en
 useGitignore: true
 
 words:
+  - blobless
   - octocat
   - OIDC
   - chromedriver

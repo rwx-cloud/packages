@@ -31,7 +31,7 @@ tasks:
 
   - key: code
     use: system-packages
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: ...
 ```
@@ -41,7 +41,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -67,7 +67,7 @@ If you're using GitHub, RWX will automatically provide a token that you can use 
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -81,7 +81,7 @@ Pass the token provided by RWX's Cursor Origin integration using `cursor-origin-
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://origin.cursor.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -96,7 +96,7 @@ When using `cursor-origin-token`, this package does not look up or configure `us
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: git@github.com:YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -104,6 +104,27 @@ tasks:
 ```
 
 You'll want to store your SSH key as a [vault secret](https://www.rwx.com/docs/rwx/vaults).
+
+## Blobless Fetches
+
+For large repositories that need full history, combine `fetch-full-depth` with `blobless` to fetch every commit and tree while only downloading file contents for the checked-out commit:
+
+```yaml
+tasks:
+  - key: code
+    call: git/clone 2.3.0
+    with:
+      repository: https://github.com/YOUR_ORG/YOUR_REPO.git
+      ref: ${{ init.ref }}
+      github-token: ${{ github.token }}
+      preserve-git-dir: true
+      fetch-full-depth: true
+      blobless: true
+```
+
+Commands that only need history and trees (`git log`, `git merge-base`, `git diff --name-only`) work without additional network access. Commands that need the contents of other commits (`git log -p`, `git blame`, `git diff` with content, checking out another commit) fetch the missing blobs from the remote on demand, which requires network access and credentials in that task.
+
+`blobless` has little benefit with the default shallow fetch, since the checked-out commit's blobs are downloaded either way.
 
 ## Metadata
 
@@ -114,7 +135,7 @@ If you need to reference one of these to alter behavior of a task, be sure to in
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -191,7 +212,7 @@ For most usage, it's as easy as:
 tasks:
   - key: code
 -    call: git/clone 1.9.5
-+    call: git/clone 2.2.0
++    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}

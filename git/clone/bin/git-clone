@@ -41,12 +41,20 @@ if git rev-parse -q --verify HEAD^{commit} >/dev/null 2>&1; then
   git update-ref refs/rwx/git-clone/previous HEAD
 fi
 
+fetch_filter=""
+if [ "${BLOBLESS}" = "true" ]; then
+  # Older versions of git require the remote to be marked as a promisor before fetching with a filter
+  git config --local remote.origin.promisor true
+  git config --local remote.origin.partialclonefilter blob:none
+  fetch_filter="--filter=blob:none"
+fi
+
 if [ "${FETCH_FULL_DEPTH}" = "true" ]; then
-  git fetch --no-auto-gc origin "+${CHECKOUT_REF}:${GIT_CLONE_CHECKOUT_REF}"
+  git fetch --no-auto-gc ${fetch_filter} origin "+${CHECKOUT_REF}:${GIT_CLONE_CHECKOUT_REF}"
 elif [ "${PRESERVE_GIT_DIR}" = "true" ]; then
-  git fetch --no-auto-gc --depth=1 origin "+${CHECKOUT_REF}:${GIT_CLONE_CHECKOUT_REF}"
+  git fetch --no-auto-gc ${fetch_filter} --depth=1 origin "+${CHECKOUT_REF}:${GIT_CLONE_CHECKOUT_REF}"
 else
-  git fetch --no-auto-gc --depth=1 origin "+${RESOLVED_SHA}:${GIT_CLONE_CHECKOUT_REF}"
+  git fetch --no-auto-gc ${fetch_filter} --depth=1 origin "+${RESOLVED_SHA}:${GIT_CLONE_CHECKOUT_REF}"
 fi
 
 checkout_sha=$(git rev-parse "${GIT_CLONE_CHECKOUT_REF}^{commit}")
