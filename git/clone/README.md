@@ -31,7 +31,7 @@ tasks:
 
   - key: code
     use: system-packages
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: ...
 ```
@@ -41,7 +41,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -67,7 +67,7 @@ If you're using GitHub, RWX will automatically provide a token that you can use 
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -81,7 +81,7 @@ Pass the token provided by RWX's Cursor Origin integration using `cursor-origin-
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://origin.cursor.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -96,7 +96,7 @@ When using `cursor-origin-token`, this package does not look up or configure `us
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: git@github.com:YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -104,6 +104,27 @@ tasks:
 ```
 
 You'll want to store your SSH key as a [vault secret](https://www.rwx.com/docs/rwx/vaults).
+
+## File Modification Times
+
+By default, Git gives files written during checkout the current time. Incremental clones can preserve timestamps for unchanged files, but a fresh clone or a tool-cache fallback to an older layer can rewrite files with new timestamps.
+
+Set `restore-mtime: true` to normalize tracked file modification times from commit history. You must also set `fetch-full-depth: true`; shallow history cannot reliably identify when a file last changed.
+
+```yaml
+tasks:
+  - key: code
+    call: git/clone 2.3.0
+    with:
+      repository: https://github.com/YOUR_ORG/YOUR_REPO.git
+      ref: ${{ init.ref }}
+      fetch-full-depth: true
+      restore-mtime: true
+```
+
+This option defaults to `false` and uses committer dates for tracked files, including submodules and LFS files. Set `restore-mtime-submodules: false` to skip files within submodules. You do not need to set `preserve-git-dir: true`.
+
+Commit-derived modification times can cause timestamp-based build tools to reuse stale outputs from a restored build cache, even with full-depth history. Invalidate or partition incremental build caches by source revision or content.
 
 ## Metadata
 
@@ -114,7 +135,7 @@ If you need to reference one of these to alter behavior of a task, be sure to in
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -191,7 +212,7 @@ For most usage, it's as easy as:
 tasks:
   - key: code
 -    call: git/clone 1.9.5
-+    call: git/clone 2.2.0
++    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}

@@ -1,6 +1,6 @@
 package:
   name: git/clone
-  version: 2.2.0
+  version: 2.3.0
   description: Clone git repositories over ssh or http, with support for Git Large File Storage (LFS)
   source_code_url: https://github.com/rwx-cloud/packages/tree/main/git/clone
   issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -37,6 +37,12 @@ package:
     fetch-full-depth:
       description: "Whether to use a full-depth fetch instead of a shallow fetch. This defaults to `false`, including when `preserve-git-dir` is `true`. Typically, leaving this as `false` results in better cloning performance within RWX. However, for certain large repositories or workflows that require full history, a full-depth fetch may be preferable."
       default: false
+    restore-mtime:
+      description: "Whether to set tracked file modification times from commit history. Requires fetch-full-depth: true. Commit-derived timestamps can cause stale incremental build outputs; invalidate build caches when source contents change."
+      default: false
+    restore-mtime-submodules:
+      description: "Whether to also restore modification times of files within submodules when restore-mtime is true."
+      default: true
     submodules:
       description: Whether to clone submodules
       default: true
@@ -50,6 +56,11 @@ tasks:
     run: |
       if [ "$TOKENS_CONFLICT" = "true" ]; then
         echo 'Invalid parameters: `github-token` and `cursor-origin-token` cannot both be set.' > "$RWX_ERRORS/conflicting-tokens"
+        exit 2
+      fi
+
+      if [ "$RESTORE_MTIME" = "true" ] && [ "$FETCH_FULL_DEPTH" != "true" ]; then
+        echo 'Invalid parameters: `restore-mtime: true` requires `fetch-full-depth: true`.' > "$RWX_ERRORS/restore-mtime-requires-full-depth"
         exit 2
       fi
 
@@ -172,6 +183,8 @@ tasks:
       GIT_SSH_KEY: ${{ params.ssh-key }}
       CHECKOUT_REPOSITORY: ${{ params.repository }}
       CHECKOUT_PATH: ${{ params.path }}
+      RESTORE_MTIME: ${{ params.restore-mtime }}
+      FETCH_FULL_DEPTH: ${{ params.fetch-full-depth }}
 
   - key: get-latest-sha-for-ref
     use: setup
@@ -194,6 +207,8 @@ tasks:
       LFS: ${{ params.lfs }}
       PRESERVE_GIT_DIR: ${{ params.preserve-git-dir }}
       FETCH_FULL_DEPTH: ${{ params.fetch-full-depth }}
+      RESTORE_MTIME: ${{ params.restore-mtime }}
+      RESTORE_MTIME_SUBMODULES: ${{ params.restore-mtime-submodules }}
       SUBMODULES: ${{ params.submodules }}
       TOOL_CACHE_KEY_PREFIX: ${{ params.tool-cache-key-prefix }}
     filter:
@@ -253,6 +268,8 @@ tasks:
       LFS: ${{ params.lfs }}
       CREDENTIAL_HELPER: ${{ tasks.setup.values.credential-helper }}
       FETCH_FULL_DEPTH: ${{ params.fetch-full-depth }}
+      RESTORE_MTIME: ${{ params.restore-mtime }}
+      RESTORE_MTIME_SUBMODULES: ${{ params.restore-mtime-submodules }}
       SUBMODULES: ${{ params.submodules }}
       PRESERVE_GIT_DIR: ${{ params.preserve-git-dir }}
 

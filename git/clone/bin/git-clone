@@ -78,13 +78,26 @@ if [ "${SUBMODULES}" = "true" ] && [ -f .gitmodules ]; then
   fi
 
   git submodule sync --recursive
-  git submodule update --init --recursive
+  if [ "${RESTORE_MTIME}" = "true" ] && [ "${RESTORE_MTIME_SUBMODULES}" = "true" ]; then
+    git submodule update --init --recursive --no-recommend-shallow
+  else
+    git submodule update --init --recursive
+  fi
 
   if [ "${CREDENTIAL_HELPER}" != "" ]; then
     git config --global --unset credential.helper
   fi
 
   echo "Submodules initialized and updated"
+fi
+
+if [ "${RESTORE_MTIME}" = "true" ]; then
+  restore_mtime_arch=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+  export restore_mtime="$RWX_PACKAGE_PATH/bin/git-restore-mtime-${restore_mtime_arch}"
+  "$restore_mtime"
+  if [ "${SUBMODULES}" = "true" ] && [ "${RESTORE_MTIME_SUBMODULES}" = "true" ] && [ -f .gitmodules ]; then
+    git submodule foreach --recursive '"$restore_mtime"'
+  fi
 fi
 
 if [ "${LFS}" = "true" ]; then
@@ -157,7 +170,15 @@ if [ "${LFS}" = "true" ]; then
         exit 1
       fi
 
+      if [ "\$RESTORE_MTIME" = "true" ]; then
+        mtime_reference=\$(mktemp)
+        touch -r "\$file" "\$mtime_reference"
+      fi
       curl -o "\$file" "\$DOWNLOAD_URL"
+      if [ "\$RESTORE_MTIME" = "true" ]; then
+        touch -r "\$mtime_reference" "\$file"
+        rm "\$mtime_reference"
+      fi
     done <<RWX_LFS_FILES
     \$LFS_FILES
     RWX_LFS_FILES
@@ -175,6 +196,7 @@ if [ "${LFS}" = "true" ]; then
     LFS_FILES: \${{ tasks.git-clone.values.lfs-files }}
     CHECKOUT_PATH: \${{ params.path }}
     PRESERVE_GIT_DIR: \${{ params.preserve-git-dir }}
+    RESTORE_MTIME: \${{ params.restore-mtime }}
   filter: ${FILTER_LINES}
 EOF
       if [ "${PRESERVE_GIT_DIR}" = "true" ]; then
