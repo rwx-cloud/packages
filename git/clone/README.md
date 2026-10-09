@@ -109,7 +109,7 @@ You'll want to store your SSH key as a [vault secret](https://www.rwx.com/docs/r
 
 By default, Git gives files written during checkout the current time. Incremental clones can preserve timestamps for unchanged files, but a fresh clone or a tool-cache fallback to an older layer can rewrite files with new timestamps.
 
-Set `restore-mtime: true` to normalize tracked file modification times using [git-restore-mtime](https://github.com/MestreLion/git-tools). You must also set `fetch-full-depth: true`; shallow history cannot reliably identify when a file last changed.
+Set `restore-mtime: true` to normalize tracked file modification times from commit history. You must also set `fetch-full-depth: true`; shallow history cannot reliably identify when a file last changed.
 
 ```yaml
 tasks:

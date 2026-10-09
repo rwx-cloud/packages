@@ -38,7 +38,7 @@ package:
       description: "Whether to use a full-depth fetch instead of a shallow fetch. This defaults to `false`, including when `preserve-git-dir` is `true`. Typically, leaving this as `false` results in better cloning performance within RWX. However, for certain large repositories or workflows that require full history, a full-depth fetch may be preferable."
       default: false
     restore-mtime:
-      description: "Whether to use git-restore-mtime to set tracked file modification times from commit history. Requires fetch-full-depth: true. Commit-derived timestamps can cause stale incremental build outputs; invalidate build caches when source contents change."
+      description: "Whether to set tracked file modification times from commit history. Requires fetch-full-depth: true. Commit-derived timestamps can cause stale incremental build outputs; invalidate build caches when source contents change."
       default: false
     restore-mtime-submodules:
       description: "Whether to also restore modification times of files within submodules when restore-mtime is true."
@@ -99,10 +99,6 @@ tasks:
         packages_to_install="$packages_to_install openssh-client"
       fi
 
-      if [ "$RESTORE_MTIME" = "true" ] && ! command -v python3 >/dev/null 2>&1; then
-        packages_to_install="$packages_to_install python3"
-      fi
-
       if [ -n "$packages_to_install" ]; then
         package_manager="$(rwx_os_package_manager)"
         case "$package_manager" in
@@ -116,15 +112,6 @@ tasks:
             rwx_maybe_sudo apk add --no-cache $apk_packages
             ;;
         esac
-      fi
-
-      if [ "$RESTORE_MTIME" = "true" ]; then
-        # git-tools 2025.08, pinned for reproducible timestamp behavior.
-        restore_mtime=$(mktemp)
-        curl -fsSL https://raw.githubusercontent.com/MestreLion/git-tools/b5822d297b3ca4a3b6574e78327a464790b14937/git-restore-mtime -o "$restore_mtime"
-        echo "8cdae72ea524e7c79c5a61bdfb5004cdab0082074f5fb558f1dba270f91e26b2  $restore_mtime" | sha256sum -c -
-        rwx_maybe_sudo install "$restore_mtime" /usr/local/bin/git-restore-mtime
-        rm "$restore_mtime"
       fi
 
       rwx_maybe_sudo install "$RWX_PACKAGE_PATH/bin/git-ssh-command" /usr/local/bin
