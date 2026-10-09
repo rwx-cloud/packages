@@ -78,7 +78,7 @@ if [ "${SUBMODULES}" = "true" ] && [ -f .gitmodules ]; then
   fi
 
   git submodule sync --recursive
-  if [ "${RESTORE_MTIME}" = "true" ]; then
+  if [ "${RESTORE_MTIME}" = "true" ] && [ "${RESTORE_MTIME_SUBMODULES}" = "true" ]; then
     git submodule update --init --recursive --no-recommend-shallow
   else
     git submodule update --init --recursive
@@ -93,7 +93,7 @@ fi
 
 if [ "${RESTORE_MTIME}" = "true" ]; then
   git-restore-mtime --commit-time --no-directories
-  if [ "${SUBMODULES}" = "true" ] && [ -f .gitmodules ]; then
+  if [ "${SUBMODULES}" = "true" ] && [ "${RESTORE_MTIME_SUBMODULES}" = "true" ] && [ -f .gitmodules ]; then
     git submodule foreach --recursive 'git-restore-mtime --commit-time --no-directories'
   fi
 fi

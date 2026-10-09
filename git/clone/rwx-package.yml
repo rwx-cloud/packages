@@ -40,6 +40,9 @@ package:
     restore-mtime:
       description: "Whether to use git-restore-mtime to set tracked file modification times from commit history. Requires fetch-full-depth: true. Commit-derived timestamps can cause stale incremental build outputs; invalidate build caches when source contents change."
       default: false
+    restore-mtime-submodules:
+      description: "Whether to also restore modification times of files within submodules when restore-mtime is true."
+      default: true
     submodules:
       description: Whether to clone submodules
       default: true
@@ -218,6 +221,7 @@ tasks:
       PRESERVE_GIT_DIR: ${{ params.preserve-git-dir }}
       FETCH_FULL_DEPTH: ${{ params.fetch-full-depth }}
       RESTORE_MTIME: ${{ params.restore-mtime }}
+      RESTORE_MTIME_SUBMODULES: ${{ params.restore-mtime-submodules }}
       SUBMODULES: ${{ params.submodules }}
       TOOL_CACHE_KEY_PREFIX: ${{ params.tool-cache-key-prefix }}
     filter:
@@ -278,6 +282,7 @@ tasks:
       CREDENTIAL_HELPER: ${{ tasks.setup.values.credential-helper }}
       FETCH_FULL_DEPTH: ${{ params.fetch-full-depth }}
       RESTORE_MTIME: ${{ params.restore-mtime }}
+      RESTORE_MTIME_SUBMODULES: ${{ params.restore-mtime-submodules }}
       SUBMODULES: ${{ params.submodules }}
       PRESERVE_GIT_DIR: ${{ params.preserve-git-dir }}
 

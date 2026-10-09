@@ -122,9 +122,9 @@ tasks:
       restore-mtime: true
 ```
 
-This option defaults to `false`. When enabled, the package installs Python 3 if missing and a pinned, checksum-verified version of `git-restore-mtime`, which requires Python 3.8 or newer. It runs with `--commit-time --no-directories`, using committer dates rather than author dates. It also processes initialized submodules, overriding shallow-clone recommendations in `.gitmodules`, and preserves the normalized timestamps when downloading LFS files. Restoration happens before `.git` is removed, so `preserve-git-dir: true` is not required. Directory timestamps are not normalized, and CLI patches applied afterward retain their new modification times.
+This option defaults to `false` and uses committer dates for tracked files, including submodules and LFS files. Set `restore-mtime-submodules: false` to skip files within submodules. You do not need to set `preserve-git-dir: true`.
 
-**Git does not store original working-tree modification times.** These timestamps are derived from commit history, not restored originals. This can avoid unnecessary timestamp-based rebuilds, but it is **not sufficient to make incremental build caches correct**: a changed source file can receive a commit timestamp older than a cached build output, causing Make or Ninja to reuse stale outputs. Invalidate or partition the build tool cache when source contents change, for example by including a source revision or content hash in its tool-cache key, rather than relying only on modification times.
+**Commit-derived timestamps do not guarantee correct incremental builds.** Full-depth history fixes missing or inaccurate commit dates; Git still does not store original working-tree modification times. Even the correct commit date can be older than a cached output built from different source contents. For example, an output built at 12:00 from revision A is newer than a changed source committed at 11:00 in revision B. If you then check out B and restore that source's 11:00 timestamp, Make or Ninja can consider the cached output up to date and skip the required rebuild. Invalidate or partition the build tool cache by source revision or content hash rather than relying only on modification times.
 
 ## Metadata
 
