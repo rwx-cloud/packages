@@ -1,6 +1,6 @@
 package:
   name: github/compare
-  version: 1.1.0
+  version: 1.1.1
   description: Compare two git refs in GitHub and check if certain files changed
   source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/compare
   issue_tracker_url: https://github.com/rwx-cloud/packages/issues
