@@ -124,7 +124,7 @@ tasks:
 
 This option defaults to `false` and uses committer dates for tracked files, including submodules and LFS files. Set `restore-mtime-submodules: false` to skip files within submodules. You do not need to set `preserve-git-dir: true`.
 
-**Commit-derived timestamps do not guarantee correct incremental builds.** Full-depth history fixes missing or inaccurate commit dates; Git still does not store original working-tree modification times. Even the correct commit date can be older than a cached output built from different source contents. For example, an output built at 12:00 from revision A is newer than a changed source committed at 11:00 in revision B. If you then check out B and restore that source's 11:00 timestamp, Make or Ninja can consider the cached output up to date and skip the required rebuild. Invalidate or partition the build tool cache by source revision or content hash rather than relying only on modification times.
+Commit-derived modification times can cause timestamp-based build tools to reuse stale outputs from a restored build cache, even with full-depth history. Invalidate or partition incremental build caches by source revision or content.
 
 ## Metadata
 
