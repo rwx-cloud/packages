@@ -521,6 +521,23 @@ tasks:
       test "$(stat -c %Y test-checkout-package-submodule/README.md)" = "$submodule_mtime"
       printf '%s' "$submodule_mtime" > "$RWX_VALUES/submodule-mtime"
 
+  # python/install supports apt-based systems only.
+  - key: git-clone--test-restore-mtime--install-python
+    if: ${{ init.base-image != 'alpine:latest' }}
+    use: git-clone--test-restore-mtime
+    call: python/install 2.0.1
+    with:
+      python-version: 3.12.13
+
+  - key: git-clone--test-restore-mtime--install-python--assert
+    if: ${{ init.base-image != 'alpine:latest' }}
+    use: git-clone--test-restore-mtime--install-python
+    run: |
+      test -e file-in-repo.txt
+      python -c 'import sys; assert sys.version_info[:3] == (3, 12, 13), sys.version'
+      python3 -c 'import sys; assert sys.version_info[:3] == (3, 12, 13), sys.version'
+      pip --version | grep '(python 3\.12)'
+
   - key: git-clone--test-restore-mtime-without-submodules
     call: ${{ init.package-digest }}
     use: system-packages
