@@ -486,6 +486,8 @@ tasks:
       github-token: ${{ github['rwx-cloud'].token }}
       preserve-git-dir: true
       fetch-full-depth: true
+      restore-mtime: true
+      lfs: true
 
   - key: git-clone--test-preserve-git-dir-with-full-depth--assert
     use: git-clone--test-preserve-git-dir-with-full-depth
@@ -495,6 +497,41 @@ tasks:
       test -e file-in-repo.txt
       test "$(git rev-parse refs/rwx/git-clone/checkout)" = "$(git rev-parse HEAD)"
       test "$(git symbolic-ref -q HEAD || true)" = ""
+      grep -q "lfs file" lfs-file.txt
+      for file in file-in-repo lfs-file; do
+        expected=$(git log -1 --format=%ct -- "$file.txt")
+        test "$(stat -c %Y "$file.txt")" = "$expected"
+        printf '%s' "$expected" > "$RWX_VALUES/$file-mtime"
+      done
+      submodule_mtime=$(git -C test-checkout-package-submodule log -1 --format=%ct -- README.md)
+      test "$(stat -c %Y test-checkout-package-submodule/README.md)" = "$submodule_mtime"
+      printf '%s' "$submodule_mtime" > "$RWX_VALUES/submodule-mtime"
+
+  - key: git-clone--test-restore-mtime-with-path
+    call: ${{ init.package-digest }}
+    use: system-packages
+    with:
+      repository: https://github.com/rwx-cloud/test-checkout-package.git
+      ref: e38d490f8b854325402c95bb56e5003a52e10df3
+      github-token: ${{ github['rwx-cloud'].token }}
+      fetch-full-depth: true
+      restore-mtime: true
+      lfs: true
+      path: restored
+
+  - key: git-clone--test-restore-mtime-with-path--assert
+    use: git-clone--test-restore-mtime-with-path
+    run: |
+      ! test -e restored/.git
+      ! test -e restored/test-checkout-package-submodule/.git
+      grep -q "lfs file" restored/lfs-file.txt
+      test "$(stat -c %Y restored/file-in-repo.txt)" = "$FILE_MTIME"
+      test "$(stat -c %Y restored/lfs-file.txt)" = "$LFS_MTIME"
+      test "$(stat -c %Y restored/test-checkout-package-submodule/README.md)" = "$SUBMODULE_MTIME"
+    env:
+      FILE_MTIME: ${{ tasks.git-clone--test-preserve-git-dir-with-full-depth--assert.values.file-in-repo-mtime }}
+      LFS_MTIME: ${{ tasks.git-clone--test-preserve-git-dir-with-full-depth--assert.values.lfs-file-mtime }}
+      SUBMODULE_MTIME: ${{ tasks.git-clone--test-preserve-git-dir-with-full-depth--assert.values.submodule-mtime }}
 
   - key: git-clone--test-lfs-with-path
     call: ${{ init.package-digest }}

@@ -82,6 +82,9 @@ mkdir -p "${CHECKOUT_PATH}"
 cd "${CHECKOUT_PATH}"
 CHECKOUT_PATH="$(pwd -P)"
 params="${CHECKOUT_REPOSITORY}-${CHECKOUT_PATH}-${LFS}-${PRESERVE_GIT_DIR}-${FETCH_FULL_DEPTH}-${SUBMODULES}-$(id -u)"
+if [ "${RESTORE_MTIME}" = "true" ]; then
+  params="${params}-restore-mtime"
+fi
 params_hash="$(echo "${params}" | sha256sum | cut -d ' ' -f 1)"
 printf '%s' "${TOOL_CACHE_KEY_PREFIX}-${params_hash}" > "$RWX_VALUES/tool-cache-key"
 

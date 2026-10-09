@@ -31,7 +31,7 @@ tasks:
 
   - key: code
     use: system-packages
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: ...
 ```
@@ -41,7 +41,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -67,7 +67,7 @@ If you're using GitHub, RWX will automatically provide a token that you can use 
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -81,7 +81,7 @@ Pass the token provided by RWX's Cursor Origin integration using `cursor-origin-
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://origin.cursor.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -96,7 +96,7 @@ When using `cursor-origin-token`, this package does not look up or configure `us
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: git@github.com:YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -104,6 +104,27 @@ tasks:
 ```
 
 You'll want to store your SSH key as a [vault secret](https://www.rwx.com/docs/rwx/vaults).
+
+## File Modification Times
+
+By default, Git gives files written during checkout the current time. Incremental clones can preserve timestamps for unchanged files, but a fresh clone or a tool-cache fallback to an older layer can rewrite files with new timestamps.
+
+Set `restore-mtime: true` to normalize tracked file modification times using [git-restore-mtime](https://github.com/MestreLion/git-tools). You must also set `fetch-full-depth: true`; shallow history cannot reliably identify when a file last changed.
+
+```yaml
+tasks:
+  - key: code
+    call: git/clone 2.3.0
+    with:
+      repository: https://github.com/YOUR_ORG/YOUR_REPO.git
+      ref: ${{ init.ref }}
+      fetch-full-depth: true
+      restore-mtime: true
+```
+
+This option defaults to `false`. When enabled, the package installs Python 3 if missing and a pinned, checksum-verified version of `git-restore-mtime`, which requires Python 3.8 or newer. It runs with `--commit-time --no-directories`, using committer dates rather than author dates. It also processes initialized submodules, overriding shallow-clone recommendations in `.gitmodules`, and preserves the normalized timestamps when downloading LFS files. Restoration happens before `.git` is removed, so `preserve-git-dir: true` is not required. Directory timestamps are not normalized, and CLI patches applied afterward retain their new modification times.
+
+**Git does not store original working-tree modification times.** These timestamps are derived from commit history, not restored originals. This can avoid unnecessary timestamp-based rebuilds, but it is **not sufficient to make incremental build caches correct**: a changed source file can receive a commit timestamp older than a cached build output, causing Make or Ninja to reuse stale outputs. Invalidate or partition the build tool cache when source contents change, for example by including a source revision or content hash in its tool-cache key, rather than relying only on modification times.
 
 ## Metadata
 
@@ -114,7 +135,7 @@ If you need to reference one of these to alter behavior of a task, be sure to in
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -191,7 +212,7 @@ For most usage, it's as easy as:
 tasks:
   - key: code
 -    call: git/clone 1.9.5
-+    call: git/clone 2.2.0
++    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
