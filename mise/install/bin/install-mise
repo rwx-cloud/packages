@@ -104,7 +104,9 @@ mise ls --current --json \
   | jq -r 'to_entries[] | .key as $tool | .value[] | select(.version != null) | "\($tool) \(.version)"' \
   | while read -r tool version; do
       [ -n "$tool" ] || continue
-      printf '%s' "$version" > "$RWX_VALUES/$tool"
+      name="${tool##*/}"
+      name="${name##*:}"
+      printf '%s' "$version" > "$RWX_VALUES/$name"
     done
 
 echo "$path_entries" > "$RWX_ENV/PATH"
