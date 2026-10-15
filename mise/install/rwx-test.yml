@@ -10,6 +10,8 @@ tasks:
       [tools]
       node = "22"
       python = "3.12"
+      "aqua:jdx/hk" = "2.4.0"
+      "npm:prettier" = "3.3.3"
       EOF
 
   - key: mise-toml
@@ -30,9 +32,15 @@ tasks:
       echo "node=$NODE_VERSION python=$PYTHON_VERSION"
       echo "$NODE_VERSION" | grep -E '^22\.'
       echo "$PYTHON_VERSION" | grep -E '^3\.12\.'
+      test "$HK_VERSION" = "2.4.0"
+      test "$PRETTIER_VERSION" = "3.3.3"
+      hk --version | grep '2.4.0'
+      test "$(prettier --version)" = "3.3.3"
     env:
       NODE_VERSION: ${{ tasks.mise-toml.values.node }}
       PYTHON_VERSION: ${{ tasks.mise-toml.values.python }}
+      HK_VERSION: ${{ tasks.mise-toml.values.hk }}
+      PRETTIER_VERSION: ${{ tasks.mise-toml.values.prettier }}
 
   - key: write-tool-versions
     run: |
@@ -73,9 +81,13 @@ tasks:
       echo "node=$NODE_VERSION python=$PYTHON_VERSION"
       echo "$NODE_VERSION" | grep -E '^22\.'
       echo "$PYTHON_VERSION" | grep -E '^3\.12\.'
+      test "$HK_VERSION" = "2.4.0"
+      test "$PRETTIER_VERSION" = "3.3.3"
     env:
       NODE_VERSION: ${{ tasks.no-install.values.node }}
       PYTHON_VERSION: ${{ tasks.no-install.values.python }}
+      HK_VERSION: ${{ tasks.no-install.values.hk }}
+      PRETTIER_VERSION: ${{ tasks.no-install.values.prettier }}
 
   - key: no-install--assert-not-installed
     use: no-install

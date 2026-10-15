@@ -10,7 +10,7 @@ tasks:
 
   - key: mise
     use: code
-    call: mise/install 1.1.0
+    call: mise/install 1.1.1
     filter:
       - mise.toml
 ```
@@ -24,7 +24,7 @@ This reads the mise config in the checkout root (`mise.toml`, `.mise.toml`, or
 tasks:
   - key: tools
     use: code
-    call: mise/install 1.1.0
+    call: mise/install 1.1.1
     with:
       mise-version: "2026.7.11"
 ```
@@ -34,7 +34,7 @@ tasks:
 ```yaml
 tasks:
   - key: mise
-    call: mise/install 1.1.0
+    call: mise/install 1.1.1
     with:
       install: "false"
 
@@ -49,7 +49,7 @@ tasks:
 tasks:
   - key: tools
     use: code
-    call: mise/install 1.1.0
+    call: mise/install 1.1.1
     with:
       working-directory: services/api
     filter:
@@ -66,7 +66,7 @@ name, so later tasks can reference a version without re-parsing the config:
 tasks:
   - key: mise
     use: code
-    call: mise/install 1.1.0
+    call: mise/install 1.1.1
     filter:
       - mise.toml
 
@@ -80,6 +80,10 @@ tasks:
 Values are the concrete resolved versions (for example `24.18.0` even if
 the config requested `24`).
 
+For tools that use a [mise backend](https://mise.jdx.dev/dev-tools/backends/)
+prefix, the output value is named after the final segment of the tool name.
+For example, `aqua:jdx/hk` becomes `hk` and `npm:prettier` becomes `prettier`.
+
 Versions are resolved from the config, so they're exported even with
 `install: false` — useful when you only need to know a version (e.g. to
 assert it matches a base image) without installing the tools:
@@ -88,7 +92,7 @@ assert it matches a base image) without installing the tools:
 tasks:
   - key: mise
     use: code
-    call: mise/install 1.1.0
+    call: mise/install 1.1.1
     with:
       install: "false"
     filter:
