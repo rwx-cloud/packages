@@ -33,5 +33,9 @@ fi
 apt-get update
 apt-get upgrade -y
 apt-get install -y "${packages[@]}"
+
+sed -i -E '/^mozilla\/(Comodo_AAA_Services_root|emSign_Root_TLS_CA_-_G3|emSign_ECC_Root_CA_-_G3)\.crt$/s/^/!/' /etc/ca-certificates.conf
+update-ca-certificates --fresh
+
 apt-get clean
 rm -rf /var/lib/apt/lists/*
