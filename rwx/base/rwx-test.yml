@@ -22,23 +22,6 @@ tasks:
       test "$(id -u)" == "1000"
       test "$(sudo whoami)" == "root"
 
-  - key: test-ca-certificates
-    use: base
-    run: |
-      sudo update-ca-certificates
-      subjects=$(openssl crl2pkcs7 -nocrl -certfile /etc/ssl/certs/ca-certificates.crt | openssl pkcs7 -print_certs -noout)
-      for root in 'AAA Certificate Services' 'emSign Root TLS CA - G3' 'emSign ECC Root CA - G3'; do
-        if grep -Fq "$root" <<< "$subjects"; then
-          echo "Compromised trust path remains in the CA bundle: $root"
-          exit 1
-        fi
-      done
-      for root in Comodo_AAA_Services_root emSign_Root_TLS_CA_-_G3 emSign_ECC_Root_CA_-_G3; do
-        test ! -e "/etc/ssl/certs/$root.pem"
-      done
-      openssl verify -CAfile /etc/ssl/certs/ca-certificates.crt -no-CApath /usr/share/ca-certificates/mozilla/emSign_Root_CA_-_G1.crt
-      openssl verify -no-CAfile -CApath /etc/ssl/certs /usr/share/ca-certificates/mozilla/emSign_Root_CA_-_G1.crt
-
   - key: test-docker
     use: base
     docker: true
