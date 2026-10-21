@@ -45,17 +45,21 @@ EOF
     ;;
 
   debian)
-    # Use Debian's default mirror (deb.debian.org, fronted by Fastly).
+    debian_mirror=deb.debian.org
+    if [ "$codename" = bullseye ]; then
+      debian_mirror=archive.debian.org
+    fi
+
     mkdir -p /etc/apt/sources.list.d
     cat > /etc/apt/sources.list.d/debian.sources <<EOF
 Types: deb
-URIs: http://deb.debian.org/debian
+URIs: http://${debian_mirror}/debian
 Suites: ${codename} ${codename}-updates
 Components: main
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 Types: deb
-URIs: http://deb.debian.org/debian-security
+URIs: http://${debian_mirror}/debian-security
 Suites: ${codename}-security
 Components: main
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
