@@ -54,7 +54,7 @@ if [ -n "$MISE_INSTALL_VERSION" ] && [ "$MISE_INSTALL_VERSION" != "latest" ]; th
 fi
 
 echo "Installing mise to $MISE_INSTALL_PATH"
-curl -fsSL https://mise.run | sh
+curl -fsSL https://mise.run | MISE_SELF_UPDATE_MINIMUM_RELEASE_AGE=0s sh
 
 # Make mise available to this script immediately.
 export PATH="$install_dir/bin:$PATH"

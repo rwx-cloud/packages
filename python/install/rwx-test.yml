@@ -14,6 +14,13 @@ tasks:
     run: |
       python --version | grep 'Python 3\.14\.7'
       pip --version | grep '(python 3\.14)'
+      bundle=$(python -c 'from pip._vendor import certifi; print(certifi.where())')
+      subjects=$(openssl crl2pkcs7 -nocrl -certfile "$bundle" | openssl pkcs7 -print_certs -noout)
+      if grep -Eq 'AAA Certificate Services|emSign (ECC Root CA|Root TLS CA) - G3' <<< "$subjects"; then
+        echo "pip still trusts a certificate path affected by Mozilla bug 2083449"
+        exit 1
+      fi
+      grep -Fq 'emSign Root CA - G1' <<< "$subjects"
 
   - key: install-3-14-7--test-pip-install
     use: install-3-14-7
