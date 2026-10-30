@@ -2,6 +2,16 @@
 
 Compares two git refs to determine which files changed and whether they match supplied patterns.
 
+The `repository` parameter accepts HTTPS, `ssh://`, and scp-style GitHub repository URLs, including GitHub Enterprise Server hosts:
+
+```yaml
+repository: https://github.example.com/my-organization/my-repository.git
+# or: ssh://git@github.example.com/my-organization/my-repository.git
+# or: git@github.example.com:my-organization/my-repository.git
+```
+
+Bare `my-organization/my-repository` remains shorthand for `github.com`. Ref lookups and comparisons always target the host in the URL. GitHub CLI API requests use the standard HTTPS port (443); custom HTTPS ports are rejected, and SSH ports are ignored. Supply `github-token` with read access on that host. The package selects the appropriate GitHub CLI token environment variable and ignores inherited GitHub token variables and `GH_HOST`.
+
 Outputs:
 
 | key | description |
@@ -19,7 +29,7 @@ tasks:
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.1.1
+    call: github/compare 1.2.0
     with:
       repository: my-organization/my-repository
       base-ref: abc123
@@ -41,7 +51,7 @@ tasks:
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.1.1
+    call: github/compare 1.2.0
     with:
       repository: my-organization/my-repository
       base-ref: abc123
@@ -79,7 +89,7 @@ tasks:
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.1.1
+    call: github/compare 1.2.0
     with:
       repository: my-organization/my-repository
       base-ref: ${{ init.base-ref }}
@@ -111,7 +121,7 @@ tasks:
 
   - key: go-files
     use: github-cli
-    call: github/compare 1.1.1
+    call: github/compare 1.2.0
     with:
       repository: my-organization/my-repository
       base-ref: ${{ init.base-ref }}

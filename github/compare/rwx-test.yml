@@ -7,8 +7,18 @@ tasks:
   - key: github-cli
     call: github/install-cli 1.0.8
 
-  - key: test-one-pattern-has-changes
+  - key: conflicting-github-environment
     use: github-cli
+    run: echo "Set conflicting ambient GitHub host and credentials"
+    env:
+      GH_HOST: unrelated.example.com
+      GH_TOKEN: invalid-ambient-token
+      GITHUB_TOKEN: invalid-ambient-token
+      GH_ENTERPRISE_TOKEN: invalid-ambient-token
+      GITHUB_ENTERPRISE_TOKEN: invalid-ambient-token
+
+  - key: test-one-pattern-has-changes
+    use: conflicting-github-environment
     call: ${{ init.package-digest }}
     with:
       repository: rwx-research/captain
@@ -127,7 +137,7 @@ tasks:
       [ "${{ tasks.test-negations-have-no-changes.values.changes }}" == "" ]
 
   - key: test-resolves-ref-names
-    use: github-cli
+    use: conflicting-github-environment
     call: ${{ init.package-digest }}
     with:
       repository: rwx-research/captain
@@ -155,3 +165,51 @@ tasks:
     run: |
       [ "${{ tasks.test-resolves-refs-with-prefixes.values.has-changes }}" == "false" ]
       [ "${{ tasks.test-resolves-refs-with-prefixes.values.changes }}" == "" ]
+
+  - key: test-https-url
+    use: conflicting-github-environment
+    call: ${{ init.package-digest }}
+    with:
+      repository: https://github.com/rwx-research/captain.git
+      base-ref: 5294685f36ff0edd7775f685a1e92728d7f223cf
+      head-ref: 8fe238bebb9276a7fafb83c7ee0513c83fa89061
+      github-token: ${{ github['rwx-research'].token }}
+      patterns: "**/*.go"
+
+  - key: assert-https-url
+    run: |
+      [ "${{ tasks.test-https-url.values.has-changes }}" == "true" ]
+      [ "${{ tasks.test-https-url.values.have-changes }}" == "true" ]
+      [ "${{ tasks.test-https-url.values.changes }}" == "${{ tasks.test-one-pattern-has-changes.values.changes }}" ]
+
+  - key: test-ssh-url-resolves-refs
+    use: conflicting-github-environment
+    call: ${{ init.package-digest }}
+    with:
+      repository: ssh://git@github.com:22/rwx-research/captain.git
+      base-ref: main
+      head-ref: refs/heads/main
+      github-token: ${{ github['rwx-research'].token }}
+      patterns: "**/*"
+
+  - key: assert-ssh-url-resolves-refs
+    run: |
+      [ "${{ tasks.test-ssh-url-resolves-refs.values.has-changes }}" == "false" ]
+      [ "${{ tasks.test-ssh-url-resolves-refs.values.have-changes }}" == "false" ]
+      [ "${{ tasks.test-ssh-url-resolves-refs.values.changes }}" == "${{ tasks.test-resolves-ref-names.values.changes }}" ]
+
+  - key: test-scp-url-resolves-refs
+    use: conflicting-github-environment
+    call: ${{ init.package-digest }}
+    with:
+      repository: git@github.com:rwx-research/captain.git
+      base-ref: refs/heads/main
+      head-ref: main
+      github-token: ${{ github['rwx-research'].token }}
+      patterns: "**/*"
+
+  - key: assert-scp-url-resolves-refs
+    run: |
+      [ "${{ tasks.test-scp-url-resolves-refs.values.has-changes }}" == "false" ]
+      [ "${{ tasks.test-scp-url-resolves-refs.values.have-changes }}" == "false" ]
+      [ "${{ tasks.test-scp-url-resolves-refs.values.changes }}" == "${{ tasks.test-resolves-refs-with-prefixes.values.changes }}" ]
