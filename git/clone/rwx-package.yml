@@ -1,6 +1,6 @@
 package:
   name: git/clone
-  version: 2.2.0
+  version: 2.3.0
   description: Clone git repositories over ssh or http, with support for Git Large File Storage (LFS)
   source_code_url: https://github.com/rwx-cloud/packages/tree/main/git/clone
   issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -12,6 +12,9 @@ package:
       required: false
     cursor-origin-token:
       description: "Token to clone from Cursor Origin over HTTPS. Cannot be combined with github-token."
+      required: false
+    entire-token:
+      description: "Token to clone from Entire using an entire:// URL"
       required: false
     lfs:
       description: Whether to download Git-LFS files
@@ -52,6 +55,15 @@ tasks:
         echo 'Invalid parameters: `github-token` and `cursor-origin-token` cannot both be set.' > "$RWX_ERRORS/conflicting-tokens"
         exit 2
       fi
+
+      case "$CHECKOUT_REPOSITORY" in
+        entire://*)
+          if ! command -v entire >/dev/null 2>&1 || ! command -v git-remote-entire >/dev/null 2>&1; then
+            echo 'Cloning an `entire://` repository requires the Entire CLI. Call `entire/install` in a task and specify that task as a `use` dependency of `git/clone`.' > "$RWX_ERRORS/missing-entire"
+            exit 1
+          fi
+          ;;
+      esac
 
       . "$RWX_PACKAGE_PATH/rwx-utils.sh"
       if ! rwx_os_package_manager_in apt apk; then
@@ -138,11 +150,16 @@ tasks:
       else
         case "$CHECKOUT_REPOSITORY" in
           http://*|https://*)
+            echo "Setting credential.helper to clone using an HTTPS token"
+            printf '%s' '!sh -c "echo username=x-access-token && echo password=${GITHUB_TOKEN:-${CURSOR_ORIGIN_TOKEN}}"' > "$RWX_VALUES/credential-helper"
+            ;;
+          entire://*)
+            : > "$RWX_VALUES/credential-helper"
             ;;
           *)
             errorMessage=$(mktemp "$RWX_ERRORS/error-XXXXXX")
             cat << EOF > "$errorMessage"
-      Invalid parameters: \`repository\` must point to an HTTP URL if \`ssh-key\` is not set.
+      Invalid parameters: \`repository\` must point to an HTTP or \`entire://\` URL if \`ssh-key\` is not set.
 
       The current value is \`$CHECKOUT_REPOSITORY\`.
       EOF
@@ -162,9 +179,6 @@ tasks:
             exit 2
             ;;
         esac
-
-        echo "Setting credential.helper to clone using an HTTPS token"
-        printf '%s' '!sh -c "echo username=x-access-token && echo password=${GITHUB_TOKEN:-${CURSOR_ORIGIN_TOKEN}}"' > "$RWX_VALUES/credential-helper"
       fi
     filter: []
     env:
@@ -185,6 +199,9 @@ tasks:
         cache-key: excluded
       CURSOR_ORIGIN_TOKEN:
         value: ${{ params.cursor-origin-token }}
+        cache-key: excluded
+      ENTIRE_TOKEN:
+        value: ${{ params.entire-token }}
         cache-key: excluded
       CHECKOUT_REF: ${{ params.ref }}
       CHECKOUT_REPOSITORY: ${{ params.repository }}
@@ -243,6 +260,9 @@ tasks:
         cache-key: excluded
       CURSOR_ORIGIN_TOKEN:
         value: ${{ params.cursor-origin-token }}
+        cache-key: excluded
+      ENTIRE_TOKEN:
+        value: ${{ params.entire-token }}
         cache-key: excluded
       CHECKOUT_PATH: ${{ params.path }}
       CHECKOUT_REF: ${{ params.ref }}
