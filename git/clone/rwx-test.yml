@@ -80,6 +80,55 @@ tasks:
       repository: https://github.com/rwx-cloud/packages.git
       ref: ad19b2fcb2e5f838be7b88aef436766bf067ffa1
 
+  # Exercise the entire:// transport and token forwarding without an Entire secret.
+  # The fixture helper delegates the Git protocol to a public HTTPS repository.
+  - key: entire-fixture
+    use: system-packages
+    run: |
+      if [ "$(id -u)" -eq 0 ]; then
+        mkdir -p /opt/entire-fixture
+      else
+        sudo mkdir -p /opt/entire-fixture
+        sudo chown "$(id -u):$(id -g)" /opt/entire-fixture
+      fi
+      printf '#!/bin/sh\nexit 0\n' > /opt/entire-fixture/entire
+      cat <<'EOF' > /opt/entire-fixture/git-remote-entire
+      #!/bin/sh
+      set -eu
+      test "$ENTIRE_TOKEN" = "entire-test-token"
+      test "$2" = "entire://example.test/org/repository"
+      exec "$(git --exec-path)/git-remote-https" "$1" https://github.com/rwx-cloud/packages.git
+      EOF
+      chmod +x /opt/entire-fixture/entire /opt/entire-fixture/git-remote-entire
+      if [ "$(id -u)" -eq 0 ]; then
+        ln -s /opt/entire-fixture/* /usr/local/bin/
+      else
+        sudo ln -s /opt/entire-fixture/* /usr/local/bin/
+      fi
+
+  - key: git-clone--test-entire
+    call: ${{ init.package-digest }}
+    use: entire-fixture
+    with:
+      repository: entire://example.test/org/repository
+      ref: ad19b2fcb2e5f838be7b88aef436766bf067ffa1
+      entire-token: entire-test-token
+      preserve-git-dir: true
+      submodules: false
+
+  - key: git-clone--test-entire--assert
+    use: git-clone--test-entire
+    run: |
+      test -e git-clone
+      test "$(git rev-parse HEAD)" = "ad19b2fcb2e5f838be7b88aef436766bf067ffa1"
+      test "$(git remote get-url origin)" = "entire://example.test/org/repository"
+      test -z "$(git config --local --get credential.helper || true)"
+      test -z "$(git config --local --get user.name || true)"
+      test -z "$(git config --local --get user.email || true)"
+      git ls-remote origin refs/heads/main | grep 'refs/heads/main'
+    env:
+      ENTIRE_TOKEN: entire-test-token
+
   - key: git-clone--test-public-https--assert
     use: git-clone--test-public-https
     run: |

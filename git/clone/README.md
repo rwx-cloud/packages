@@ -31,7 +31,7 @@ tasks:
 
   - key: code
     use: system-packages
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: ...
 ```
@@ -41,7 +41,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -67,7 +67,7 @@ If you're using GitHub, RWX will automatically provide a token that you can use 
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -81,7 +81,7 @@ Pass the token provided by RWX's Cursor Origin integration using `cursor-origin-
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://origin.cursor.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -91,12 +91,32 @@ tasks:
 
 When using `cursor-origin-token`, this package does not look up or configure `user.name` or `user.email`. Configure those yourself if subsequent tasks need to create commits. Subsequent Git operations can authenticate by setting `CURSOR_ORIGIN_TOKEN` in the task environment.
 
+### Cloning Entire Repositories
+
+For an `entire://` URL, install the Entire CLI and make it a `use` dependency of the clone task. No `ssh-key` is required. Pass an `entire-token` to authenticate:
+
+```yaml
+tasks:
+  - key: entire
+    call: entire/install 1.0.0
+
+  - key: code
+    use: entire
+    call: git/clone 2.3.0
+    with:
+      repository: entire://YOUR_HOST/YOUR_ORG/PROJECT
+      ref: main
+      entire-token: ${{ secrets.ENTIRE_TOKEN }}
+```
+
+The token is passed to the Entire remote helper as `ENTIRE_TOKEN` and excluded from cache keys. Subsequent Git operations can authenticate by setting `ENTIRE_TOKEN` in the task environment. This package does not configure `user.name` or `user.email` for Entire repositories.
+
 ### Cloning over SSH
 
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: git@github.com:YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -114,7 +134,7 @@ If you need to reference one of these to alter behavior of a task, be sure to in
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.2.0
+    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -191,7 +211,7 @@ For most usage, it's as easy as:
 tasks:
   - key: code
 -    call: git/clone 1.9.5
-+    call: git/clone 2.2.0
++    call: git/clone 2.3.0
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}

@@ -1,0 +1,16 @@
+package:
+  name: entire/install
+  version: 1.0.0
+  description: Install the Entire CLI
+  source_code_url: https://github.com/rwx-cloud/packages/tree/main/entire/install
+  issue_tracker_url: https://github.com/rwx-cloud/packages/issues
+  visibility: public
+
+tasks:
+  - key: install
+    use: [package.use]
+    run: |
+      curl -fsSL https://entire.com/install.sh | bash
+      echo "$HOME/.local/bin" >> "$RWX_ENV/PATH"
+    cache:
+      ttl: 1d
