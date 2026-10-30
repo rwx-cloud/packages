@@ -6,18 +6,23 @@ base:
 tasks:
   - key: system-packages
     run: |
-      # running from a base with `config: none`; need jq too
-      if ! command -v curl >/dev/null 2>&1 || ! command -v jq >/dev/null 2>&1; then
+      # Bases with `config: none` need curl and jq; the Entire installer also needs bash.
+      if ! command -v curl >/dev/null 2>&1 || ! command -v jq >/dev/null 2>&1 || ! command -v bash >/dev/null 2>&1; then
         if command -v apk >/dev/null 2>&1; then
-          apk add --no-cache curl jq
+          apk add --no-cache curl jq bash
         elif command -v apt-get >/dev/null 2>&1; then
           apt-get -y update
-          apt-get -y install curl jq
+          apt-get -y install curl jq bash
           apt-get clean
         else
-          echo "Unsupported package manager; need curl and jq installed" >&2
+          echo "Unsupported package manager; need curl, jq, and bash installed" >&2
           exit 1
         fi
+      fi
+
+      # Alpine's login profile must preserve PATH entries added by packages.
+      if command -v apk >/dev/null 2>&1; then
+        sed -i 's/^export PATH="/export PATH="$PATH:/' /etc/profile
       fi
 
   - key: git-clone--test-ssh-key
@@ -79,6 +84,33 @@ tasks:
     with:
       repository: https://github.com/rwx-cloud/packages.git
       ref: ad19b2fcb2e5f838be7b88aef436766bf067ffa1
+
+  - key: entire
+    use: system-packages
+    call: entire/install 1.0.0
+
+  - key: git-clone--test-entire
+    call: ${{ init.package-digest }}
+    use: entire
+    with:
+      repository: entire://aws-us-east-2.entire.io/et/rwx/entire-test
+      ref: main
+      entire-token: ${{ entire["rwx/entire-test"].token }}
+      preserve-git-dir: true
+      submodules: false
+
+  - key: git-clone--test-entire--assert
+    use: git-clone--test-entire
+    run: |
+      test "$(git symbolic-ref --short HEAD)" = main
+      test "$(git remote get-url origin)" = "entire://aws-us-east-2.entire.io/et/rwx/entire-test"
+      test -z "$(git config --local --get credential.helper || true)"
+      test -z "$(git config --local --get user.name || true)"
+      test -z "$(git config --local --get user.email || true)"
+      test "$(git rev-parse HEAD)" = "$(git ls-remote origin refs/heads/main | cut -f1)"
+      git diff --exit-code HEAD --
+    env:
+      ENTIRE_TOKEN: ${{ entire["rwx/entire-test"].token }}
 
   - key: git-clone--test-public-https--assert
     use: git-clone--test-public-https
