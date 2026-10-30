@@ -1,0 +1,14 @@
+base:
+  image: ${{ init.base-image }}
+  config: ${{ init.base-config }}
+  arch: ${{ init.base-arch }}
+
+tasks:
+  - key: install
+    call: ${{ init.package-digest }}
+
+  - key: assert
+    use: install
+    run: |
+      entire version
+      git-remote-entire --version
