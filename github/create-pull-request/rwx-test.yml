@@ -19,6 +19,14 @@ tasks:
     use: code
     cache: false
     run: |
+      # The PR must follow the push URL, not a different fetch remote or ambient gh context.
+      git remote set-url --push origin https://github.com/rwx-cloud/mint-update-leaves-testing.git
+      git remote set-url origin https://github.com/rwx-cloud/packages.git
+      echo github.example.com > "$RWX_ENV/GH_HOST"
+      echo github.example.com/other/repository > "$RWX_ENV/GH_REPO"
+      echo invalid-inherited-token > "$RWX_ENV/GH_TOKEN"
+      echo invalid-inherited-token > "$RWX_ENV/GH_ENTERPRISE_TOKEN"
+
       nonce=$(date +%s)
       echo "$nonce" | tee $RWX_VALUES/nonce
       file="${nonce}.txt"
