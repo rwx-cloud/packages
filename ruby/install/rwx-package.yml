@@ -1,6 +1,6 @@
 package:
   name: ruby/install
-  version: 2.0.1
+  version: 2.0.2
   description: Install Ruby, a dynamic programming language with a focus on simplicity and productivity
   source_code_url: https://github.com/rwx-cloud/packages/tree/main/ruby/install
   issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -74,7 +74,7 @@ tasks:
       export MISE_STATE_DIR="$mise_dir/state"
       export MISE_CONFIG_DIR="$mise_dir/config"
 
-      curl -fsSL https://mise.run | sh
+      curl -fsSL https://mise.run | MISE_SELF_UPDATE_MINIMUM_RELEASE_AGE=0s sh
       export PATH="$mise_dir/bin:$PATH"
       mise --version
 
