@@ -1,6 +1,6 @@
 package:
   name: git/clone
-  version: 2.3.0
+  version: 2.4.0
   description: Clone git repositories over ssh or http, with support for Git Large File Storage (LFS)
   source_code_url: https://github.com/rwx-cloud/packages/tree/main/git/clone
   issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -151,7 +151,27 @@ tasks:
         case "$CHECKOUT_REPOSITORY" in
           http://*|https://*)
             echo "Setting credential.helper to clone using an HTTPS token"
-            printf '%s' '!sh -c "echo username=x-access-token && echo password=${GITHUB_TOKEN:-${CURSOR_ORIGIN_TOKEN}}"' > "$RWX_VALUES/credential-helper"
+            authority=${CHECKOUT_REPOSITORY#*://}
+            authority=${authority%%/*}
+            authority=${authority##*@}
+            authority=${authority%:443}
+            credential_origin=$(printf 'https://%s' "$authority" | tr '[:upper:]' '[:lower:]' | jq -Rr @sh)
+            # The helper also runs for submodules, redirects, and later Git operations.
+            # Match the credential request, not just the original clone URL.
+            printf '%s' "!f() {
+              protocol= host=
+              while IFS='=' read -r key value; do
+                case \$key in
+                  protocol) protocol=\$value ;;
+                  host) host=\$value ;;
+                esac
+              done
+              origin=\$(printf '%s' \"\$protocol://\$host\" | tr '[:upper:]' '[:lower:]')
+              origin=\${origin%:443}
+              if [ \"\$1\" = get ] && [ \"\$origin\" = $credential_origin ]; then
+                printf '%s\\n' username=x-access-token \"password=\${GITHUB_TOKEN:-\${CURSOR_ORIGIN_TOKEN}}\"
+              fi
+            }; f" > "$RWX_VALUES/credential-helper"
             ;;
           entire://*)
             : > "$RWX_VALUES/credential-helper"

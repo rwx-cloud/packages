@@ -1,6 +1,6 @@
 package:
   name: github/compare
-  version: 1.1.1
+  version: 1.2.0
   description: Compare two git refs in GitHub and check if certain files changed
   source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/compare
   issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -8,7 +8,7 @@ package:
 
   parameters:
     repository:
-      description: The owner/repository-name of your GitHub repository (e.g. `my-organization/my-repository`)
+      description: The HTTPS, ssh://, or scp-style URL of your GitHub repository, or owner/repository-name for github.com
       required: true
     base-ref:
       description: "The git ref to compare `head-ref` against"
@@ -27,19 +27,52 @@ package:
     values-from: [compare]
 
 tasks:
+  - key: repository
+    use: [package.use]
+    run: |
+      hostname=github.com
+      repository="$REPOSITORY"
+      if [[ "$repository" =~ ^https://([A-Za-z0-9.-]+)(:[0-9]+)?/(.+)$ ]]; then
+        hostname="${BASH_REMATCH[1]}"
+        if [[ -n "${BASH_REMATCH[2]}" && "${BASH_REMATCH[2]}" != :443 ]]; then
+          echo "GitHub CLI API requests require the standard HTTPS port (443)" >&2
+          exit 1
+        fi
+        repository="${BASH_REMATCH[3]}"
+      elif [[ "$repository" =~ ^ssh://([A-Za-z0-9._-]+@)?([A-Za-z0-9.-]+)(:[0-9]+)?/(.+)$ ]]; then
+        hostname="${BASH_REMATCH[2]}"
+        repository="${BASH_REMATCH[4]}"
+      elif [[ "$repository" =~ ^([A-Za-z0-9._-]+@)?([A-Za-z0-9.-]+):(.+)$ ]]; then
+        hostname="${BASH_REMATCH[2]}"
+        repository="${BASH_REMATCH[3]}"
+      fi
+      repository="${repository%/}"
+      repository="${repository%.git}"
+      if [[ ! "$repository" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+        echo "Expected a GitHub repository URL or owner/repository-name" >&2
+        exit 1
+      fi
+      printf '%s\n' "${hostname,,}" > "$RWX_VALUES/hostname"
+      printf '%s\n' "$repository" > "$RWX_VALUES/repository"
+    filter: []
+    env:
+      REPOSITORY: ${{ params.repository }}
+
   - key: shas
     use: [package.use]
     run: |
+      source "$RWX_PACKAGE_PATH/gh-env.sh"
+
       echo "Base ref resolves to:"
       if [[ "${BASE_REF}" =~ ^[0-9a-f]{40}$ ]]; then
         echo "${BASE_REF}" | tee $RWX_VALUES/base-sha
       else
         if [[ "${BASE_REF}" =~ ^refs/heads/ || "${BASE_REF}" =~ ^refs/heads/ ]]; then
           ref=$(echo "${BASE_REF}" | sed 's|refs/||')
-          sha=$(gh api "/repos/${REPOSITORY}/git/ref/${ref}" | jq -e -r '.object.sha')
+          sha=$(gh api --hostname "$GH_HOST" "/repos/${REPOSITORY}/git/ref/${ref}" | jq -e -r '.object.sha')
           echo "${sha}" | tee $RWX_VALUES/base-sha
         else
-          sha=$(gh api "/repos/${REPOSITORY}/git/ref/heads/${BASE_REF}" | jq -e -r '.object.sha')
+          sha=$(gh api --hostname "$GH_HOST" "/repos/${REPOSITORY}/git/ref/heads/${BASE_REF}" | jq -e -r '.object.sha')
           echo "${sha}" | tee $RWX_VALUES/base-sha
         fi
       fi
@@ -51,19 +84,20 @@ tasks:
       else
         if [[ "${HEAD_REF}" =~ ^refs/heads/ || "${HEAD_REF}" =~ ^refs/heads/ ]]; then
           ref=$(echo "${HEAD_REF}" | sed 's|refs/||')
-          sha=$(gh api "/repos/${REPOSITORY}/git/ref/${ref}" | jq -e -r '.object.sha')
+          sha=$(gh api --hostname "$GH_HOST" "/repos/${REPOSITORY}/git/ref/${ref}" | jq -e -r '.object.sha')
           echo "${sha}" | tee $RWX_VALUES/head-sha
         else
-          sha=$(gh api "/repos/${REPOSITORY}/git/ref/heads/${HEAD_REF}" | jq -e -r '.object.sha')
+          sha=$(gh api --hostname "$GH_HOST" "/repos/${REPOSITORY}/git/ref/heads/${HEAD_REF}" | jq -e -r '.object.sha')
           echo "${sha}" | tee $RWX_VALUES/head-sha
         fi
       fi
     filter: []
     env:
-      GITHUB_TOKEN:
+      PACKAGE_GITHUB_TOKEN:
         value: ${{ params.github-token }}
         cache-key: excluded
-      REPOSITORY: ${{ params.repository }}
+      GH_HOST: ${{ tasks.repository.values.hostname }}
+      REPOSITORY: ${{ tasks.repository.values.repository }}
       BASE_REF: ${{ params.base-ref }}
       HEAD_REF: ${{ params.head-ref }}
     cache: ${{ params.base-ref =~ '^[0-9a-f]{40}$' && params.head-ref =~ '^[0-9a-f]{40}$' }}
@@ -71,7 +105,8 @@ tasks:
   - key: compare
     use: [package.use]
     run: |
-      gh api "/repos/${REPOSITORY}/compare/${BASE_SHA}...${HEAD_SHA}" > compare.json
+      source "$RWX_PACKAGE_PATH/gh-env.sh"
+      gh api --hostname "$GH_HOST" "/repos/${REPOSITORY}/compare/${BASE_SHA}...${HEAD_SHA}" > compare.json
 
       jq -r '.files[].filename' < compare.json > files.txt
       echo "All changed files:"
@@ -95,10 +130,11 @@ tasks:
       fi
     filter: []
     env:
-      GITHUB_TOKEN:
+      PACKAGE_GITHUB_TOKEN:
         value: ${{ params.github-token }}
         cache-key: excluded
-      REPOSITORY: ${{ params.repository }}
+      GH_HOST: ${{ tasks.repository.values.hostname }}
+      REPOSITORY: ${{ tasks.repository.values.repository }}
       BASE_SHA: ${{ tasks.shas.values.base-sha }}
       HEAD_SHA: ${{ tasks.shas.values.head-sha }}
       PATTERNS: ${{ params.patterns }}

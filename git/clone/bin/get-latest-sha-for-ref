@@ -6,7 +6,7 @@ git_clone_ls_remote_refs() {
   shift
 
   if [ -n "${CREDENTIAL_HELPER}" ]; then
-    git -c "credential.helper=${CREDENTIAL_HELPER}" ls-remote --refs "$remote" "$@"
+    git -c credential.helper= -c "credential.helper=${CREDENTIAL_HELPER}" ls-remote --refs "$remote" "$@"
   else
     git ls-remote --refs "$remote" "$@"
   fi
