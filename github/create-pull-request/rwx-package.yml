@@ -1,6 +1,6 @@
 package:
   name: github/create-pull-request
-  version: 1.2.0
+  version: 1.3.0
   description: Creates a pull request
   source_code_url: https://github.com/rwx-cloud/packages/tree/main/github/create-pull-request
   issue_tracker_url: https://github.com/rwx-cloud/packages/issues
@@ -45,10 +45,61 @@ tasks:
 
       git_status=$(git status --porcelain)
       if [ -n "$git_status" ]; then
-        viewer=$(gh api graphql -f query='{ viewer { databaseId login } }')
-        login=$(printf '%s' "$viewer" | jq -r '.data.viewer.login')
-        user_id=$(printf '%s' "$viewer" | jq -r '.data.viewer.databaseId')
-        git config user.email "${user_id}+${login}@users.noreply.github.com"
+        # Use the push destination, not gh's inferred upstream (which may be a fork).
+        push_url=$(git remote get-url --push --all origin)
+        if [[ "$push_url" == *$'\n'* ]]; then
+          echo 'origin must have exactly one push URL' >&2
+          exit 1
+        fi
+        case "$push_url" in
+          https://*|ssh://*)
+            remote=${push_url#*://}
+            authority=${remote%%/*}
+            repository=${remote#*/}
+            GH_HOST=${authority##*@}
+            case "$push_url" in
+              ssh://*) GH_HOST=${GH_HOST%%:*} ;;
+              https://*)
+                if [[ "$GH_HOST" == *:* && "$GH_HOST" != *:443 ]]; then
+                  echo 'GitHub CLI API requests require the standard HTTPS port (443)' >&2
+                  exit 1
+                fi
+                GH_HOST=${GH_HOST%:443}
+                ;;
+            esac
+            ;;
+          *:*)
+            GH_HOST=${push_url%%:*}
+            GH_HOST=${GH_HOST##*@}
+            repository=${push_url#*:}
+            ;;
+          *) echo 'origin must use an HTTPS or SSH GitHub repository URL' >&2; exit 1 ;;
+        esac
+        repository=${repository%/}
+        repository=${repository%.git}
+        if [[ ! "$GH_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*(:[0-9]+)?$ || ! "$repository" =~ ^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$ ]]; then
+          echo 'origin must identify a GitHub host and owner/repository' >&2
+          exit 1
+        fi
+        export GH_HOST=${GH_HOST,,}
+        export GH_REPO="$GH_HOST/$repository"
+        # Override inherited CLI credentials without writing persistent gh auth.
+        unset GH_TOKEN GITHUB_TOKEN GH_ENTERPRISE_TOKEN GITHUB_ENTERPRISE_TOKEN
+        case "$GH_HOST" in
+          github.com|*.ghe.com) export GH_TOKEN="$PACKAGE_GITHUB_TOKEN" ;;
+          *) export GH_ENTERPRISE_TOKEN="$PACKAGE_GITHUB_TOKEN" ;;
+        esac
+
+        viewer=$(gh api --hostname "$GH_HOST" graphql -f query='{ viewer { databaseId login email } }')
+        login=$(printf '%s' "$viewer" | jq -er '.data.viewer.login | select(. != null and . != "")')
+        if [ "$GH_HOST" = github.com ]; then
+          user_id=$(printf '%s' "$viewer" | jq -er '.data.viewer.databaseId')
+          email="${user_id}+${login}@users.noreply.github.com"
+        else
+          email=$(printf '%s' "$viewer" | jq -r '.data.viewer.email // empty')
+          email=${email:-${login}@${GH_HOST%%:*}}
+        fi
+        git config user.email "$email"
         git config user.name "$login"
 
         git add --all
@@ -58,7 +109,7 @@ tasks:
         exit 0
       fi
 
-      pr_list=$(gh pr list --author @me --json number,headRefName,isDraft)
+      pr_list=$(gh pr list --repo "$GH_REPO" --author @me --json number,headRefName,isDraft)
       echo "$pr_list"
 
       latest_pr=$(echo "$pr_list" |  jq "[.[] | select(.headRefName | startswith(\"${BRANCH_PREFIX}-\"))] | max_by(.number)")
@@ -76,24 +127,26 @@ tasks:
       echo "$branch" | tee $RWX_VALUES/branch
 
       git checkout -b "$branch"
-      git push -f origin "$branch"
+      git -c credential.helper= \
+        -c "credential.https://$GH_HOST.helper=!gh auth git-credential" \
+        push -f origin "$branch"
 
       if [ "$need_to_create_pr" = "true" ]; then
         if [ "$DRAFT" = "true" ]; then
-          gh pr create --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY" --draft
+          gh pr create --repo "$GH_REPO" --head "$branch" --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY" --draft
         else
-          gh pr create --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY"
+          gh pr create --repo "$GH_REPO" --head "$branch" --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY"
         fi
       else
-        gh pr edit --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY"
+        gh pr edit "$pr_number" --repo "$GH_REPO" --title "$PULL_REQUEST_TITLE" --body "$PULL_REQUEST_BODY"
         if [ "$current_is_draft" = "true" ] && [ "$DRAFT" = "false" ]; then
-          gh pr ready "$pr_number"
+          gh pr ready "$pr_number" --repo "$GH_REPO"
         elif [ "$current_is_draft" = "false" ] && [ "$DRAFT" = "true" ]; then
-          gh pr ready "$pr_number" --undo
+          gh pr ready "$pr_number" --repo "$GH_REPO" --undo
         fi
       fi
 
-      pr_details=$(gh pr view "$branch" --json number,url)
+      pr_details=$(gh pr view "$branch" --repo "$GH_REPO" --json number,url)
       pr_number=$(echo "$pr_details" | jq -r '.number')
       pr_url=$(echo "$pr_details" | jq -r '.url')
       echo "$pr_number" > "$RWX_VALUES/pull-request-number"
@@ -108,7 +161,7 @@ tasks:
         # Self-review requests and other non-permission failures: log and continue.
         # If a team slug is present and the org team API fails, treat as missing
         # Members: read and record a fatal reason (PR already exists at this point).
-        if ! gh pr edit "$pr_number" --add-reviewer "$REVIEWERS"; then
+        if ! gh pr edit "$pr_number" --repo "$GH_REPO" --add-reviewer "$REVIEWERS"; then
           warning="Warning: failed to request one or more reviewers (\"$REVIEWERS\"). Continuing."
           members_read_missing=false
           IFS=',' read -ra reviewer_list <<< "$REVIEWERS"
@@ -117,7 +170,7 @@ tasks:
             if [[ "$reviewer" == *"/"* ]]; then
               org="${reviewer%%/*}"
               team="${reviewer##*/}"
-              if ! gh api "/orgs/${org}/teams/${team}" >/dev/null 2>&1; then
+              if ! gh api --hostname "$GH_HOST" "/orgs/${org}/teams/${team}" >/dev/null 2>&1; then
                 members_read_missing=true
               fi
               break
@@ -134,7 +187,7 @@ tasks:
       if [ "$ENABLE_AUTO_MERGE" = "true" ]; then
         if [ "${#fatal[@]}" -gt 0 ]; then
           fatal+=("Squash auto-merge was not attempted because of the failure(s) above.")
-        elif ! gh pr merge "$pr_number" --auto --squash; then
+        elif ! gh pr merge "$pr_number" --repo "$GH_REPO" --auto --squash; then
           fatal+=("Failed to enable squash auto-merge. Check repository auto-merge support, merge conflicts, and that the token can merge this branch.")
         fi
       fi
@@ -148,7 +201,7 @@ tasks:
       fi
     env:
       BRANCH_PREFIX: ${{ params.branch-prefix }}
-      GITHUB_TOKEN: ${{ params.github-token }}
+      PACKAGE_GITHUB_TOKEN: ${{ params.github-token }}
       PULL_REQUEST_TITLE: ${{ params.pull-request-title }}
       PULL_REQUEST_BODY: ${{ params.pull-request-body }}
       DRAFT: ${{ params.draft }}

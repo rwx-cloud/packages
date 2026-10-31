@@ -281,3 +281,49 @@ tasks:
     env:
       GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
       PR_NUMBER: ${{ tasks.create-pr-reviewers.values.pull-request-number }}
+
+  - key: code-change-with-conflicting-fetch-url-and-github-context
+    use: code-change
+    run: |
+      git remote set-url --push origin https://github.com/rwx-cloud/mint-update-leaves-testing.git
+      git remote set-url origin https://github.com/rwx-cloud/packages.git
+      echo github.example.com > "$RWX_ENV/GH_HOST"
+      echo github.example.com/other/repository > "$RWX_ENV/GH_REPO"
+      for name in GH_TOKEN GITHUB_TOKEN GH_ENTERPRISE_TOKEN GITHUB_ENTERPRISE_TOKEN; do
+        echo invalid-inherited-token > "$RWX_ENV/$name"
+      done
+
+  - key: create-pr-with-explicit-push-destination
+    # The original PR flow uses a broader branch prefix, so finish it first.
+    after: close-pr
+    call: ${{ init.package-digest }}
+    use: code-change-with-conflicting-fetch-url-and-github-context
+    with:
+      github-token: ${{ github-apps.rwx-cloud-bot.token }}
+      branch-prefix: ${{ run.id }}-push-destination
+      pull-request-title: "push destination test ${{ tasks.code-change.values.nonce }}"
+      pull-request-body: "push destination test ${{ tasks.code-change.values.nonce }}"
+      draft: true
+
+  - key: clone-branch-from-explicit-push-destination
+    call: git/clone 2.0.0
+    with:
+      repository: https://github.com/rwx-cloud/mint-update-leaves-testing.git
+      ref: ${{ tasks.create-pr-with-explicit-push-destination.values.branch }}
+      github-token: ${{ github-apps.rwx-cloud-bot.token }}
+
+  - key: assert--explicit-push-destination
+    use: [gh-cli, clone-branch-from-explicit-push-destination]
+    run: |
+      test -f ${{ tasks.code-change.values.file }}
+
+      pr_details=$(gh --repo rwx-cloud/mint-update-leaves-testing pr view "$PR_NUMBER" --json url,title,headRefName,isDraft)
+      test "$(echo "$pr_details" | jq -r '.url')" = "https://github.com/rwx-cloud/mint-update-leaves-testing/pull/$PR_NUMBER"
+      test "$(echo "$pr_details" | jq -r '.title')" = "push destination test ${{ tasks.code-change.values.nonce }}"
+      test "$(echo "$pr_details" | jq -r '.headRefName')" = "${{ tasks.create-pr-with-explicit-push-destination.values.branch }}"
+      test "$(echo "$pr_details" | jq -r '.isDraft')" = "true"
+
+      gh --repo rwx-cloud/mint-update-leaves-testing pr close "$PR_NUMBER" --delete-branch
+    env:
+      GITHUB_TOKEN: ${{ github-apps.rwx-cloud-bot.token }}
+      PR_NUMBER: ${{ tasks.create-pr-with-explicit-push-destination.values.pull-request-number }}
