@@ -1,6 +1,6 @@
 package:
   name: jj/install
-  version: 1.0.0
+  version: 1.0.1
   description: Install Jujutsu (jj)
   source_code_url: https://github.com/rwx-cloud/packages/tree/main/jj/install
   issue_tracker_url: https://github.com/rwx-cloud/packages/issues

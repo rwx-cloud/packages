@@ -5,7 +5,7 @@ To install the latest version of go:
 ```yaml
 tasks:
   - key: go
-    call: golang/install 1.3.0
+    call: golang/install 1.3.1
 ```
 
 To install a specific version:
@@ -13,7 +13,7 @@ To install a specific version:
 ```yaml
 tasks:
   - key: go
-    call: golang/install 1.3.0
+    call: golang/install 1.3.1
     with:
       go-version: "1.21.5"
 ```

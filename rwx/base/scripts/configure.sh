@@ -67,6 +67,7 @@ if $admin_flag_supported; then
   cat <<EOF >> /etc/sudoers.d/disable_admin_file_in_home
 Defaults !admin_flag
 EOF
+  chmod 0440 /etc/sudoers.d/disable_admin_file_in_home
 fi
 
 # Debian's /etc/profile resets $PATH to a hardcoded list, which clobbers the

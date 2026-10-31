@@ -5,7 +5,7 @@ To install Erlang:
 ```yaml
 tasks:
   - key: erlang
-    call: erlang/install 1.2.0
+    call: erlang/install 1.2.1
     with:
       erlang-version: 28.1
 ```
