@@ -31,7 +31,7 @@ tasks:
 
   - key: code
     use: system-packages
-    call: git/clone 2.3.0
+    call: git/clone 2.4.0
     with:
       repository: ...
 ```
@@ -41,7 +41,7 @@ tasks:
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.3.0
+    call: git/clone 2.4.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -67,12 +67,42 @@ If you're using GitHub, RWX will automatically provide a token that you can use 
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.3.0
+    call: git/clone 2.4.0
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
       github-token: ${{ github.token }}
 ```
+
+GitHub Enterprise Server uses the same package and `github-token` parameter. Set
+`repository` to your instance's URL and supply a token issued for that instance:
+
+```yaml
+tasks:
+  - key: code
+    call: git/clone 2.4.0
+    with:
+      repository: https://github.example.com/YOUR_ORG/PROJECT.git
+      ref: main
+      github-token: ${{ github.installations['enterprise'].token }}
+      preserve-git-dir: true
+```
+
+The URL determines where the token is used, not which installation issues it.
+The credential helper only supplies the token to that HTTPS host and port,
+including for recursive submodules and subsequent Git operations. Private
+submodules on another host require their own credentials. LFS batch requests
+only receive the repository token on the same HTTPS origin; object downloads use
+credentials supplied by the LFS download action. Authenticated LFS transfers
+require HTTPS.
+
+With `preserve-git-dir: true`, author lookup uses that instance's API without
+following redirects. On github.com the author keeps the existing no-reply email.
+On Enterprise Server the instance's public viewer email is used, falling back to
+`login@host` if none is available. This fallback does not guarantee account
+attribution; override `git config user.email` if your instance requires another
+commit email. The runner must be able to reach the instance and trust its TLS
+certificate.
 
 ### Cloning Cursor Origin Repositories over HTTPS
 
@@ -81,7 +111,7 @@ Pass the token provided by RWX's Cursor Origin integration using `cursor-origin-
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.3.0
+    call: git/clone 2.4.0
     with:
       repository: https://origin.cursor.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -102,7 +132,7 @@ tasks:
 
   - key: code
     use: entire
-    call: git/clone 2.3.0
+    call: git/clone 2.4.0
     with:
       repository: entire://aws-us-east-2.entire.io/et/YOUR_PROJECT/YOUR_REPO
       ref: main
@@ -116,7 +146,7 @@ Subsequent Git operations can authenticate by setting `ENTIRE_TOKEN` in the task
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.3.0
+    call: git/clone 2.4.0
     with:
       repository: git@github.com:YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
@@ -134,7 +164,7 @@ If you need to reference one of these to alter behavior of a task, be sure to in
 ```yaml
 tasks:
   - key: code
-    call: git/clone 2.3.0
+    call: git/clone 2.4.0
     with:
       repository: https://github.com/YOUR_ORG/YOUR_REPO.git
       ref: main
@@ -211,7 +241,7 @@ For most usage, it's as easy as:
 tasks:
   - key: code
 -    call: git/clone 1.9.5
-+    call: git/clone 2.3.0
++    call: git/clone 2.4.0
     with:
       repository: https://github.com/YOUR_ORG/PROJECT.git
       ref: ${{ init.ref }}
