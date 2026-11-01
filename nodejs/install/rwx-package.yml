@@ -1,6 +1,6 @@
 package:
   name: nodejs/install
-  version: 1.2.0
+  version: 1.2.1
   description: Install Node.js, the cross-platform JavaScript runtime environment
   source_code_url: https://github.com/rwx-cloud/packages/tree/main/nodejs/install
   issue_tracker_url: https://github.com/rwx-cloud/packages/issues

@@ -22,6 +22,31 @@ tasks:
       test "$(id -u)" == "1000"
       test "$(sudo whoami)" == "root"
 
+  - key: test-sudo
+    use: base
+    run: |
+      admin_flag_supported=false
+      case "${{ init.base-image }}" in
+        ubuntu:22.04|ubuntu:24.04|debian:12|debian:13) admin_flag_supported=true ;;
+      esac
+      if $admin_flag_supported; then
+        test "$(sudo -n cat /etc/sudoers.d/disable_admin_file_in_home)" = 'Defaults !admin_flag'
+      else
+        test ! -e /etc/sudoers.d/disable_admin_file_in_home
+      fi
+
+      stderr_file="$(mktemp)"
+      trap 'rm -f "$stderr_file"' EXIT
+      root_user="$(sudo -n whoami 2>"$stderr_file")"
+      cat "$stderr_file" >&2
+      test "$root_user" = root
+      test ! -s "$stderr_file"
+      sudo -n visudo -c
+
+      if $admin_flag_supported; then
+        test ! -e "$HOME/.sudo_as_admin_successful"
+      fi
+
   - key: test-docker
     use: base
     docker: true

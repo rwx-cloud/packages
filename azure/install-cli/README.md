@@ -5,7 +5,7 @@ To install the latest version of the Azure CLI:
 ```yaml
 tasks:
   - key: azure-cli
-    call: azure/install-cli 1.1.0
+    call: azure/install-cli 1.1.1
 ```
 
 To install a specific version of the Azure CLI:
@@ -13,7 +13,7 @@ To install a specific version of the Azure CLI:
 ```yaml
 tasks:
   - key: azure-cli
-    call: azure/install-cli 1.1.0
+    call: azure/install-cli 1.1.1
     with:
       version: "2.65.0"
 ```

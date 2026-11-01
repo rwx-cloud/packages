@@ -5,7 +5,7 @@ To install the latest version of [Jujutsu (jj)](https://github.com/jj-vcs/jj):
 ```yaml
 tasks:
   - key: jj
-    call: jj/install 1.0.0
+    call: jj/install 1.0.1
 ```
 
 To install a specific version of Jujutsu:
@@ -13,7 +13,7 @@ To install a specific version of Jujutsu:
 ```yaml
 tasks:
   - key: jj
-    call: jj/install 1.0.0
+    call: jj/install 1.0.1
     with:
       version: "0.44.0"
 ```

@@ -64,6 +64,31 @@ tasks:
     use: npm-install
     run: npm run spellcheck
 
+  - key: test-utils
+    use: checkout
+    run: |
+      source rwx-utils.sh
+      while read -r version comparison expected_lte expected_gte; do
+        detected_os_version="$version"
+        if rwx_os_version_lte "$comparison"; then actual_lte=true; else actual_lte=false; fi
+        if rwx_os_version_gte "$comparison"; then actual_gte=true; else actual_gte=false; fi
+        echo "$version <= $comparison: $actual_lte (expected $expected_lte)"
+        echo "$version >= $comparison: $actual_gte (expected $expected_gte)"
+        test "$actual_lte" = "$expected_lte"
+        test "$actual_gte" = "$expected_gte"
+      done <<'EOF'
+      24.04 25.04 true false
+      25.04 25.04 true true
+      26.04 25.04 false true
+      25.04 25.10 true false
+      25.10 25.04 false true
+      24.04.1 24.04.2 true false
+      24.04.2 24.04.1 false true
+      9.10 10.04 true false
+      EOF
+    filter:
+      - rwx-utils.sh
+
   - key: check-version-consistency
     use: checkout
     run: |
