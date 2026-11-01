@@ -181,10 +181,10 @@ tasks:
 
       options = Selenium::WebDriver::Options.chrome(args: [])
       driver = Selenium::WebDriver.for(:chrome, options:)
-      driver.navigate.to "https://www.example.com"
+      driver.navigate.to "data:text/html,<title>Chrome smoke test</title><h1>Chrome is working</h1>"
 
       begin
-        driver.find_element(tag_name: 'h1')
+        raise "Unexpected heading" unless driver.find_element(tag_name: 'h1').text == "Chrome is working"
         puts driver.title
       rescue
         puts "Failed! Page contents:"
@@ -197,7 +197,7 @@ tasks:
 
       bundle install
 
-      xvfb-run ruby selenium.rb | tee /dev/stderr | grep "Example Domain"
+      xvfb-run ruby selenium.rb | tee /dev/stderr | grep -Fx "Chrome smoke test"
 
   - key: verify--headless-chrome-works
     if: ${{ init.base-config != "6e590fe8cb5122675c1998821470722bc58dab3f53cc992c18d3b3382f03a31e" }}
@@ -218,10 +218,10 @@ tasks:
 
       options = Selenium::WebDriver::Options.chrome(args: ["--headless=new"])
       driver = Selenium::WebDriver.for(:chrome, options:)
-      driver.navigate.to "https://www.example.com"
+      driver.navigate.to "data:text/html,<title>Chrome smoke test</title><h1>Chrome is working</h1>"
 
       begin
-        driver.find_element(tag_name: 'h1')
+        raise "Unexpected heading" unless driver.find_element(tag_name: 'h1').text == "Chrome is working"
         puts driver.title
       rescue
         puts "Failed! Page contents:"
@@ -234,7 +234,7 @@ tasks:
 
       bundle install
 
-      ruby selenium.rb | tee /dev/stderr | grep "Example Domain"
+      ruby selenium.rb | tee /dev/stderr | grep -Fx "Chrome smoke test"
 
   - key: test--testcafe-finds-chrome--install-node
     # Skipped on the `config: none` base (root, no sudo): this depends on the
