@@ -28,8 +28,10 @@ if [ ! -d .git ]; then
   git remote add origin "${CHECKOUT_REPOSITORY}"
 fi
 
+# Reset helpers inherited from the base image or an older tool-cache entry.
+git config --local --replace-all credential.helper ''
 if [ -n "${CREDENTIAL_HELPER}" ]; then
-  git config --local credential.helper "${CREDENTIAL_HELPER}"
+  git config --local --add credential.helper "${CREDENTIAL_HELPER}"
 fi
 
 # Avoid background maintenance rewriting packfiles in incremental tool-cache runs.
@@ -73,15 +75,11 @@ commit_sha=$(git rev-parse HEAD | tr -d '\n')
 echo "Checked out git repository at ${commit_sha}"
 
 if [ "${SUBMODULES}" = "true" ] && [ -f .gitmodules ]; then
-  if [ "${CREDENTIAL_HELPER}" != "" ]; then
-    git config --global credential.helper "${CREDENTIAL_HELPER}"
-  fi
-
   git submodule sync --recursive
-  git submodule update --init --recursive
-
-  if [ "${CREDENTIAL_HELPER}" != "" ]; then
-    git config --global --unset credential.helper
+  if [ -n "${CREDENTIAL_HELPER}" ]; then
+    git -c credential.helper= -c "credential.helper=${CREDENTIAL_HELPER}" submodule update --init --recursive
+  else
+    git submodule update --init --recursive
   fi
 
   echo "Submodules initialized and updated"
@@ -95,72 +93,11 @@ if [ "${LFS}" = "true" ]; then
     FILTER_LINES=$(printf '%s\n' "$LFS_FILES" | jq -c --raw-input --slurp --arg prefix "$FILTER_PATH_PREFIX" 'split("\n") | map(select(. != "") | $prefix + .)')
 
     LFS_ENDPOINT=$(git-lfs env | grep "Endpoint=" | awk -F'[ =]' '{print $2}')
+    printf '%s' "$LFS_ENDPOINT" > "$RWX_VALUES/lfs-endpoint"
     cat << EOF > "$RWX_DYNAMIC_TASKS/lfs.yml"
 - key: lfs-files
   use: cleanup-git-dir
-  run: |
-    cd "\${CHECKOUT_PATH}"
-
-    DOWNLOAD_HEADERS="-H 'Accept: application/vnd.git-lfs+json'"
-    DOWNLOAD_HEADERS="\$DOWNLOAD_HEADERS -H 'Content-Type: application/json'"
-
-    if [ -n "\$GIT_SSH_KEY" ]; then
-      SSH_PART=\$(printf '%s\n' "\$CHECKOUT_REPOSITORY" | sed 's/:.*//')
-      REPO_PART=\$(printf '%s\n' "\$CHECKOUT_REPOSITORY" | sed 's/.*://')
-
-      SSH_CREDENTIALS=\$(git-ssh-command "\$SSH_PART" git-lfs-authenticate "\$REPO_PART" download)
-      DYNAMIC_HEADERS=\$(printf '%s\n' "\$SSH_CREDENTIALS" | jq -r '.header | to_entries | .[] | "\\(.key): \\(.value)"')
-      while IFS= read -r header; do
-        [ -z "\$header" ] && continue
-        DOWNLOAD_HEADERS="\$DOWNLOAD_HEADERS -H '\$header'"
-      done <<RWX_LFS_HEADERS
-    \$DYNAMIC_HEADERS
-    RWX_LFS_HEADERS
-    else
-      if [ -n "\$GITHUB_TOKEN" ]; then
-        DOWNLOAD_HEADERS="\$DOWNLOAD_HEADERS -H 'Authorization: Bearer \$GITHUB_TOKEN'"
-      else
-        DOWNLOAD_HEADERS="\$DOWNLOAD_HEADERS -u 'x-access-token:\$CURSOR_ORIGIN_TOKEN'"
-      fi
-    fi
-
-    while IFS= read -r file; do
-      [ -z "\$file" ] && continue
-      while IFS= read -r line; do
-        case "\$line" in
-          version*) VERSION=\$(printf '%s\n' "\$line" | awk '{print \$2}') ;;
-          oid*) SHA256=\$(printf '%s\n' "\$line" | awk '{print \$2}' | cut -d ':' -f 2) ;;
-          size*) SIZE=\$(printf '%s\n' "\$line" | awk '{print \$2}') ;;
-        esac
-      done < "\$file"
-
-      CURL_COMMAND="curl -X POST \$DOWNLOAD_HEADERS"
-      URL="$LFS_ENDPOINT/objects/batch"
-      DATA="{\\"operation\\": \\"download\\", \\"transfer\\": [\\"basic\\"], \\"objects\\": [{\\"oid\\": \\"\$SHA256\\", \\"size\\": \$SIZE}]}"
-      CURL_COMMAND="\$CURL_COMMAND -d '\$DATA' \$URL"
-
-      RESPONSE=\$(eval "\$CURL_COMMAND")
-
-      # Check if the response contains an error
-      ERROR_MESSAGE=\$(printf '%s\n' "\$RESPONSE" | jq -r '.objects[0].error.message // empty')
-      if [ -n "\$ERROR_MESSAGE" ]; then
-        echo "Error downloading LFS file \$file: \$ERROR_MESSAGE"
-        echo "Hint: Did you forget to push the LFS file(s)?"
-        exit 1
-      fi
-
-      DOWNLOAD_URL=\$(printf '%s\n' "\$RESPONSE" | jq -r '.objects[0].actions.download.href')
-
-      if [ "\$DOWNLOAD_URL" = "null" ] || [ -z "\$DOWNLOAD_URL" ]; then
-        echo "Error: Unable to get download URL for LFS file \$file"
-        echo "Response: \$RESPONSE"
-        exit 1
-      fi
-
-      curl -o "\$file" "\$DOWNLOAD_URL"
-    done <<RWX_LFS_FILES
-    \$LFS_FILES
-    RWX_LFS_FILES
+  run: sh \$RWX_PACKAGE_PATH/bin/download-lfs-files
   env:
     CHECKOUT_REPOSITORY: \${{ params.repository }}
     GIT_SSH_KEY:
@@ -172,6 +109,7 @@ if [ "${LFS}" = "true" ]; then
     CURSOR_ORIGIN_TOKEN:
       value: \${{ params.cursor-origin-token }}
       cache-key: excluded
+    LFS_ENDPOINT: \${{ tasks.git-clone.values.lfs-endpoint }}
     LFS_FILES: \${{ tasks.git-clone.values.lfs-files }}
     CHECKOUT_PATH: \${{ params.path }}
     PRESERVE_GIT_DIR: \${{ params.preserve-git-dir }}
@@ -239,21 +177,43 @@ printf '%s' "${unresolved_ref}" >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REF"
 printf '%s' "${unresolved_ref}" | sed -E 's|refs/[^/]+/||' >> "$RWX_CACHE_KEY_EXCLUDED_ENV/RWX_GIT_REF_NAME"
 
 if [ "${PRESERVE_GIT_DIR}" = "true" ] && [ -n "$GITHUB_TOKEN" ]; then
-  git config credential.helper '!sh -c "echo username=x-access-token && echo password=${GITHUB_TOKEN}"'
+  case "$CHECKOUT_REPOSITORY" in
+    http://*|https://*|ssh://*)
+      github_host=${CHECKOUT_REPOSITORY#*://}
+      github_host=${github_host%%/*}
+      github_host=${github_host##*@}
+      case "$CHECKOUT_REPOSITORY" in ssh://*) github_host=${github_host%%:*} ;; esac
+      ;;
+    *:*) github_host=${CHECKOUT_REPOSITORY%%:*}; github_host=${github_host##*@} ;;
+    *) echo "Cannot determine GitHub host from repository URL" >&2; exit 1 ;;
+  esac
+  github_host=$(printf '%s' "$github_host" | tr '[:upper:]' '[:lower:]')
+  github_host=${github_host%:443}
+  if [ "$github_host" = github.com ]; then
+    graphql_url=https://api.github.com/graphql
+  else
+    graphql_url="https://$github_host/api/graphql"
+  fi
 
-  QUERY="query { viewer { databaseId login } }"
+  QUERY="query { viewer { databaseId login email } }"
+  # Do not follow redirects with an installation token to another origin.
   ACCESS_TOKEN_DATA=$(curl \
-    -fsSL \
+    -fsS --proto '=https' \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${GITHUB_TOKEN}" \
     -X POST \
     -d "{ \"query\": \"${QUERY}\"}" \
-    https://api.github.com/graphql \
+    "$graphql_url" \
   )
 
-  GIT_USERNAME=$(printf '%s\n' "$ACCESS_TOKEN_DATA" | jq -r '.data.viewer.login')
-  ACCESS_TOKEN_ID=$(printf '%s\n' "$ACCESS_TOKEN_DATA" | jq -r '.data.viewer.databaseId')
-  GIT_EMAIL="${ACCESS_TOKEN_ID}+${GIT_USERNAME}@users.noreply.github.com"
+  GIT_USERNAME=$(printf '%s\n' "$ACCESS_TOKEN_DATA" | jq -er '.data.viewer.login | select(. != null and . != "")')
+  if [ "$github_host" = github.com ]; then
+    ACCESS_TOKEN_ID=$(printf '%s\n' "$ACCESS_TOKEN_DATA" | jq -er '.data.viewer.databaseId')
+    GIT_EMAIL="${ACCESS_TOKEN_ID}+${GIT_USERNAME}@users.noreply.github.com"
+  else
+    GIT_EMAIL=$(printf '%s\n' "$ACCESS_TOKEN_DATA" | jq -r '.data.viewer.email // empty')
+    GIT_EMAIL=${GIT_EMAIL:-${GIT_USERNAME}@${github_host%%:*}}
+  fi
 
   git config user.email "$GIT_EMAIL"
   git config user.name "$GIT_USERNAME"

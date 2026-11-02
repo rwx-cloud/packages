@@ -1,0 +1,91 @@
+#!/bin/sh
+set -e
+
+cd "${CHECKOUT_PATH}"
+batch_headers=''
+
+if [ -n "$GIT_SSH_KEY" ]; then
+  case "$CHECKOUT_REPOSITORY" in
+    ssh://*)
+      ssh_remote=${CHECKOUT_REPOSITORY#ssh://}
+      ssh_authority=${ssh_remote%%/*}
+      repo_path=${ssh_remote#*/}
+      ssh_target=${ssh_authority%%:*}
+      set -- "$ssh_target"
+      case "$ssh_authority" in *:*) set -- -p "${ssh_authority##*:}" "$ssh_target" ;; esac
+      ;;
+    *)
+      set -- "${CHECKOUT_REPOSITORY%%:*}"
+      repo_path=${CHECKOUT_REPOSITORY#*:}
+      ;;
+  esac
+  ssh_credentials=$(git-ssh-command "$@" git-lfs-authenticate "$repo_path" download)
+  LFS_ENDPOINT=$(printf '%s' "$ssh_credentials" | jq -er '.href')
+  batch_headers=$(printf '%s' "$ssh_credentials" | jq -r '.header // {} | to_entries[] | "\(.key): \(.value)"')
+else
+  # An .lfsconfig file may point at a different host. Never send the repository's
+  # token there, even though unauthenticated LFS endpoints are allowed.
+  repository_authority=${CHECKOUT_REPOSITORY#*://}
+  repository_authority=${repository_authority%%/*}
+  repository_authority=${repository_authority##*@}
+  repository_authority=${repository_authority%:443}
+  endpoint_authority=${LFS_ENDPOINT#https://}
+  endpoint_authority=${endpoint_authority%%/*}
+  endpoint_authority=${endpoint_authority%:443}
+  repository_origin=$(printf 'https://%s' "$repository_authority" | tr '[:upper:]' '[:lower:]')
+  endpoint_origin=$(printf 'https://%s' "$endpoint_authority" | tr '[:upper:]' '[:lower:]')
+  case "$LFS_ENDPOINT" in
+    https://*)
+      if [ "$repository_origin" = "$endpoint_origin" ]; then
+        if [ -n "$GITHUB_TOKEN" ]; then
+          batch_headers="Authorization: Bearer $GITHUB_TOKEN"
+        elif [ -n "$CURSOR_ORIGIN_TOKEN" ]; then
+          basic_auth=$(printf 'x-access-token:%s' "$CURSOR_ORIGIN_TOKEN" | base64 | tr -d '\n')
+          batch_headers="Authorization: Basic $basic_auth"
+        fi
+      fi
+      ;;
+  esac
+fi
+
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
+  sha256=$(awk '$1 == "oid" { sub(/^sha256:/, "", $2); print $2 }' "$file")
+  size=$(awk '$1 == "size" { print $2 }' "$file")
+  data=$(jq -nc --arg oid "$sha256" --argjson size "$size" \
+    '{operation: "download", transfers: ["basic"], objects: [{oid: $oid, size: $size}]}')
+
+  # curl strips Authorization on cross-origin redirects. Do not use
+  # --location-trusted, and never allow an authenticated HTTPS request to downgrade.
+  protocols='=https'
+  [ -n "$batch_headers" ] || protocols='=http,https'
+  set -- curl -fsSL --proto "$protocols" --proto-redir '=https' \
+    -H 'Accept: application/vnd.git-lfs+json' -H 'Content-Type: application/json'
+  while IFS= read -r header; do
+    [ -z "$header" ] || set -- "$@" -H "$header"
+  done <<EOF
+$batch_headers
+EOF
+  response=$("$@" --data "$data" "${LFS_ENDPOINT%/}/objects/batch")
+  error_message=$(printf '%s' "$response" | jq -r '.objects[0].error.message // empty')
+  if [ -n "$error_message" ]; then
+    echo "Error downloading LFS file $file: $error_message" >&2
+    echo 'Hint: Did you forget to push the LFS file(s)?' >&2
+    exit 1
+  fi
+  download_url=$(printf '%s' "$response" | jq -er '.objects[0].actions.download.href | select(. != null and . != "")')
+  download_headers=$(printf '%s' "$response" | jq -r '.objects[0].actions.download.header // {} | to_entries[] | "\(.key): \(.value)"')
+
+  # Download actions supply their own credentials, not the repository token.
+  protocols='=https'
+  [ -n "$download_headers" ] || protocols='=http,https'
+  set -- curl -fsSL --proto "$protocols" --proto-redir '=https' -o "$file"
+  while IFS= read -r header; do
+    [ -z "$header" ] || set -- "$@" -H "$header"
+  done <<EOF
+$download_headers
+EOF
+  "$@" "$download_url"
+done <<EOF
+$LFS_FILES
+EOF
