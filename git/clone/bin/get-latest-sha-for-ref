@@ -81,9 +81,12 @@ printf '%s' "${RESOLVED_REF}" >> "$RWX_VALUES/ref"
 mkdir -p "${CHECKOUT_PATH}"
 cd "${CHECKOUT_PATH}"
 CHECKOUT_PATH="$(pwd -P)"
+# Unversioned caches are format 1. Bump when cached state becomes incompatible
+# with earlier readers or writers, independently of the package version.
+cache_format_version=2
 params="${CHECKOUT_REPOSITORY}-${CHECKOUT_PATH}-${LFS}-${PRESERVE_GIT_DIR}-${FETCH_FULL_DEPTH}-${SUBMODULES}-$(id -u)"
 params_hash="$(echo "${params}" | sha256sum | cut -d ' ' -f 1)"
-printf '%s' "${TOOL_CACHE_KEY_PREFIX}-${params_hash}" > "$RWX_VALUES/tool-cache-key"
+printf '%s' "${TOOL_CACHE_KEY_PREFIX}-v${cache_format_version}-${params_hash}" > "$RWX_VALUES/tool-cache-key"
 
 if [ ! -d "$PATCHES_DIR" ]; then
   echo ""
