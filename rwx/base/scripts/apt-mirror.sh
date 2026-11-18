@@ -19,25 +19,40 @@ arch="$(dpkg --print-architecture)"
 
 case "$(rwx_os_name)" in
   ubuntu)
-    # Point apt at the AWS EC2 regional mirror for the archive and at
-    # security.ubuntu.com (or ports.ubuntu.com on non-primary arches) for
-    # security updates. This matches the default sources shipped on
-    # Canonical's EC2 AMIs.
-    aws_apt_mirror_region="us-east-2"
-
     case "$arch" in
       amd64|i386)
-        archive_mirror="${aws_apt_mirror_region}.ec2.archive.ubuntu.com/ubuntu"
+        mirrors=(
+          us-east-2.ec2.archive.ubuntu.com/ubuntu
+          us-east-1.ec2.archive.ubuntu.com/ubuntu
+          azure.archive.ubuntu.com/ubuntu
+          archive.ubuntu.com/ubuntu
+        )
         ;;
       *)
-        archive_mirror="${aws_apt_mirror_region}.ec2.ports.ubuntu.com/ubuntu-ports"
+        mirrors=(
+          us-east-2.ec2.ports.ubuntu.com/ubuntu-ports
+          us-east-1.ec2.ports.ubuntu.com/ubuntu-ports
+          ports.ubuntu.com/ubuntu-ports
+        )
         ;;
     esac
+
+    : > /etc/apt/ubuntu-mirrors.txt
+    for i in "${!mirrors[@]}"; do
+      printf 'http://%s/\tpriority:%d\n' "${mirrors[$i]}" "$((i + 1))" >> /etc/apt/ubuntu-mirrors.txt
+    done
+
+    # Fail over from a stalled mirror sooner than apt's 120s default.
+    mkdir -p /etc/apt/apt.conf.d
+    cat > /etc/apt/apt.conf.d/80rwx-mirror-failover <<EOF
+Acquire::http::Timeout "10";
+Acquire::Retries "2";
+EOF
 
     mkdir -p /etc/apt/sources.list.d
     cat > /etc/apt/sources.list.d/ubuntu.sources <<EOF
 Types: deb
-URIs: http://${archive_mirror}/
+URIs: mirror+file:/etc/apt/ubuntu-mirrors.txt
 Suites: ${codename} ${codename}-updates ${codename}-backports
 Components: main universe restricted multiverse
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
