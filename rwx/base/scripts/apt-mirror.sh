@@ -19,15 +19,12 @@ arch="$(dpkg --print-architecture)"
 
 case "$(rwx_os_name)" in
   ubuntu)
-    # Point apt at the AWS EC2 regional mirror for the archive and at
-    # security.ubuntu.com (or ports.ubuntu.com on non-primary arches) for
-    # security updates. This matches the default sources shipped on
-    # Canonical's EC2 AMIs.
+    # Use RWX's archive alias; non-primary arches keep the EC2 ports mirror.
     aws_apt_mirror_region="us-east-2"
 
     case "$arch" in
       amd64|i386)
-        archive_mirror="${aws_apt_mirror_region}.ec2.archive.ubuntu.com/ubuntu"
+        archive_mirror="ubuntu-archive.apt.rwx.com/ubuntu"
         ;;
       *)
         archive_mirror="${aws_apt_mirror_region}.ec2.ports.ubuntu.com/ubuntu-ports"
